@@ -15,6 +15,7 @@ import {
   type Status,
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
+import { SORTS, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -25,27 +26,27 @@ const STATUSES: Record<Status, string> = {
   playing: "Jogando",
   finished: "Terminado",
 };
-const VIEW_KEY = "collection.view";
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
-
-// Centavos para texto, ex.: 7399 BRL -> "R$ 73,99".
-const money = (cents: number | null, currency: string | null) =>
-  cents == null || !currency
-    ? "—"
-    : new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(cents / 100);
-
-// Faixa de cor da nota.
-const ratingTier = (r: number | null) => (r == null ? "" : r >= 8 ? "good" : r >= 5 ? "ok" : "bad");
 
 // Capa vertical da biblioteca da Steam.
 const portrait = (steamId: number) =>
   `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${steamId}/library_600x900.jpg`;
 
-const readView = (): View => {
+// Preferência salva no localStorage; volta ao padrão se não houver ou for inválida.
+const readPref = <T extends string>(key: string, allowed: readonly T[], fallback: T): T => {
   try {
-    return localStorage.getItem(VIEW_KEY) === "table" ? "table" : "cards";
+    const v = localStorage.getItem(key) as T | null;
+    return v && allowed.includes(v) ? v : fallback;
   } catch {
-    return "cards";
+    return fallback;
+  }
+};
+
+const savePref = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Sem storage, a preferência só não fica salva.
   }
 };
 
@@ -73,7 +74,10 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<SteamApp[]>([]);
-  const [view, setView] = useState<View>(readView);
+  const [view, setView] = useState<View>(() => readPref("collection.view", ["cards", "table"], "cards"));
+  const [sort, setSort] = useState<Sort>(() =>
+    readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"),
+  );
   const [openId, setOpenId] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -118,13 +122,8 @@ function App() {
     };
   }, [term]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(VIEW_KEY, view);
-    } catch {
-      // Sem storage, a visualização só não fica salva.
-    }
-  }, [view]);
+  useEffect(() => savePref("collection.view", view), [view]);
+  useEffect(() => savePref("collection.sort", sort), [sort]);
 
   // Abre/fecha o modal de detalhes junto com openId.
   useEffect(() => {
@@ -169,11 +168,14 @@ function App() {
   const listCount = (listId: number) => games.filter((g) => inList(g.id, listId)).length;
 
   const name = nameFilter.trim().toLowerCase();
-  const shown = games.filter(
-    (g) =>
-      (filter == null || inList(g.id, filter)) &&
-      (!statusFilter || g.status === statusFilter) &&
-      g.name.toLowerCase().includes(name),
+  const shown = sortGames(
+    games.filter(
+      (g) =>
+        (filter == null || inList(g.id, filter)) &&
+        (!statusFilter || g.status === statusFilter) &&
+        g.name.toLowerCase().includes(name),
+    ),
+    sort,
   );
   const title = filter == null ? "Todos os jogos" : (lists.find((l) => l.id === filter)?.name ?? "");
   const opened = games.find((g) => g.id === openId);
@@ -348,6 +350,17 @@ function App() {
             {Object.entries(STATUSES).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.currentTarget.value as Sort)}
+            aria-label="Ordenar por"
+          >
+            {Object.entries(SORTS).map(([value, label]) => (
+              <option key={value} value={value}>
+                Ordenar: {label}
               </option>
             ))}
           </select>
