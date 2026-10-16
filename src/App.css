@@ -877,3 +877,70 @@ button.play:hover {
   outline: 2px solid #beee11;
   outline-offset: 2px;
 }
+
+/* Backup de saves */
+
+.detail-saves {
+  padding: 0 24px 20px;
+}
+
+.detail-saves h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.detail-saves p {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.saves-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.saves-head button {
+  padding: 5px 12px;
+  font-size: 13px;
+}
+
+.save-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.backups {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.backups li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 6px 4px 12px;
+  font-size: 13px;
+}
+
+.backups li + li {
+  border-top: 1px solid var(--border);
+}
+
+.backups button.ghost {
+  padding: 3px 10px;
+  font-size: 12px;
+  border-color: transparent;
+}

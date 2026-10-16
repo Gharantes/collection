@@ -1,4 +1,5 @@
 mod launch;
+mod saves;
 
 const DB_URL: &str = "sqlite:collection.db";
 
@@ -59,6 +60,12 @@ pub fn run() {
             sql: include_str!("../migrations/009_price_alerts.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 10,
+            description: "add games.save_path",
+            sql: include_str!("../migrations/010_save_path.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
@@ -75,7 +82,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             launch::steam_installed,
             launch::launch_steam,
-            launch::launch_exe
+            launch::launch_exe,
+            saves::list_save_backups,
+            saves::backup_saves,
+            saves::restore_saves,
+            saves::delete_save_backup
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

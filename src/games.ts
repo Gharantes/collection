@@ -73,3 +73,14 @@ export const toCents = (text: string) => {
   const clean = text.replace(/[^\d,.]/g, "").replace(",", ".");
   return clean && Number.isFinite(Number(clean)) ? Math.round(Number(clean) * 100) : null;
 };
+
+// Bytes para texto, ex.: 1536 -> "1,5 KB".
+export const formatBytes = (bytes: number) => {
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  while (bytes >= 1024 && i < units.length - 1) {
+    bytes /= 1024;
+    i++;
+  }
+  return `${bytes.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${units[i]}`;
+};

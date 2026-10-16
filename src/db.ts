@@ -19,6 +19,7 @@ export type Game = {
   exe_path: string | null;
   target_price: number | null;
   target_discount: number | null;
+  save_path: string | null;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -114,6 +115,9 @@ export const setTarget = async (id: number, price: number | null, discount: numb
     id,
   ]);
 
+export const setSavePath = async (id: number, path: string | null) =>
+  (await getDb()).execute("UPDATE games SET save_path = $1 WHERE id = $2", [path, id]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -151,6 +155,7 @@ const GAME_COLUMNS = [
   "exe_path",
   "target_price",
   "target_discount",
+  "save_path",
 ];
 
 export const exportBackup = async (): Promise<string> => {

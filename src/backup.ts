@@ -29,6 +29,7 @@ const validGame = (g: Game) =>
   (g.launch == null || g.launch === "steam" || g.launch === "exe") &&
   isStrOrNull(g.exe_path) &&
   isIntOrNull(g.target_price) &&
+  isStrOrNull(g.save_path) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
