@@ -1,6 +1,12 @@
 import { fetch } from "@tauri-apps/plugin-http";
 
-export type SteamApp = { id: number; name: string; tiny_image: string };
+export type SteamApp = {
+  id: number;
+  name: string;
+  tiny_image: string;
+  // Ausente em jogos gratuitos. Valores em centavos.
+  price?: { currency: string; initial: number; final: number };
+};
 
 // Busca jogos na loja da Steam pelo nome.
 export const searchSteam = async (term: string): Promise<SteamApp[]> => {

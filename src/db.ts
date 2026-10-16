@@ -1,4 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
+import type { SteamApp } from "./steam";
 
 export type Status = "backlog" | "playing" | "finished";
 export type Game = {
@@ -7,6 +8,9 @@ export type Game = {
   rating: number | null;
   steam_id: number | null;
   status: Status | null;
+  image_url: string | null;
+  price: number | null;
+  currency: string | null;
 };
 export type List = { id: number; name: string };
 export type Membership = { game_id: number; list_id: number };
@@ -19,8 +23,12 @@ export const getDb = () => (db ??= Database.load("sqlite:collection.db"));
 export const listGames = async () =>
   (await getDb()).select<Game[]>("SELECT * FROM games ORDER BY name");
 
-export const addGame = async (name: string, steamId: number | null = null) =>
-  (await getDb()).execute("INSERT INTO games (name, steam_id) VALUES ($1, $2)", [name, steamId]);
+// Sem `app`, o jogo entra só pelo nome (fora da Steam).
+export const addGame = async (name: string, app: SteamApp | null = null) =>
+  (await getDb()).execute(
+    "INSERT INTO games (name, steam_id, image_url, price, currency) VALUES ($1, $2, $3, $4, $5)",
+    [name, app?.id ?? null, app?.tiny_image ?? null, app?.price?.final ?? null, app?.price?.currency ?? null],
+  );
 
 export const deleteGame = async (id: number) =>
   (await getDb()).execute("DELETE FROM games WHERE id = $1", [id]);

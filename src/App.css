@@ -148,3 +148,8 @@ td.lists {
 .results img {
   height: 32px;
 }
+
+img.cover {
+  height: 40px;
+  display: block;
+}

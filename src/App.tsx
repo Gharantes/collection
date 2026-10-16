@@ -25,6 +25,12 @@ const STATUSES: Record<Status, string> = {
 };
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
 
+// Centavos para texto, ex.: 7399 BRL -> "R$ 73,99".
+const money = (cents: number | null, currency: string | null) =>
+  cents == null || !currency
+    ? "—"
+    : new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(cents / 100);
+
 function App() {
   const [games, setGames] = useState<Game[]>([]);
   const [lists, setLists] = useState<List[]>([]);
@@ -77,9 +83,9 @@ function App() {
     };
   }, [term]);
 
-  const pickGame = (name: string, steamId: number | null) =>
+  const pickGame = (name: string, app: SteamApp | null) =>
     run(async () => {
-      await addGame(name, steamId);
+      await addGame(name, app);
       setTerm("");
     })();
 
@@ -155,7 +161,7 @@ function App() {
           <ul className="results">
             {results.map((app) => (
               <li key={app.id}>
-                <button onClick={() => pickGame(app.name, app.id)}>
+                <button onClick={() => pickGame(app.name, app)}>
                   <img src={app.tiny_image} alt="" /> {app.name}
                 </button>
               </li>
@@ -200,7 +206,9 @@ function App() {
           <table>
             <thead>
               <tr>
+                <th />
                 <th>Jogo</th>
+                <th>Preço</th>
                 <th>Status</th>
                 <th>Nota</th>
                 <th>Listas</th>
@@ -210,7 +218,9 @@ function App() {
             <tbody>
               {shown.map((game) => (
                 <tr key={game.id}>
+                  <td>{game.image_url && <img className="cover" src={game.image_url} alt="" />}</td>
                   <td>{game.name}</td>
+                  <td>{money(game.price, game.currency)}</td>
                   <td>
                     <select
                       value={game.status ?? ""}
