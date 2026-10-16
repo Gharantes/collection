@@ -25,6 +25,7 @@ import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
+import { UpdateBanner } from "./components/UpdateBanner";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -163,6 +164,7 @@ function App() {
       />
 
       <main className="main">
+        <UpdateBanner run={run} />
         <AddGame run={run} onError={setError} />
 
         {filter === "stats" ? (

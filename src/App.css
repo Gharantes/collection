@@ -1118,3 +1118,23 @@ button.play:hover {
   color: var(--muted);
   white-space: nowrap;
 }
+
+/* Aviso de nova versão */
+
+.update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  border: 1px solid #6aa8ff55;
+  border-radius: var(--radius);
+}
+
+.update button {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b1220;
+}
