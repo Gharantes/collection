@@ -33,6 +33,12 @@ pub fn run() {
             sql: include_str!("../migrations/005_price_initial.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 6,
+            description: "add games.notes",
+            sql: include_str!("../migrations/006_notes.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

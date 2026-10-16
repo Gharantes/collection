@@ -9,6 +9,7 @@ import {
   listMemberships,
   refreshPrices,
   setMembership,
+  setNotes,
   setRating,
   setStatus,
   type Game,
@@ -16,6 +17,7 @@ import {
   type Status,
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
+import { NotesEditor } from "./NotesEditor";
 import { SORTS, discount, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
 
@@ -503,6 +505,14 @@ function App() {
                   {listChips(opened)}
                 </div>
               </div>
+            </div>
+            <div className="detail-notes">
+              <h3>Anotações</h3>
+              <NotesEditor
+                gameId={opened.id}
+                initial={opened.notes ?? ""}
+                onSave={(text) => run(() => setNotes(opened.id, text))()}
+              />
             </div>
             <div className="detail-actions">
               <button className="danger" onClick={() => onDeleteGame(opened)}>

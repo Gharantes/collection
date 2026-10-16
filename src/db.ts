@@ -12,6 +12,7 @@ export type Game = {
   price: number | null;
   price_initial: number | null;
   currency: string | null;
+  notes: string | null;
 };
 export type List = { id: number; name: string };
 export type Membership = { game_id: number; list_id: number };
@@ -71,6 +72,9 @@ export const setRating = async (id: number, rating: number | null) =>
 
 export const setStatus = async (id: number, status: Status | null) =>
   (await getDb()).execute("UPDATE games SET status = $1 WHERE id = $2", [status, id]);
+
+export const setNotes = async (id: number, notes: string) =>
+  (await getDb()).execute("UPDATE games SET notes = $1 WHERE id = $2", [notes || null, id]);
 
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");

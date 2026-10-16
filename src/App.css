@@ -573,7 +573,7 @@ select.pill[data-tier="bad"] {
 /* Modal de detalhes */
 
 .detail {
-  width: min(640px, 92vw);
+  width: min(720px, 92vw);
   padding: 0;
   color: var(--text);
   background: var(--surface);
@@ -667,4 +667,30 @@ select.pill[data-tier="bad"] {
 .refresh:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* Anotações */
+
+.detail-notes {
+  padding: 0 24px 20px;
+}
+
+.detail-notes h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.notes {
+  min-height: 140px;
+  max-height: 40vh;
+  overflow-y: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.notes:focus-within {
+  border-color: var(--accent);
 }
