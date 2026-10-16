@@ -4,7 +4,7 @@ const DB_URL: &str = "sqlite:collection.db";
 pub fn run() {
     let migrations = vec![tauri_plugin_sql::Migration {
         version: 1,
-        description: "create items",
+        description: "create games, lists and game_lists",
         sql: include_str!("../migrations/001_init.sql"),
         kind: tauri_plugin_sql::MigrationKind::Up,
     }];

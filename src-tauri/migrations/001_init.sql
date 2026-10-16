@@ -1,4 +1,17 @@
-CREATE TABLE IF NOT EXISTS items (
+CREATE TABLE IF NOT EXISTS games (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    name   TEXT    NOT NULL,
+    rating INTEGER CHECK (rating BETWEEN 0 AND 10)
+);
+
+CREATE TABLE IF NOT EXISTS lists (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Um jogo pode estar em várias listas.
+CREATE TABLE IF NOT EXISTS game_lists (
+    game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+    list_id INTEGER NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+    PRIMARY KEY (game_id, list_id)
 );
