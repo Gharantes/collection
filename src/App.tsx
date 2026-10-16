@@ -345,11 +345,11 @@ function App() {
         </form>
 
         <div className="backup">
-          <button className="ghost" onClick={onExport}>
-            Exportar backup
+          <button className="ghost" onClick={onExport} title="Exportar backup">
+            Exportar
           </button>
-          <button className="ghost" onClick={onImport}>
-            Importar backup
+          <button className="ghost" onClick={onImport} title="Importar backup">
+            Importar
           </button>
         </div>
       </aside>
