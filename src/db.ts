@@ -23,6 +23,7 @@ export type Game = {
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
+export type PlaySession = { id: number; game_id: number; started_at: string; seconds: number };
 export type Membership = { game_id: number; list_id: number };
 
 // Mesma URL das migrations em src-tauri/src/lib.rs.
@@ -96,6 +97,16 @@ export const setStatus = async (id: number, status: Status | null) => {
 export const listStatusEvents = async () =>
   (await getDb()).select<StatusEvent[]>("SELECT * FROM status_events ORDER BY at, id");
 
+export const listPlaySessions = async () =>
+  (await getDb()).select<PlaySession[]>("SELECT * FROM play_sessions ORDER BY started_at");
+
+export const addPlaySession = async (gameId: number, startedAt: number, seconds: number) =>
+  (await getDb()).execute("INSERT INTO play_sessions (game_id, started_at, seconds) VALUES ($1, $2, $3)", [
+    gameId,
+    new Date(startedAt).toISOString(),
+    seconds,
+  ]);
+
 export const setEventDate = async (id: number, at: string) =>
   (await getDb()).execute("UPDATE status_events SET at = $1 WHERE id = $2", [at, id]);
 
@@ -159,13 +170,14 @@ const GAME_COLUMNS = [
 ];
 
 export const exportBackup = async (): Promise<string> => {
-  const [games, lists, game_lists, status_events] = await Promise.all([
+  const [games, lists, game_lists, status_events, play_sessions] = await Promise.all([
     listGames(),
     listLists(),
     listMemberships(),
     listStatusEvents(),
+    listPlaySessions(),
   ]);
-  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists, status_events };
+  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists, status_events, play_sessions };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -192,5 +204,10 @@ export const restoreBackup = async (backup: Backup) => {
     `INSERT INTO status_events (game_id, status, at)
      SELECT value->>'game_id', value->>'status', value->>'at' FROM json_each($1)`,
     [JSON.stringify(backup.status_events)],
+  );
+  await database.execute(
+    `INSERT INTO play_sessions (game_id, started_at, seconds)
+     SELECT value->>'game_id', value->>'started_at', value->>'seconds' FROM json_each($1)`,
+    [JSON.stringify(backup.play_sessions)],
   );
 };

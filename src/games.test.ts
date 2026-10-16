@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, hitsTarget, money, sortGames, toCents } from "./games.ts";
+import { discount, eventLabels, formatDuration, hitsTarget, money, sortGames, toCents } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -44,4 +44,11 @@ test("preço-alvo e desconto mínimo", () => {
   assert.equal(toCents("R$ 49,90"), 4990);
   assert.equal(toCents("abc"), null);
   assert.equal(toCents(""), null);
+});
+
+test("duração", () => {
+  assert.equal(formatDuration(45000), "12 h 30 min");
+  assert.equal(formatDuration(7200), "2 h");
+  assert.equal(formatDuration(600), "10 min");
+  assert.equal(formatDuration(30), "< 1 min");
 });

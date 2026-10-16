@@ -66,6 +66,12 @@ pub fn run() {
             sql: include_str!("../migrations/010_save_path.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 11,
+            description: "create play_sessions",
+            sql: include_str!("../migrations/011_play_sessions.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

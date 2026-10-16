@@ -9,9 +9,10 @@ import {
   setTarget,
   type Game,
   type List,
+  type PlaySession,
   type StatusEvent,
 } from "../db";
-import { eventLabels, formatDate, hitsTarget, toCents } from "../games";
+import { eventLabels, formatDate, formatDuration, hitsTarget, toCents } from "../games";
 import { Cover, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
 import { NotesEditor } from "./NotesEditor";
 import { SavesPanel } from "./SavesPanel";
@@ -19,6 +20,7 @@ import { SavesPanel } from "./SavesPanel";
 type Props = {
   game: Game | undefined;
   events: StatusEvent[];
+  sessions: PlaySession[];
   lists: List[];
   inList: (gameId: number, listId: number) => boolean;
   run: Run;
@@ -28,7 +30,7 @@ type Props = {
 };
 
 // Modal de detalhes; abre quando recebe um jogo e fecha quando recebe undefined.
-export function GameDetail({ game, events, lists, inList, run, error, onClose, onDelete }: Props) {
+export function GameDetail({ game, events, sessions, lists, inList, run, error, onClose, onDelete }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export function GameDetail({ game, events, lists, inList, run, error, onClose, o
         <Body
           game={game}
           events={events.filter((e) => e.game_id === game.id)}
+          sessions={sessions.filter((s) => s.game_id === game.id)}
           lists={lists}
           inList={inList}
           run={run}
@@ -59,10 +62,11 @@ export function GameDetail({ game, events, lists, inList, run, error, onClose, o
   );
 }
 
-function Body({ game, events, lists, inList, run, error, onClose, onDelete }: Props & { game: Game }) {
+function Body({ game, events, sessions, lists, inList, run, error, onClose, onDelete }: Props & { game: Game }) {
   const labels = eventLabels(events);
   const startedAt = events.find((_, i) => labels[i] === "Começou")?.at;
   const finishedAt = events.filter((e) => e.status === "finished").pop()?.at;
+  const played = sessions.reduce((sum, s) => sum + s.seconds, 0);
 
   const linkSteam = () =>
     run(async () => {
@@ -82,7 +86,7 @@ function Body({ game, events, lists, inList, run, error, onClose, onDelete }: Pr
     run(async () => {
       try {
         if (game.launch === "steam") await invoke("launch_steam", { appId: game.steam_id });
-        else await invoke("launch_exe", { path: game.exe_path });
+        else await invoke("launch_exe", { gameId: game.id, path: game.exe_path });
       } catch (e) {
         if (e !== "not_found") throw e;
         await setLaunch(game.id, null);
@@ -172,6 +176,12 @@ function Body({ game, events, lists, inList, run, error, onClose, onDelete }: Pr
               {startedAt && <>Começou em {formatDate(startedAt)}</>}
               {startedAt && finishedAt && " · "}
               {finishedAt && <>Terminou em {formatDate(finishedAt)}</>}
+            </p>
+          )}
+          {sessions.length > 0 && (
+            <p className="dates muted">
+              Tempo de jogo: {formatDuration(played)} em {sessions.length}{" "}
+              {sessions.length === 1 ? "sessão" : "sessões"}
             </p>
           )}
         </div>

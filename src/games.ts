@@ -84,3 +84,12 @@ export const formatBytes = (bytes: number) => {
   }
   return `${bytes.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${units[i]}`;
 };
+
+// Segundos para texto, ex.: 45000 -> "12 h 30 min".
+export const formatDuration = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h && m) return `${h} h ${m} min`;
+  if (h) return `${h} h`;
+  return m ? `${m} min` : "< 1 min";
+};

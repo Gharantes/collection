@@ -1,5 +1,8 @@
+use serde::Serialize;
 use std::path::{Path, PathBuf};
-use tauri::Manager;
+use std::process::Child;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use tauri::{Emitter, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 // Pastas onde a Steam costuma ficar instalada, em cada sistema.
@@ -56,18 +59,37 @@ pub fn launch_steam(app: tauri::AppHandle, app_id: u32) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct Session {
+    game_id: i64,
+    started_at: u128,
+    seconds: u64,
+}
+
 // Roda o executável na pasta dele. Erro "not_found" se o arquivo sumiu.
-#[tauri::command]
-pub fn launch_exe(path: String) -> Result<(), String> {
-    let exe = Path::new(&path);
+fn spawn_exe(path: &str) -> Result<Child, String> {
+    let exe = Path::new(path);
     if !exe.is_file() {
         return Err("not_found".into());
     }
-    let mut child = std::process::Command::new(exe)
+    std::process::Command::new(exe)
         .current_dir(exe.parent().unwrap_or(Path::new(".")))
         .spawn()
-        .map_err(|e| e.to_string())?;
-    std::thread::spawn(move || child.wait());
+        .map_err(|e| e.to_string())
+}
+
+// Abre o jogo e, quando ele fecha, emite "game-exited" com a duração da sessão.
+#[tauri::command]
+pub fn launch_exe(app: tauri::AppHandle, game_id: i64, path: String) -> Result<(), String> {
+    let mut child = spawn_exe(&path)?;
+    let started_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis();
+    let clock = Instant::now();
+    std::thread::spawn(move || {
+        let _ = child.wait();
+        let session = Session { game_id, started_at, seconds: clock.elapsed().as_secs() };
+        let _ = app.emit("game-exited", session);
+    });
     Ok(())
 }
 
@@ -96,6 +118,6 @@ mod tests {
 
     #[test]
     fn missing_exe_is_not_found() {
-        assert_eq!(launch_exe("/nao/existe/jogo".into()), Err("not_found".into()));
+        assert_eq!(spawn_exe("/nao/existe/jogo").err(), Some("not_found".into()));
     }
 }

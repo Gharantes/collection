@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
+import { listen } from "@tauri-apps/api/event";
 import {
+  addPlaySession,
   deleteGame,
   listGames,
   listLists,
   listMemberships,
+  listPlaySessions,
   listStatusEvents,
   refreshPrices,
   type Game,
   type List,
+  type PlaySession,
   type Status,
   type StatusEvent,
 } from "./db";
@@ -38,6 +42,7 @@ function App() {
   const [lists, setLists] = useState<List[]>([]);
   const [members, setMembers] = useState<Set<string>>(new Set());
   const [events, setEvents] = useState<StatusEvent[]>([]);
+  const [sessions, setSessions] = useState<PlaySession[]>([]);
   const [filter, setFilter] = useState<Filter>(null);
   const [statusFilter, setStatusFilter] = useState<Status | "">("");
   const [nameFilter, setNameFilter] = useState("");
@@ -48,11 +53,18 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
-    const [g, l, m, e] = await Promise.all([listGames(), listLists(), listMemberships(), listStatusEvents()]);
+    const [g, l, m, e, s] = await Promise.all([
+      listGames(),
+      listLists(),
+      listMemberships(),
+      listStatusEvents(),
+      listPlaySessions(),
+    ]);
     setGames(g);
     setLists(l);
     setMembers(new Set(m.map((x) => key(x.game_id, x.list_id))));
     setEvents(e);
+    setSessions(s);
   };
 
   // Roda a ação, recarrega tudo (mesmo se falhar) e mostra erro na tela.
@@ -72,6 +84,16 @@ function App() {
 
   useEffect(() => {
     run(async () => {})();
+  }, []);
+
+  // Registra a sessão quando um jogo aberto pelo app fecha, se durou pelo menos 1 minuto.
+  useEffect(() => {
+    const unlisten = listen<{ gameId: number; startedAt: number; seconds: number }>("game-exited", ({ payload }) => {
+      if (payload.seconds >= 60) run(() => addPlaySession(payload.gameId, payload.startedAt, payload.seconds))();
+    });
+    return () => {
+      unlisten.then((stop) => stop());
+    };
   }, []);
 
   useEffect(() => savePref("collection.view", view), [view]);
@@ -201,6 +223,7 @@ function App() {
       <GameDetail
         game={games.find((g) => g.id === openId)}
         events={events}
+        sessions={sessions}
         lists={lists}
         inList={inList}
         run={run}
