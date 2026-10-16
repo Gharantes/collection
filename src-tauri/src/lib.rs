@@ -15,6 +15,12 @@ pub fn run() {
             sql: include_str!("../migrations/002_steam_id.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 3,
+            description: "add games.status",
+            sql: include_str!("../migrations/003_status.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

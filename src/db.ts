@@ -1,6 +1,13 @@
 import Database from "@tauri-apps/plugin-sql";
 
-export type Game = { id: number; name: string; rating: number | null; steam_id: number | null };
+export type Status = "backlog" | "playing" | "finished";
+export type Game = {
+  id: number;
+  name: string;
+  rating: number | null;
+  steam_id: number | null;
+  status: Status | null;
+};
 export type List = { id: number; name: string };
 export type Membership = { game_id: number; list_id: number };
 
@@ -20,6 +27,9 @@ export const deleteGame = async (id: number) =>
 
 export const setRating = async (id: number, rating: number | null) =>
   (await getDb()).execute("UPDATE games SET rating = $1 WHERE id = $2", [rating, id]);
+
+export const setStatus = async (id: number, status: Status | null) =>
+  (await getDb()).execute("UPDATE games SET status = $1 WHERE id = $2", [status, id]);
 
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");

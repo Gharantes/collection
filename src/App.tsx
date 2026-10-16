@@ -9,13 +9,20 @@ import {
   listMemberships,
   setMembership,
   setRating,
+  setStatus,
   type Game,
   type List,
+  type Status,
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
 import "./App.css";
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
+const STATUSES: Record<Status, string> = {
+  backlog: "Backlog",
+  playing: "Jogando",
+  finished: "Terminado",
+};
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
 
 function App() {
@@ -169,6 +176,7 @@ function App() {
             <thead>
               <tr>
                 <th>Jogo</th>
+                <th>Status</th>
                 <th>Nota</th>
                 <th>Listas</th>
                 <th />
@@ -178,6 +186,22 @@ function App() {
               {shown.map((game) => (
                 <tr key={game.id}>
                   <td>{game.name}</td>
+                  <td>
+                    <select
+                      value={game.status ?? ""}
+                      onChange={(e) => {
+                        const v = e.currentTarget.value as Status | "";
+                        run(() => setStatus(game.id, v || null))();
+                      }}
+                    >
+                      <option value="">—</option>
+                      {Object.entries(STATUSES).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                   <td>
                     <select
                       value={game.rating ?? ""}
