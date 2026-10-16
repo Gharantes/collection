@@ -1,4 +1,4 @@
-import type { Game } from "./db";
+import type { Game, StatusEvent } from "./db";
 
 export type Sort = "name" | "rating" | "price" | "recent";
 
@@ -37,3 +37,23 @@ export const sortGames = (games: Game[], sort: Sort) => [...games].sort(COMPARE[
 // Desconto em %, ou 0 se não estiver em promoção.
 export const discount = (initial: number | null, final: number | null) =>
   initial == null || final == null || final >= initial ? 0 : Math.round((1 - final / initial) * 100);
+
+// Rótulo de cada evento (em ordem cronológica), conforme o que veio antes.
+export function eventLabels(events: StatusEvent[]): string[] {
+  let played = false;
+  return events.map((e) => {
+    if (e.status === "playing") {
+      const label = played ? "Retomou" : "Começou";
+      played = true;
+      return label;
+    }
+    if (e.status === "finished") {
+      played = true;
+      return "Terminou";
+    }
+    return played ? "Voltou ao backlog" : "Entrou no backlog";
+  });
+}
+
+// AAAA-MM-DD -> DD/MM/AAAA.
+export const formatDate = (at: string) => at.split("-").reverse().join("/");

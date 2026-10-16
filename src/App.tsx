@@ -3,13 +3,16 @@ import {
   addGame,
   addList,
   deleteGame,
+  deleteEvent,
   deleteList,
   exportBackup,
   listGames,
   listLists,
   listMemberships,
+  listStatusEvents,
   refreshPrices,
   restoreBackup,
+  setEventDate,
   setLaunch,
   setMembership,
   setNotes,
@@ -18,6 +21,7 @@ import {
   type Game,
   type List,
   type Status,
+  type StatusEvent,
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
 import { NotesEditor } from "./NotesEditor";
@@ -25,7 +29,7 @@ import { parseBackup } from "./backup";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { SORTS, discount, money, ratingTier, sortGames, type Sort } from "./games";
+import { SORTS, discount, eventLabels, formatDate, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -91,6 +95,7 @@ function App() {
   const [games, setGames] = useState<Game[]>([]);
   const [lists, setLists] = useState<List[]>([]);
   const [members, setMembers] = useState<Set<string>>(new Set());
+  const [events, setEvents] = useState<StatusEvent[]>([]);
   const [filter, setFilter] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<Status | "">("");
   const [nameFilter, setNameFilter] = useState("");
@@ -106,10 +111,11 @@ function App() {
   const dialog = useRef<HTMLDialogElement>(null);
 
   const load = async () => {
-    const [g, l, m] = await Promise.all([listGames(), listLists(), listMemberships()]);
+    const [g, l, m, e] = await Promise.all([listGames(), listLists(), listMemberships(), listStatusEvents()]);
     setGames(g);
     setLists(l);
     setMembers(new Set(m.map((x) => key(x.game_id, x.list_id))));
+    setEvents(e);
   };
 
   // Roda a ação, recarrega tudo (mesmo se falhar) e mostra erro na tela.
@@ -260,6 +266,10 @@ function App() {
   );
   const title = filter == null ? "Todos os jogos" : (lists.find((l) => l.id === filter)?.name ?? "");
   const opened = games.find((g) => g.id === openId);
+  const openedEvents = events.filter((e) => e.game_id === openId);
+  const openedLabels = eventLabels(openedEvents);
+  const startedAt = openedEvents.find((_, i) => openedLabels[i] === "Começou")?.at;
+  const finishedAt = openedEvents.filter((e) => e.status === "finished").pop()?.at;
 
   const statusSelect = (game: Game) => (
     <select
@@ -599,7 +609,45 @@ function App() {
                   <span>Listas</span>
                   {listChips(opened)}
                 </div>
+                {(startedAt || finishedAt) && (
+                  <p className="dates muted">
+                    {startedAt && <>Começou em {formatDate(startedAt)}</>}
+                    {startedAt && finishedAt && " · "}
+                    {finishedAt && <>Terminou em {formatDate(finishedAt)}</>}
+                  </p>
+                )}
               </div>
+            </div>
+            <div className="detail-history">
+              <h3>Histórico</h3>
+              {openedEvents.length === 0 ? (
+                <p className="muted">Mudar o status registra a data aqui.</p>
+              ) : (
+                <ol className="timeline">
+                  {openedEvents.map((e, i) => (
+                    <li key={e.id} data-status={e.status}>
+                      <span className="timeline-label">{openedLabels[i]}</span>
+                      <input
+                        type="date"
+                        value={e.at}
+                        required
+                        onChange={(ev) => {
+                          const at = ev.currentTarget.value;
+                          if (at) run(() => setEventDate(e.id, at))();
+                        }}
+                        aria-label={`Data de ${openedLabels[i]}`}
+                      />
+                      <button
+                        className="chip-remove"
+                        onClick={run(() => deleteEvent(e.id))}
+                        aria-label={`Apagar registro ${openedLabels[i]}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </div>
             <div className="detail-notes">
               <h3>Anotações</h3>

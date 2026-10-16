@@ -19,6 +19,7 @@ export type Game = {
   exe_path: string | null;
 };
 export type List = { id: number; name: string };
+export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
 export type Membership = { game_id: number; list_id: number };
 
 // Mesma URL das migrations em src-tauri/src/lib.rs.
@@ -74,8 +75,29 @@ export const deleteGame = async (id: number) =>
 export const setRating = async (id: number, rating: number | null) =>
   (await getDb()).execute("UPDATE games SET rating = $1 WHERE id = $2", [rating, id]);
 
-export const setStatus = async (id: number, status: Status | null) =>
-  (await getDb()).execute("UPDATE games SET status = $1 WHERE id = $2", [status, id]);
+// Data local de hoje, AAAA-MM-DD.
+const today = () => new Date().toLocaleDateString("sv-SE");
+
+// Muda o status e registra a mudança no histórico.
+export const setStatus = async (id: number, status: Status | null) => {
+  const database = await getDb();
+  await database.execute("UPDATE games SET status = $1 WHERE id = $2", [status, id]);
+  if (status)
+    await database.execute("INSERT INTO status_events (game_id, status, at) VALUES ($1, $2, $3)", [
+      id,
+      status,
+      today(),
+    ]);
+};
+
+export const listStatusEvents = async () =>
+  (await getDb()).select<StatusEvent[]>("SELECT * FROM status_events ORDER BY at, id");
+
+export const setEventDate = async (id: number, at: string) =>
+  (await getDb()).execute("UPDATE status_events SET at = $1 WHERE id = $2", [at, id]);
+
+export const deleteEvent = async (id: number) =>
+  (await getDb()).execute("DELETE FROM status_events WHERE id = $1", [id]);
 
 export const setNotes = async (id: number, notes: string) =>
   (await getDb()).execute("UPDATE games SET notes = $1 WHERE id = $2", [notes || null, id]);
@@ -121,8 +143,13 @@ const GAME_COLUMNS = [
 ];
 
 export const exportBackup = async (): Promise<string> => {
-  const [games, lists, game_lists] = await Promise.all([listGames(), listLists(), listMemberships()]);
-  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists };
+  const [games, lists, game_lists, status_events] = await Promise.all([
+    listGames(),
+    listLists(),
+    listMemberships(),
+    listStatusEvents(),
+  ]);
+  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists, status_events };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -144,5 +171,10 @@ export const restoreBackup = async (backup: Backup) => {
   await database.execute(
     "INSERT INTO game_lists (game_id, list_id) SELECT value->>'game_id', value->>'list_id' FROM json_each($1)",
     [JSON.stringify(backup.game_lists)],
+  );
+  await database.execute(
+    `INSERT INTO status_events (game_id, status, at)
+     SELECT value->>'game_id', value->>'status', value->>'at' FROM json_each($1)`,
+    [JSON.stringify(backup.status_events)],
   );
 };

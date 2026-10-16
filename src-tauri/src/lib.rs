@@ -47,6 +47,12 @@ pub fn run() {
             sql: include_str!("../migrations/007_launch.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 8,
+            description: "create status_events",
+            sql: include_str!("../migrations/008_status_events.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, money, sortGames } from "./games.ts";
+import { discount, eventLabels, money, sortGames } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -21,4 +21,15 @@ test("desconto e preço", () => {
   assert.equal(discount(null, 100), 0);
   assert.equal(money(7399, "BRL"), "R$\u00a073,99");
   assert.equal(money(null, "BRL"), "—");
+});
+
+test("rótulos do histórico de status", () => {
+  const ev = (status: "backlog" | "playing" | "finished") => ({ id: 0, game_id: 1, status, at: "2026-01-01" });
+  assert.deepEqual(eventLabels(["backlog", "playing", "backlog", "playing", "finished"].map((s) => ev(s as never))), [
+    "Entrou no backlog",
+    "Começou",
+    "Voltou ao backlog",
+    "Retomou",
+    "Terminou",
+  ]);
 });

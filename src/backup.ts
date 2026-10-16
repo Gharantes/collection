@@ -1,6 +1,13 @@
-import type { Game, List, Membership } from "./db";
+import type { Game, List, Membership, StatusEvent } from "./db";
 
-export type Backup = { app: "collection"; version: 1; games: Game[]; lists: List[]; game_lists: Membership[] };
+export type Backup = {
+  app: "collection";
+  version: 1;
+  games: Game[];
+  lists: List[];
+  game_lists: Membership[];
+  status_events: StatusEvent[];
+};
 
 const STATUSES = ["backlog", "playing", "finished"];
 
@@ -44,5 +51,14 @@ export function parseBackup(text: string): Backup {
   if (new Set(steamIds).size !== steamIds.length) throw new Error("Backup com jogo da Steam repetido.");
   if (!Array.isArray(data.game_lists) || !data.game_lists.every((m) => gameIds.has(m.game_id) && listIds.has(m.list_id)))
     throw new Error("Backup com vínculos inválidos entre jogos e listas.");
+  // Backups antigos não têm histórico.
+  data.status_events ??= [];
+  if (
+    !Array.isArray(data.status_events) ||
+    !data.status_events.every(
+      (e) => gameIds.has(e.game_id) && STATUSES.includes(e.status) && /^\d{4}-\d{2}-\d{2}$/.test(e.at),
+    )
+  )
+    throw new Error("Backup com histórico de status inválido.");
   return data;
 }
