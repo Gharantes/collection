@@ -33,3 +33,7 @@ const COMPARE: Record<Sort, (a: Game, b: Game) => number> = {
 };
 
 export const sortGames = (games: Game[], sort: Sort) => [...games].sort(COMPARE[sort]);
+
+// Desconto em %, ou 0 se não estiver em promoção.
+export const discount = (initial: number | null, final: number | null) =>
+  initial == null || final == null || final >= initial ? 0 : Math.round((1 - final / initial) * 100);

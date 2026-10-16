@@ -7,6 +7,7 @@ import {
   listGames,
   listLists,
   listMemberships,
+  refreshPrices,
   setMembership,
   setRating,
   setStatus,
@@ -15,7 +16,7 @@ import {
   type Status,
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
-import { SORTS, money, ratingTier, sortGames, type Sort } from "./games";
+import { SORTS, discount, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -64,6 +65,19 @@ function Cover({ game }: { game: Game }) {
   );
 }
 
+// Preço atual; em promoção mostra também o original riscado e o desconto.
+function Price(p: { final: number | null; initial: number | null; currency: string | null }) {
+  const off = discount(p.initial, p.final);
+  if (!off) return <span className="price muted">{money(p.final, p.currency)}</span>;
+  return (
+    <span className="price">
+      <span className="sale">-{off}%</span>
+      <s className="muted">{money(p.initial, p.currency)}</s>
+      <span className="sale-price">{money(p.final, p.currency)}</span>
+    </span>
+  );
+}
+
 function App() {
   const [games, setGames] = useState<Game[]>([]);
   const [lists, setLists] = useState<List[]>([]);
@@ -79,6 +93,7 @@ function App() {
     readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"),
   );
   const [openId, setOpenId] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
 
   const load = async () => {
@@ -157,6 +172,12 @@ function App() {
   const onDeleteList = (list: List) => {
     if (filter === list.id) setFilter(null);
     run(() => deleteList(list.id))();
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await run(refreshPrices)();
+    setRefreshing(false);
   };
 
   const onDeleteGame = (game: Game) => {
@@ -316,9 +337,11 @@ function App() {
                   <button type="button" onClick={() => pickGame(app.name, app)}>
                     <img src={app.tiny_image} alt="" />
                     <span className="grow">{app.name}</span>
-                    <span className="muted">
-                      {money(app.price?.final ?? null, app.price?.currency ?? null)}
-                    </span>
+                    <Price
+                      final={app.price?.final ?? null}
+                      initial={app.price?.initial ?? null}
+                      currency={app.price?.currency ?? null}
+                    />
                   </button>
                 </li>
               ))}
@@ -331,6 +354,9 @@ function App() {
           <span className="muted">
             {shown.length} {shown.length === 1 ? "jogo" : "jogos"}
           </span>
+          <button className="ghost refresh" onClick={onRefresh} disabled={refreshing}>
+            {refreshing ? "Atualizando…" : "Atualizar preços"}
+          </button>
         </div>
 
         <div className="toolbar">
@@ -385,6 +411,9 @@ function App() {
             {shown.map((game) => (
               <button key={game.id} className="game-card" onClick={() => setOpenId(game.id)}>
                 <Cover game={game} />
+                {discount(game.price_initial, game.price) > 0 && (
+                  <span className="sale sale-badge">-{discount(game.price_initial, game.price)}%</span>
+                )}
                 {game.rating != null && (
                   <span className="badge" data-tier={ratingTier(game.rating)}>
                     {game.rating}
@@ -423,7 +452,9 @@ function App() {
                     )}
                   </td>
                   <td className="name">{game.name}</td>
-                  <td className="muted nowrap">{money(game.price, game.currency)}</td>
+                  <td className="nowrap">
+                    <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+                  </td>
                   <td>{statusSelect(game)}</td>
                   <td>{ratingSelect(game)}</td>
                   <td>{listChips(game)}</td>
@@ -455,7 +486,9 @@ function App() {
               <Cover key={opened.id} game={opened} />
               <div className="detail-info">
                 <h2>{opened.name}</h2>
-                <p className="muted">{money(opened.price, opened.currency)}</p>
+                <p>
+                  <Price final={opened.price} initial={opened.price_initial} currency={opened.currency} />
+                </p>
 
                 <label className="field">
                   <span>Status</span>

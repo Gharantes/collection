@@ -626,3 +626,45 @@ select.pill[data-tier="bad"] {
   padding: 14px 24px;
   border-top: 1px solid var(--border);
 }
+
+/* Preço e promoção */
+
+.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.price s {
+  font-size: 0.85em;
+}
+
+.sale {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #4c6b22;
+  color: #beee11;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.sale-price {
+  color: #beee11;
+}
+
+.sale-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+.refresh {
+  margin-left: auto;
+  padding: 6px 12px;
+}
+
+.refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

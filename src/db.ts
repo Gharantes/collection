@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { SteamApp } from "./steam";
+import { fetchPrices, type SteamApp } from "./steam";
 
 export type Status = "backlog" | "playing" | "finished";
 export type Game = {
@@ -10,6 +10,7 @@ export type Game = {
   status: Status | null;
   image_url: string | null;
   price: number | null;
+  price_initial: number | null;
   currency: string | null;
 };
 export type List = { id: number; name: string };
@@ -26,9 +27,41 @@ export const listGames = async () =>
 // Sem `app`, o jogo entra só pelo nome (fora da Steam).
 export const addGame = async (name: string, app: SteamApp | null = null) =>
   (await getDb()).execute(
-    "INSERT INTO games (name, steam_id, image_url, price, currency) VALUES ($1, $2, $3, $4, $5)",
-    [name, app?.id ?? null, app?.tiny_image ?? null, app?.price?.final ?? null, app?.price?.currency ?? null],
+    `INSERT INTO games (name, steam_id, image_url, price, price_initial, currency)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      name,
+      app?.id ?? null,
+      app?.tiny_image ?? null,
+      app?.price?.final ?? null,
+      app?.price?.initial ?? null,
+      app?.price?.currency ?? null,
+    ],
   );
+
+// Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
+export const refreshPrices = async () => {
+  const database = await getDb();
+  const games = (await listGames()).filter((g) => g.steam_id != null);
+  const prices = await fetchPrices(games.map((g) => g.steam_id!));
+  for (const game of games) {
+    const id = game.steam_id!;
+    if (!(id in prices)) continue;
+    const p = prices[id];
+    await database.execute(
+      `UPDATE games SET price = $1, price_initial = $2, currency = $3,
+         image_url = COALESCE(image_url, $4)
+       WHERE id = $5`,
+      [
+        p?.final ?? null,
+        p?.initial ?? null,
+        p?.currency ?? null,
+        `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/capsule_231x87.jpg`,
+        game.id,
+      ],
+    );
+  }
+};
 
 export const deleteGame = async (id: number) =>
   (await getDb()).execute("DELETE FROM games WHERE id = $1", [id]);

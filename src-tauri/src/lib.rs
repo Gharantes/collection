@@ -27,6 +27,12 @@ pub fn run() {
             sql: include_str!("../migrations/004_image_price.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 5,
+            description: "add games.price_initial",
+            sql: include_str!("../migrations/005_price_initial.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
