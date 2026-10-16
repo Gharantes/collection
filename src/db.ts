@@ -1,6 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
 
-export type Game = { id: number; name: string; rating: number | null };
+export type Game = { id: number; name: string; rating: number | null; steam_id: number | null };
 export type List = { id: number; name: string };
 export type Membership = { game_id: number; list_id: number };
 
@@ -12,8 +12,8 @@ export const getDb = () => (db ??= Database.load("sqlite:collection.db"));
 export const listGames = async () =>
   (await getDb()).select<Game[]>("SELECT * FROM games ORDER BY name");
 
-export const addGame = async (name: string) =>
-  (await getDb()).execute("INSERT INTO games (name) VALUES ($1)", [name]);
+export const addGame = async (name: string, steamId: number | null = null) =>
+  (await getDb()).execute("INSERT INTO games (name, steam_id) VALUES ($1, $2)", [name, steamId]);
 
 export const deleteGame = async (id: number) =>
   (await getDb()).execute("DELETE FROM games WHERE id = $1", [id]);

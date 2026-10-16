@@ -12,6 +12,7 @@ import {
   type Game,
   type List,
 } from "./db";
+import { searchSteam, type SteamApp } from "./steam";
 import "./App.css";
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
@@ -23,6 +24,8 @@ function App() {
   const [members, setMembers] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [term, setTerm] = useState("");
+  const [results, setResults] = useState<SteamApp[]>([]);
 
   const load = async () => {
     const [g, l, m] = await Promise.all([listGames(), listLists(), listMemberships()]);
@@ -45,6 +48,37 @@ function App() {
   useEffect(() => {
     run(async () => {})();
   }, []);
+
+  // Busca na Steam 300 ms depois que o usuário para de digitar.
+  useEffect(() => {
+    const q = term.trim();
+    if (q.length < 2) {
+      setResults([]);
+      return;
+    }
+    let stale = false;
+    const timer = setTimeout(() => {
+      searchSteam(q)
+        .then((r) => !stale && setResults(r))
+        .catch((e) => !stale && setError(String(e)));
+    }, 300);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [term]);
+
+  const pickGame = (name: string, steamId: number | null) =>
+    run(async () => {
+      await addGame(name, steamId);
+      setTerm("");
+    })();
+
+  // Enter sem escolher sugestão adiciona só pelo nome (jogo fora da Steam).
+  const onAddGame = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (term.trim()) pickGame(term.trim(), null);
+  };
 
   // Lê o campo "name" do form, roda a ação e limpa o form.
   const onSubmitName =
@@ -92,10 +126,27 @@ function App() {
 
       <section>
         <h2>Jogos</h2>
-        <form className="row" onSubmit={onSubmitName(addGame)}>
-          <input name="name" placeholder="Nome do jogo" required />
-          <button type="submit">Adicionar jogo</button>
+        <form className="row" onSubmit={onAddGame}>
+          <input
+            value={term}
+            onChange={(e) => setTerm(e.currentTarget.value)}
+            placeholder="Buscar jogo na Steam"
+            required
+          />
+          <button type="submit">Adicionar sem Steam</button>
         </form>
+
+        {results.length > 0 && (
+          <ul className="results">
+            {results.map((app) => (
+              <li key={app.id}>
+                <button onClick={() => pickGame(app.name, app.id)}>
+                  <img src={app.tiny_image} alt="" /> {app.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="row">
           <select

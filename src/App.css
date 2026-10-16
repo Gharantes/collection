@@ -126,3 +126,25 @@ td.lists {
   flex-wrap: wrap;
   gap: 4px 12px;
 }
+
+.results {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 12px;
+  max-width: 480px;
+  text-align: left;
+}
+
+.results button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+}
+
+.results img {
+  height: 32px;
+}

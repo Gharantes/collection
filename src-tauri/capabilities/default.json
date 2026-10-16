@@ -3,5 +3,14 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["main"],
-  "permissions": ["core:default", "opener:default", "sql:default", "sql:allow-execute"]
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "sql:default",
+    "sql:allow-execute",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "https://store.steampowered.com/api/*" }]
+    }
+  ]
 }
