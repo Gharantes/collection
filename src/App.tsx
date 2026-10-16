@@ -291,18 +291,41 @@ function App() {
                   </td>
                   <td>
                     <div className="chips">
-                      {lists.map((list) => (
-                        <label key={list.id} className="toggle">
-                          <input
-                            type="checkbox"
-                            checked={members.has(key(game.id, list.id))}
-                            onChange={(e) =>
-                              run(() => setMembership(game.id, list.id, e.currentTarget.checked))()
-                            }
-                          />
-                          {list.name}
-                        </label>
-                      ))}
+                      {lists
+                        .filter((list) => members.has(key(game.id, list.id)))
+                        .map((list) => (
+                          <span key={list.id} className="chip small">
+                            {list.name}
+                            <button
+                              className="chip-remove"
+                              onClick={run(() => setMembership(game.id, list.id, false))}
+                              aria-label={`Tirar ${game.name} de ${list.name}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      {lists.some((list) => !members.has(key(game.id, list.id))) && (
+                        <select
+                          className="add-list"
+                          value=""
+                          onChange={(e) =>
+                            run(() => setMembership(game.id, Number(e.currentTarget.value), true))()
+                          }
+                          aria-label={`Adicionar ${game.name} a uma lista`}
+                        >
+                          <option value="" disabled>
+                            + Lista
+                          </option>
+                          {lists
+                            .filter((list) => !members.has(key(game.id, list.id)))
+                            .map((list) => (
+                              <option key={list.id} value={list.id}>
+                                {list.name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
                     </div>
                   </td>
                   <td>
