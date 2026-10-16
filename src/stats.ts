@@ -4,7 +4,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type Stats = {
   total: number;
-  byStatus: { backlog: number; playing: number; finished: number };
+  byStatus: { backlog: number; playing: number; finished: number; abandoned: number };
   avgRating: number | null;
   playedSeconds: number;
   avgDaysToFinish: number | null;
@@ -53,7 +53,12 @@ export function computeStats(games: Game[], events: StatusEvent[], sessions: Pla
 
   return {
     total: games.length,
-    byStatus: { backlog: count("backlog"), playing: count("playing"), finished: count("finished") },
+    byStatus: {
+      backlog: count("backlog"),
+      playing: count("playing"),
+      finished: count("finished"),
+      abandoned: count("abandoned"),
+    },
     avgRating: rated.length ? rated.reduce((s, g) => s + g.rating!, 0) / rated.length : null,
     playedSeconds: [...perGame.values()].reduce((a, b) => a + b, 0),
     avgDaysToFinish: days.length ? days.reduce((a, b) => a + b, 0) / days.length : null,

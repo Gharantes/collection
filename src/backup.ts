@@ -10,7 +10,7 @@ export type Backup = {
   play_sessions: PlaySession[];
 };
 
-const STATUSES = ["backlog", "playing", "finished"];
+const STATUSES = ["backlog", "playing", "finished", "abandoned"];
 
 const isInt = (v: unknown) => Number.isInteger(v);
 const isIntOrNull = (v: unknown) => v == null || Number.isInteger(v);

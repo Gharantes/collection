@@ -2,7 +2,7 @@ import Database from "@tauri-apps/plugin-sql";
 import { fetchPrices, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
 
-export type Status = "backlog" | "playing" | "finished";
+export type Status = "backlog" | "playing" | "finished" | "abandoned";
 export type Launch = "steam" | "exe";
 export type Game = {
   id: number;

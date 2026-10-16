@@ -9,6 +9,7 @@ export const STATUSES: Record<Status, string> = {
   backlog: "Backlog",
   playing: "Jogando",
   finished: "Terminado",
+  abandoned: "Abandonado",
 };
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);

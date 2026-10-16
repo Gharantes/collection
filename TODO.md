@@ -11,7 +11,8 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 
 - Setup Tauri 2 + React + TypeScript + Vite + SQLite, igual ao price-tracker-v2
 - Listas (um jogo em várias), nota de 0 a 10
-- Status: Backlog, Jogando, Terminado
+- Status: Backlog, Jogando, Terminado, Abandonado
+- Botão "O que jogar?": sorteia um jogo do Backlog entre os mostrados (respeita a lista)
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
@@ -39,5 +40,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Achar a Steam em pasta personalizada no Windows (registro)
 - Listas automáticas por regras
 - Busca rápida com Ctrl+K
+- Histórico de preço (menor preço já visto)
+- Tempo estimado para terminar (HowLongToBeat)
 - Projetos novos sugeridos: backup de saves separado (virou parte deste app), Collection para filmes/séries/livros, leitor de RSS
 - CI com Rust (o CI deve ser rápido)

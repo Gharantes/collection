@@ -8,7 +8,8 @@ App desktop para organizar sua coleção de jogos em listas, no estilo das cole�
 
 - Busca jogos na Steam enquanto você digita e salva capa e preço
 - Listas (um jogo pode estar em várias), com sidebar e contagem
-- Status (Backlog, Jogando, Terminado) e nota de 0 a 10
+- Status (Backlog, Jogando, Terminado, Abandonado) e nota de 0 a 10
+- Botão "O que jogar?" sorteia um jogo do Backlog
 - Visualização em cards ou tabela, com filtros e ordenação
 - Atualiza preços da Steam uma vez por dia; em promoção mostra o preço original junto
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação

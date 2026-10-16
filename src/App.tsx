@@ -142,6 +142,8 @@ function App() {
     ),
     sort,
   );
+  const backlog = shown.filter((g) => g.status === "backlog");
+
   const title =
     filter == null
       ? "Todos os jogos"
@@ -183,6 +185,14 @@ function App() {
             </span>
             <button className="ghost refresh" onClick={onRefresh} disabled={refreshing}>
               {refreshing ? "Atualizando…" : "Atualizar preços"}
+            </button>
+            <button
+              className="ghost pick"
+              onClick={() => setOpenId(backlog[Math.floor(Math.random() * backlog.length)].id)}
+              disabled={backlog.length === 0}
+              title="Sorteia um jogo do Backlog entre os mostrados"
+            >
+              O que jogar?
             </button>
           </div>
 

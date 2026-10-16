@@ -27,6 +27,7 @@ export function StatsPage({ games, events, sessions }: Props) {
         <Tile label="Terminados" value={number(s.byStatus.finished)} />
         <Tile label="Jogando" value={number(s.byStatus.playing)} />
         <Tile label="Backlog" value={number(s.byStatus.backlog)} />
+        <Tile label="Abandonados" value={number(s.byStatus.abandoned)} />
         <Tile label="Nota média" value={s.avgRating == null ? "—" : number(s.avgRating, 1)} />
         <Tile label="Tempo de jogo" value={s.playedSeconds ? formatDuration(s.playedSeconds) : "—"} />
         <Tile

@@ -18,7 +18,7 @@ test("estatísticas da coleção", () => {
   ] as PlaySession[];
 
   const s = computeStats(games, events, sessions);
-  assert.deepEqual(s.byStatus, { backlog: 0, playing: 1, finished: 2 });
+  assert.deepEqual(s.byStatus, { backlog: 0, playing: 1, finished: 2, abandoned: 0 });
   assert.equal(s.avgRating, 7);
   assert.equal(s.avgDaysToFinish, 10);
   assert.equal(s.value, 1500);

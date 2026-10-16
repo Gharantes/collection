@@ -532,6 +532,10 @@ select.pill {
   color: var(--accent);
 }
 
+[data-status="abandoned"] {
+  color: var(--muted);
+}
+
 [data-status="finished"],
 [data-tier="good"] {
   color: var(--good);
@@ -664,7 +668,12 @@ select.pill[data-tier="bad"] {
   padding: 6px 12px;
 }
 
-.refresh:disabled {
+.pick {
+  padding: 6px 12px;
+}
+
+.refresh:disabled,
+.pick:disabled {
   opacity: 0.6;
   cursor: default;
 }

@@ -25,10 +25,12 @@ test("desconto e preço", () => {
 
 test("rótulos do histórico de status", () => {
   const ev = (status: "backlog" | "playing" | "finished") => ({ id: 0, game_id: 1, status, at: "2026-01-01" });
-  assert.deepEqual(eventLabels(["backlog", "playing", "backlog", "playing", "finished"].map((s) => ev(s as never))), [
+  assert.deepEqual(eventLabels(["backlog", "playing", "backlog", "playing", "abandoned", "playing", "finished"].map((s) => ev(s as never))), [
     "Entrou no backlog",
     "Começou",
     "Voltou ao backlog",
+    "Retomou",
+    "Abandonou",
     "Retomou",
     "Terminou",
   ]);

@@ -51,6 +51,10 @@ export function eventLabels(events: StatusEvent[]): string[] {
       played = true;
       return "Terminou";
     }
+    if (e.status === "abandoned") {
+      played = true;
+      return "Abandonou";
+    }
     return played ? "Voltou ao backlog" : "Entrou no backlog";
   });
 }

@@ -72,6 +72,12 @@ pub fn run() {
             sql: include_str!("../migrations/011_play_sessions.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 12,
+            description: "add status abandoned",
+            sql: include_str!("../migrations/012_abandoned.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
