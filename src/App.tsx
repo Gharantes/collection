@@ -41,6 +41,16 @@ const STATUSES: Record<Status, string> = {
   finished: "Terminado",
 };
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
+const DRAG_TYPE = "application/x-collection-game";
+
+// Torna o elemento arrastável levando o id do jogo.
+const dragGame = (gameId: number) => ({
+  draggable: true,
+  onDragStart: (e: React.DragEvent) => {
+    e.dataTransfer.setData(DRAG_TYPE, String(gameId));
+    e.dataTransfer.effectAllowed = "copy";
+  },
+});
 
 // Capa vertical da biblioteca da Steam.
 const portrait = (steamId: number) =>
@@ -108,6 +118,7 @@ function App() {
   );
   const [openId, setOpenId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [dropList, setDropList] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
 
   const load = async () => {
@@ -363,7 +374,22 @@ function App() {
 
           <h3>Listas</h3>
           {lists.map((list) => (
-            <div key={list.id} className="nav-row">
+            <div
+              key={list.id}
+              className={dropList === list.id ? "nav-row drop" : "nav-row"}
+              onDragOver={(e) => {
+                if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
+                e.preventDefault();
+                setDropList(list.id);
+              }}
+              onDragLeave={() => setDropList(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDropList(null);
+                const gameId = Number(e.dataTransfer.getData(DRAG_TYPE));
+                if (gameId) run(() => setMembership(gameId, list.id, true))();
+              }}
+            >
               <button
                 className={filter === list.id ? "nav active" : "nav"}
                 onClick={() => setFilter(list.id)}
@@ -488,7 +514,12 @@ function App() {
         ) : view === "cards" ? (
           <div className="grid">
             {shown.map((game) => (
-              <button key={game.id} className="game-card" onClick={() => setOpenId(game.id)}>
+              <button
+                key={game.id}
+                className="game-card"
+                onClick={() => setOpenId(game.id)}
+                {...dragGame(game.id)}
+              >
                 <Cover game={game} />
                 {discount(game.price_initial, game.price) > 0 && (
                   <span className="sale sale-badge">-{discount(game.price_initial, game.price)}%</span>
@@ -522,7 +553,7 @@ function App() {
             </thead>
             <tbody>
               {shown.map((game) => (
-                <tr key={game.id}>
+                <tr key={game.id} {...dragGame(game.id)}>
                   <td>
                     {game.image_url ? (
                       <img className="cover" src={game.image_url} alt="" />

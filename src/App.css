@@ -841,3 +841,16 @@ button.play:hover {
 .timeline .timeline-label {
   font-weight: 600;
 }
+
+/* Soltar jogo numa lista da sidebar */
+
+.nav-row.drop .nav {
+  background: var(--accent-soft);
+  color: var(--accent);
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+.games tr[draggable="true"] {
+  cursor: grab;
+}
