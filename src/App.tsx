@@ -31,6 +31,9 @@ const money = (cents: number | null, currency: string | null) =>
     ? "—"
     : new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(cents / 100);
 
+// Faixa de cor da nota.
+const ratingTier = (r: number | null) => (r == null ? "" : r >= 8 ? "good" : r >= 5 ? "ok" : "bad");
+
 function App() {
   const [games, setGames] = useState<Game[]>([]);
   const [lists, setLists] = useState<List[]>([]);
@@ -122,55 +125,76 @@ function App() {
   );
 
   return (
-    <main className="container">
-      <h1>Collection</h1>
+    <main className="app">
+      <header className="header">
+        <h1>Collection</h1>
+        <span className="muted">
+          {games.length} {games.length === 1 ? "jogo" : "jogos"}
+        </span>
+      </header>
 
-      {error && <p style={{ color: "tomato" }}>{error}</p>}
+      {error && <p className="error">{error}</p>}
 
-      <section>
-        <h2>Listas</h2>
-        <form className="row" onSubmit={onSubmitName(addList)}>
-          <input name="name" placeholder="Nova lista" required />
-          <button type="submit">Criar lista</button>
-        </form>
-        <div className="row chips">
-          {lists.map((list) => (
-            <span key={list.id} className="chip">
-              {list.name}{" "}
-              <button onClick={() => onDeleteList(list)} title="Apagar lista">
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </section>
+      <div className="panels">
+        <section className="card">
+          <h2>Adicionar jogo</h2>
+          <form className="row" onSubmit={onAddGame}>
+            <input
+              className="grow"
+              value={term}
+              onChange={(e) => setTerm(e.currentTarget.value)}
+              placeholder="Buscar jogo na Steam…"
+              required
+            />
+            <button type="submit" className="ghost">
+              Adicionar sem Steam
+            </button>
+          </form>
 
-      <section>
-        <h2>Jogos</h2>
-        <form className="row" onSubmit={onAddGame}>
-          <input
-            value={term}
-            onChange={(e) => setTerm(e.currentTarget.value)}
-            placeholder="Buscar jogo na Steam"
-            required
-          />
-          <button type="submit">Adicionar sem Steam</button>
-        </form>
+          {results.length > 0 && (
+            <ul className="results">
+              {results.map((app) => (
+                <li key={app.id}>
+                  <button onClick={() => pickGame(app.name, app)}>
+                    <img src={app.tiny_image} alt="" />
+                    <span className="grow">{app.name}</span>
+                    <span className="muted">
+                      {money(app.price?.final ?? null, app.price?.currency ?? null)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-        {results.length > 0 && (
-          <ul className="results">
-            {results.map((app) => (
-              <li key={app.id}>
-                <button onClick={() => pickGame(app.name, app)}>
-                  <img src={app.tiny_image} alt="" /> {app.name}
+        <section className="card">
+          <h2>Listas</h2>
+          <form className="row" onSubmit={onSubmitName(addList)}>
+            <input className="grow" name="name" placeholder="Nova lista" required />
+            <button type="submit">Criar</button>
+          </form>
+          <div className="chips">
+            {lists.map((list) => (
+              <span key={list.id} className="chip">
+                {list.name}
+                <button
+                  className="chip-remove"
+                  onClick={() => onDeleteList(list)}
+                  aria-label={`Apagar lista ${list.name}`}
+                >
+                  ×
                 </button>
-              </li>
+              </span>
             ))}
-          </ul>
-        )}
+          </div>
+        </section>
+      </div>
 
-        <div className="row">
+      <section>
+        <div className="row toolbar">
           <input
+            className="grow"
             type="search"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.currentTarget.value)}
@@ -201,9 +225,11 @@ function App() {
         </div>
 
         {shown.length === 0 ? (
-          <p>{games.length === 0 ? "Nenhum jogo ainda." : "Nenhum jogo com esses filtros."}</p>
+          <p className="empty">
+            {games.length === 0 ? "Nenhum jogo ainda. Busque um acima." : "Nenhum jogo com esses filtros."}
+          </p>
         ) : (
-          <table>
+          <table className="games">
             <thead>
               <tr>
                 <th />
@@ -218,11 +244,19 @@ function App() {
             <tbody>
               {shown.map((game) => (
                 <tr key={game.id}>
-                  <td>{game.image_url && <img className="cover" src={game.image_url} alt="" />}</td>
-                  <td>{game.name}</td>
-                  <td>{money(game.price, game.currency)}</td>
+                  <td>
+                    {game.image_url ? (
+                      <img className="cover" src={game.image_url} alt="" />
+                    ) : (
+                      <div className="cover placeholder" />
+                    )}
+                  </td>
+                  <td className="name">{game.name}</td>
+                  <td className="muted nowrap">{money(game.price, game.currency)}</td>
                   <td>
                     <select
+                      className="pill"
+                      data-status={game.status ?? ""}
                       value={game.status ?? ""}
                       onChange={(e) => {
                         const v = e.currentTarget.value as Status | "";
@@ -239,6 +273,8 @@ function App() {
                   </td>
                   <td>
                     <select
+                      className="pill"
+                      data-tier={ratingTier(game.rating)}
                       value={game.rating ?? ""}
                       onChange={(e) => {
                         const v = e.currentTarget.value;
@@ -253,22 +289,30 @@ function App() {
                       ))}
                     </select>
                   </td>
-                  <td className="lists">
-                    {lists.map((list) => (
-                      <label key={list.id}>
-                        <input
-                          type="checkbox"
-                          checked={members.has(key(game.id, list.id))}
-                          onChange={(e) =>
-                            run(() => setMembership(game.id, list.id, e.currentTarget.checked))()
-                          }
-                        />{" "}
-                        {list.name}
-                      </label>
-                    ))}
+                  <td>
+                    <div className="chips">
+                      {lists.map((list) => (
+                        <label key={list.id} className="toggle">
+                          <input
+                            type="checkbox"
+                            checked={members.has(key(game.id, list.id))}
+                            onChange={(e) =>
+                              run(() => setMembership(game.id, list.id, e.currentTarget.checked))()
+                            }
+                          />
+                          {list.name}
+                        </label>
+                      ))}
+                    </div>
                   </td>
                   <td>
-                    <button onClick={run(() => deleteGame(game.id))}>Remover</button>
+                    <button
+                      className="danger"
+                      onClick={run(() => deleteGame(game.id))}
+                      aria-label={`Remover ${game.name}`}
+                    >
+                      Remover
+                    </button>
                   </td>
                 </tr>
               ))}

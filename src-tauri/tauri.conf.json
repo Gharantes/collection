@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "Collection",
-        "width": 800,
-        "height": 600
+        "width": 1200,
+        "height": 800,
+        "theme": "Dark",
+        "backgroundColor": "#0d0f14"
       }
     ],
     "security": {
