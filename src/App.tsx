@@ -4,10 +4,12 @@ import {
   addList,
   deleteGame,
   deleteList,
+  exportBackup,
   listGames,
   listLists,
   listMemberships,
   refreshPrices,
+  restoreBackup,
   setMembership,
   setNotes,
   setRating,
@@ -18,6 +20,9 @@ import {
 } from "./db";
 import { searchSteam, type SteamApp } from "./steam";
 import { NotesEditor } from "./NotesEditor";
+import { parseBackup } from "./backup";
+import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { SORTS, discount, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
 
@@ -182,6 +187,27 @@ function App() {
     setRefreshing(false);
   };
 
+  const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
+
+  const onExport = run(async () => {
+    const day = new Date().toISOString().slice(0, 10);
+    const path = await save({ defaultPath: `collection-backup-${day}.json`, filters: BACKUP_FILTER });
+    if (path) await writeTextFile(path, await exportBackup());
+  });
+
+  const onImport = run(async () => {
+    const path = await open({ multiple: false, directory: false, filters: BACKUP_FILTER });
+    if (!path) return;
+    const backup = parseBackup(await readTextFile(path));
+    const ok = await ask(
+      `Isso substitui todos os jogos e listas atuais pelos do backup (${backup.games.length} jogos). Continuar?`,
+      { title: "Importar backup", kind: "warning" },
+    );
+    if (!ok) return;
+    setFilter(null);
+    await restoreBackup(backup);
+  });
+
   const onDeleteGame = (game: Game) => {
     setOpenId(null);
     run(() => deleteGame(game.id))();
@@ -317,6 +343,15 @@ function App() {
         <form className="new-list" onSubmit={onAddList}>
           <input name="name" placeholder="+ Nova lista" aria-label="Nova lista" required />
         </form>
+
+        <div className="backup">
+          <button className="ghost" onClick={onExport}>
+            Exportar backup
+          </button>
+          <button className="ghost" onClick={onImport}>
+            Importar backup
+          </button>
+        </div>
       </aside>
 
       <main className="main">

@@ -25,8 +25,7 @@ type Details = {
   data?: { price_overview?: { currency: string; initial: number; final: number } } | [];
 };
 
-// Preço atual por appid; null = sem preço (gratuito). Appids que falharam ficam de fora.
-// ponytail: lotes de 100 em sequência; paralelizar se a coleção ficar enorme.
+// Preço atual por appid, em lotes de 100; null = sem preço (gratuito). Appids que falharam ficam de fora.
 export const fetchPrices = async (appIds: number[]) => {
   const prices: Record<number, SteamPrice | null> = {};
   for (let i = 0; i < appIds.length; i += 100) {

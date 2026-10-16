@@ -1,5 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
 import { fetchPrices, type SteamApp } from "./steam";
+import type { Backup } from "./backup";
 
 export type Status = "backlog" | "playing" | "finished";
 export type Game = {
@@ -96,3 +97,32 @@ export const setMembership = async (gameId: number, listId: number, member: bool
       : "DELETE FROM game_lists WHERE game_id = $1 AND list_id = $2",
     [gameId, listId],
   );
+
+export const exportBackup = async (): Promise<string> => {
+  const [games, lists, game_lists] = await Promise.all([listGames(), listLists(), listMemberships()]);
+  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists };
+  return JSON.stringify(backup, null, 2);
+};
+
+// Troca todos os dados pelos do backup. Sem transação: validar antes com parseBackup.
+export const restoreBackup = async (backup: Backup) => {
+  const database = await getDb();
+  await database.execute("DELETE FROM game_lists");
+  await database.execute("DELETE FROM games");
+  await database.execute("DELETE FROM lists");
+  await database.execute(
+    "INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)",
+    [JSON.stringify(backup.lists)],
+  );
+  await database.execute(
+    `INSERT INTO games (id, name, rating, steam_id, status, image_url, price, price_initial, currency, notes)
+     SELECT value->>'id', value->>'name', value->>'rating', value->>'steam_id', value->>'status',
+            value->>'image_url', value->>'price', value->>'price_initial', value->>'currency', value->>'notes'
+     FROM json_each($1)`,
+    [JSON.stringify(backup.games)],
+  );
+  await database.execute(
+    "INSERT INTO game_lists (game_id, list_id) SELECT value->>'game_id', value->>'list_id' FROM json_each($1)",
+    [JSON.stringify(backup.game_lists)],
+  );
+};

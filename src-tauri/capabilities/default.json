@@ -8,6 +8,11 @@
     "opener:default",
     "sql:default",
     "sql:allow-execute",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-ask",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
     {
       "identifier": "http:default",
       "allow": [{ "url": "https://store.steampowered.com/api/*" }]

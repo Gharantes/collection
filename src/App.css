@@ -694,3 +694,22 @@ select.pill[data-tier="bad"] {
 .notes:focus-within {
   border-color: var(--accent);
 }
+
+/* Backup */
+
+.backup {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.backup button {
+  flex: 1;
+  padding: 5px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.backup button:hover {
+  color: var(--text);
+}
