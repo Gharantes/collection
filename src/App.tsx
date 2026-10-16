@@ -24,6 +24,7 @@ import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
 import { Sidebar, type Filter } from "./components/Sidebar";
+import { StatsPage } from "./components/StatsPage";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -134,7 +135,7 @@ function App() {
   const shown = sortGames(
     games.filter(
       (g) =>
-        (filter == null || (filter === "target" ? hitsTarget(g) : inList(g.id, filter))) &&
+        (filter == null || filter === "stats" || (filter === "target" ? hitsTarget(g) : inList(g.id, filter))) &&
         (!statusFilter || g.status === statusFilter) &&
         g.name.toLowerCase().includes(name),
     ),
@@ -145,7 +146,9 @@ function App() {
       ? "Todos os jogos"
       : filter === "target"
         ? "No preço-alvo"
-        : (lists.find((l) => l.id === filter)?.name ?? "");
+        : filter === "stats"
+          ? "Estatísticas"
+          : (lists.find((l) => l.id === filter)?.name ?? "");
 
   return (
     <div className="layout">
@@ -162,61 +165,72 @@ function App() {
       <main className="main">
         <AddGame run={run} onError={setError} />
 
-        <div className="page-head">
-          <h1>{title}</h1>
-          <span className="muted">
-            {shown.length} {shown.length === 1 ? "jogo" : "jogos"}
-          </span>
-          <button className="ghost refresh" onClick={onRefresh} disabled={refreshing}>
-            {refreshing ? "Atualizando…" : "Atualizar preços"}
-          </button>
-        </div>
-
-        <div className="toolbar">
-          <input
-            className="grow"
-            type="search"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.currentTarget.value)}
-            placeholder="Filtrar por nome"
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.currentTarget.value as Status | "")}
-            aria-label="Filtrar por status"
-          >
-            <option value="">Todos os status</option>
-            {Object.entries(STATUSES).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
-            {Object.entries(SORTS).map(([value, label]) => (
-              <option key={value} value={value}>
-                Ordenar: {label}
-              </option>
-            ))}
-          </select>
-          <div className="segmented" role="group" aria-label="Visualização">
-            <button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")}>
-              Cards
-            </button>
-            <button className={view === "table" ? "on" : ""} onClick={() => setView("table")}>
-              Tabela
+        {filter === "stats" ? (
+          <>
+            <div className="page-head">
+              <h1>{title}</h1>
+            </div>
+            <StatsPage games={games} events={events} sessions={sessions} />
+          </>
+        ) : (
+          <>
+          <div className="page-head">
+            <h1>{title}</h1>
+            <span className="muted">
+              {shown.length} {shown.length === 1 ? "jogo" : "jogos"}
+            </span>
+            <button className="ghost refresh" onClick={onRefresh} disabled={refreshing}>
+              {refreshing ? "Atualizando…" : "Atualizar preços"}
             </button>
           </div>
-        </div>
 
-        {error && <p className="error">{error}</p>}
+          <div className="toolbar">
+            <input
+              className="grow"
+              type="search"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.currentTarget.value)}
+              placeholder="Filtrar por nome"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.currentTarget.value as Status | "")}
+              aria-label="Filtrar por status"
+            >
+              <option value="">Todos os status</option>
+              {Object.entries(STATUSES).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
+              {Object.entries(SORTS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  Ordenar: {label}
+                </option>
+              ))}
+            </select>
+            <div className="segmented" role="group" aria-label="Visualização">
+              <button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")}>
+                Cards
+              </button>
+              <button className={view === "table" ? "on" : ""} onClick={() => setView("table")}>
+                Tabela
+              </button>
+            </div>
+          </div>
 
-        {shown.length === 0 ? (
-          <p className="empty">{games.length === 0 ? "Nenhum jogo ainda. Busque um acima." : "Nenhum jogo aqui."}</p>
-        ) : view === "cards" ? (
-          <GameGrid games={shown} onOpen={setOpenId} />
-        ) : (
-          <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} />
+          {error && <p className="error">{error}</p>}
+
+          {shown.length === 0 ? (
+            <p className="empty">{games.length === 0 ? "Nenhum jogo ainda. Busque um acima." : "Nenhum jogo aqui."}</p>
+          ) : view === "cards" ? (
+            <GameGrid games={shown} onOpen={setOpenId} />
+          ) : (
+            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} />
+          )}
+          </>
         )}
       </main>
 

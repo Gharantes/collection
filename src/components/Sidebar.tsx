@@ -5,8 +5,8 @@ import { addList, deleteList, exportBackup, restoreBackup, setMembership, type L
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
 
-// Lista selecionada, "target" para jogos no preço-alvo, ou null para todos.
-export type Filter = number | "target" | null;
+// Lista selecionada, "target" (jogos no preço-alvo), "stats" (estatísticas) ou null (todos).
+export type Filter = number | "target" | "stats" | null;
 
 type Props = {
   lists: List[];
@@ -72,6 +72,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
       <nav>
         {nav(null, "Todos os jogos", total)}
         {nav("target", "No preço-alvo", targetCount)}
+        {nav("stats", "Estatísticas")}
 
         <h3>Listas</h3>
         {lists.map((list) => (
