@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ask, open } from "@tauri-apps/plugin-dialog";
-import { setSavePath, type Game } from "./db";
-import { formatBytes } from "./games";
+import { setSavePath, type Game } from "../db";
+import { formatBytes } from "../games";
 
 type SaveBackup = { name: string; bytes: number };
 type Run = (action: () => Promise<unknown>) => () => Promise<void>;

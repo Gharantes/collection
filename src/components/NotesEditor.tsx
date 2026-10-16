@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { EditorView, minimalSetup } from "codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { placeholder } from "@codemirror/view";
-import { livePreview } from "./livePreview";
+import { livePreview } from "../livePreview";
 
 type Props = { gameId: number; initial: string; onSave: (text: string) => void };
 
