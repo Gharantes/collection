@@ -7,16 +7,11 @@ import { formatBytes } from "./games";
 type SaveBackup = { name: string; bytes: number };
 type Run = (action: () => Promise<unknown>) => () => Promise<void>;
 
-const REASONS: Record<string, string> = {
-  abrir: "automático, ao abrir o jogo",
-  restaurar: "automático, antes de restaurar",
-};
-
-// Nome do backup ("<ms>" ou "<ms>-<motivo>") para data e motivo legíveis.
+// Nome do backup ("<ms>" ou "<ms>-<motivo>") para data legível.
 const describe = (name: string) => {
   const [stamp, reason] = name.split("-");
   const when = new Date(Number(stamp)).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-  return { when, reason: reason ? (REASONS[reason] ?? reason) : "manual" };
+  return { when, reason: reason ? "automático" : "manual" };
 };
 
 // Pasta de saves do jogo e a lista de backups dela.
@@ -50,7 +45,7 @@ export function SavesPanel({ game, run }: { game: Game; run: Run }) {
   const restore = (name: string) =>
     act(async () => {
       const ok = await ask(
-        `Substituir a pasta de saves pelo backup de ${describe(name).when}? O estado atual é guardado antes.`,
+        `Substituir a pasta de saves pelo backup de ${describe(name).when}? O conteúdo atual da pasta será perdido.`,
         { title: "Restaurar saves", kind: "warning" },
       );
       if (ok) await invoke("restore_saves", { gameId: game.id, name, target: game.save_path });
@@ -66,7 +61,7 @@ export function SavesPanel({ game, run }: { game: Game; run: Run }) {
           <button className="ghost" onClick={choose}>
             Escolher pasta de saves
           </button>
-          <span className="muted">O app guarda cópias dela, inclusive antes de abrir o jogo.</span>
+          <span className="muted">Depois, faça backups quando quiser.</span>
         </div>
       ) : (
         <>

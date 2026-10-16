@@ -4,12 +4,9 @@ use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
-// Backups automáticos mantidos por jogo; os manuais nunca são apagados sozinhos.
-const KEEP_AUTO: usize = 10;
-
 #[derive(Serialize, Debug)]
 pub struct SaveBackup {
-    // "<milissegundos>" ou "<milissegundos>-<motivo>" (abrir, restaurar).
+    // "<milissegundos>" ou "<milissegundos>-<motivo>".
     name: String,
     bytes: u64,
 }
@@ -78,27 +75,14 @@ fn list(game_dir: &Path) -> Vec<SaveBackup> {
     backups
 }
 
-fn backup(game_dir: &Path, source: &Path, reason: Option<&str>) -> Result<SaveBackup, String> {
+fn backup(game_dir: &Path, source: &Path) -> Result<SaveBackup, String> {
     if !source.is_dir() {
         return Err("Pasta de saves não encontrada.".into());
     }
-    let name = match reason {
-        Some(r) => format!("{}-{r}", now_millis()),
-        None => now_millis().to_string(),
-    };
+    let name = now_millis().to_string();
     let dest = game_dir.join(&name);
     copy_dir(source, &dest).map_err(|e| e.to_string())?;
-    if reason.is_some() {
-        prune(game_dir);
-    }
     Ok(SaveBackup { bytes: dir_size(&dest), name })
-}
-
-// Apaga os automáticos mais antigos além de KEEP_AUTO.
-fn prune(game_dir: &Path) {
-    for old in list(game_dir).iter().filter(|b| b.name.contains('-')).skip(KEEP_AUTO) {
-        let _ = fs::remove_dir_all(game_dir.join(&old.name));
-    }
 }
 
 fn restore(game_dir: &Path, name: &str, target: &Path, home: &Path) -> Result<(), String> {
@@ -110,7 +94,6 @@ fn restore(game_dir: &Path, name: &str, target: &Path, home: &Path) -> Result<()
         return Err("Pasta de saves inválida para restaurar.".into());
     }
     if target.is_dir() {
-        backup(game_dir, target, Some("restaurar"))?;
         fs::remove_dir_all(target).map_err(|e| e.to_string())?;
     }
     copy_dir(&source, target).map_err(|e| e.to_string())
@@ -127,14 +110,8 @@ pub fn list_save_backups(app: tauri::AppHandle, game_id: i64) -> Result<Vec<Save
 }
 
 #[tauri::command]
-pub fn backup_saves(
-    app: tauri::AppHandle,
-    game_id: i64,
-    source: String,
-    reason: Option<String>,
-) -> Result<SaveBackup, String> {
-    let reason = reason.filter(|r| valid_name(&format!("0-{r}")));
-    backup(&game_dir(&app, game_id)?, Path::new(&source), reason.as_deref())
+pub fn backup_saves(app: tauri::AppHandle, game_id: i64, source: String) -> Result<SaveBackup, String> {
+    backup(&game_dir(&app, game_id)?, Path::new(&source))
 }
 
 #[tauri::command]
@@ -171,7 +148,7 @@ mod tests {
         fs::create_dir_all(saves.join("slot1")).unwrap();
         fs::write(saves.join("slot1/save.dat"), "fase 3").unwrap();
 
-        let b = backup(&store, &saves, None).unwrap();
+        let b = backup(&store, &saves).unwrap();
         assert_eq!(b.bytes, 6);
 
         fs::write(saves.join("slot1/save.dat"), "corrompido").unwrap();
@@ -180,7 +157,7 @@ mod tests {
 
         assert_eq!(fs::read_to_string(saves.join("slot1/save.dat")).unwrap(), "fase 3");
         assert!(!saves.join("lixo.tmp").exists());
-        assert!(list(&store).iter().any(|x| x.name.ends_with("-restaurar")));
+        assert_eq!(list(&store).len(), 1);
         fs::remove_dir_all(base).unwrap();
     }
 
@@ -193,20 +170,5 @@ mod tests {
         assert!(safe_target(Path::new("/home/eu/Jogo"), home));
         assert!(valid_name("1700000000000") && valid_name("1700000000000-abrir"));
         assert!(!valid_name("../x") && !valid_name("123-../x") && !valid_name(""));
-    }
-
-    #[test]
-    fn keeps_only_recent_automatic_backups() {
-        let base = temp("prune");
-        let store = base.join("store");
-        for i in 0..(KEEP_AUTO + 3) {
-            fs::create_dir_all(store.join(format!("{}-abrir", 1000 + i))).unwrap();
-        }
-        fs::create_dir_all(store.join("999")).unwrap();
-        prune(&store);
-        let names: Vec<String> = list(&store).into_iter().map(|b| b.name).collect();
-        assert_eq!(names.iter().filter(|n| n.contains('-')).count(), KEEP_AUTO);
-        assert!(names.contains(&"999".to_string()));
-        fs::remove_dir_all(base).unwrap();
     }
 }

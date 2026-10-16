@@ -290,11 +290,9 @@ function App() {
       if (path) await setLaunch(game.id, "exe", path);
     })();
 
-  // Faz backup dos saves antes de abrir. Se o jogo sumiu, desvincula para o botão voltar a ser "Vincular".
+  // Se o jogo sumiu, desvincula para o botão voltar a ser "Vincular".
   const launchGame = (game: Game) =>
     run(async () => {
-      if (game.save_path)
-        await invoke("backup_saves", { gameId: game.id, source: game.save_path, reason: "abrir" }).catch(() => {});
       try {
         if (game.launch === "steam") await invoke("launch_steam", { appId: game.steam_id });
         else await invoke("launch_exe", { path: game.exe_path });
