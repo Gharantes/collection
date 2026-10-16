@@ -17,6 +17,8 @@ export type Game = {
   notes: string | null;
   launch: Launch | null;
   exe_path: string | null;
+  target_price: number | null;
+  target_discount: number | null;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -105,6 +107,13 @@ export const setNotes = async (id: number, notes: string) =>
 export const setLaunch = async (id: number, launch: Launch | null, exePath: string | null = null) =>
   (await getDb()).execute("UPDATE games SET launch = $1, exe_path = $2 WHERE id = $3", [launch, exePath, id]);
 
+export const setTarget = async (id: number, price: number | null, discount: number | null) =>
+  (await getDb()).execute("UPDATE games SET target_price = $1, target_discount = $2 WHERE id = $3", [
+    price,
+    discount,
+    id,
+  ]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -140,6 +149,8 @@ const GAME_COLUMNS = [
   "notes",
   "launch",
   "exe_path",
+  "target_price",
+  "target_discount",
 ];
 
 export const exportBackup = async (): Promise<string> => {

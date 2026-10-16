@@ -27,7 +27,9 @@ const validGame = (g: Game) =>
   isStrOrNull(g.currency) &&
   isStrOrNull(g.notes) &&
   (g.launch == null || g.launch === "steam" || g.launch === "exe") &&
-  isStrOrNull(g.exe_path);
+  isStrOrNull(g.exe_path) &&
+  isIntOrNull(g.target_price) &&
+  (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
 export function parseBackup(text: string): Backup {

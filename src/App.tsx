@@ -18,6 +18,7 @@ import {
   setNotes,
   setRating,
   setStatus,
+  setTarget,
   type Game,
   type List,
   type Status,
@@ -28,8 +29,20 @@ import { NotesEditor } from "./NotesEditor";
 import { parseBackup } from "./backup";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { SORTS, discount, eventLabels, formatDate, money, ratingTier, sortGames, type Sort } from "./games";
+import {
+  SORTS,
+  discount,
+  eventLabels,
+  formatDate,
+  hitsTarget,
+  money,
+  ratingTier,
+  sortGames,
+  toCents,
+  type Sort,
+} from "./games";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -64,6 +77,14 @@ const readPref = <T extends string>(key: string, allowed: readonly T[], fallback
   } catch {
     return fallback;
   }
+};
+
+const PRICES_AT = "collection.pricesAt";
+const DAY = 24 * 60 * 60 * 1000;
+
+// Notificação do sistema; pede permissão na primeira vez.
+const notify = async (title: string, body: string) => {
+  if ((await isPermissionGranted()) || (await requestPermission()) === "granted") sendNotification({ title, body });
 };
 
 const savePref = (key: string, value: string) => {
@@ -106,7 +127,8 @@ function App() {
   const [lists, setLists] = useState<List[]>([]);
   const [members, setMembers] = useState<Set<string>>(new Set());
   const [events, setEvents] = useState<StatusEvent[]>([]);
-  const [filter, setFilter] = useState<number | null>(null);
+  // Lista selecionada na sidebar, "target" para jogos no preço-alvo, ou null para todos.
+  const [filter, setFilter] = useState<number | "target" | null>(null);
   const [statusFilter, setStatusFilter] = useState<Status | "">("");
   const [nameFilter, setNameFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -204,11 +226,34 @@ function App() {
     run(() => deleteList(list.id))();
   };
 
+  // Atualiza preços e avisa dos jogos que entraram no preço-alvo agora.
   const onRefresh = async () => {
     setRefreshing(true);
-    await run(refreshPrices)();
+    await run(async () => {
+      const before = new Set((await listGames()).filter(hitsTarget).map((g) => g.id));
+      await refreshPrices();
+      savePref(PRICES_AT, String(Date.now()));
+      const hits = (await listGames()).filter((g) => hitsTarget(g) && !before.has(g.id));
+      if (hits.length === 1) {
+        const g = hits[0];
+        await notify(`${g.name} no preço-alvo`, `${money(g.price, g.currency)} (-${discount(g.price_initial, g.price)}%)`);
+      } else if (hits.length > 1) {
+        await notify(`${hits.length} jogos no preço-alvo`, hits.map((g) => g.name).join(", "));
+      }
+    })();
     setRefreshing(false);
   };
+
+  // Atualiza os preços sozinho uma vez por dia, ao abrir o app.
+  useEffect(() => {
+    let last = 0;
+    try {
+      last = Number(localStorage.getItem(PRICES_AT)) || 0;
+    } catch {
+      // Sem storage, atualiza sempre ao abrir.
+    }
+    if (Date.now() - last > DAY) onRefresh();
+  }, []);
 
   const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
@@ -269,13 +314,19 @@ function App() {
   const shown = sortGames(
     games.filter(
       (g) =>
-        (filter == null || inList(g.id, filter)) &&
+        (filter == null || (filter === "target" ? hitsTarget(g) : inList(g.id, filter))) &&
         (!statusFilter || g.status === statusFilter) &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
   );
-  const title = filter == null ? "Todos os jogos" : (lists.find((l) => l.id === filter)?.name ?? "");
+  const title =
+    filter == null
+      ? "Todos os jogos"
+      : filter === "target"
+        ? "No preço-alvo"
+        : (lists.find((l) => l.id === filter)?.name ?? "");
+  const targetCount = games.filter(hitsTarget).length;
   const opened = games.find((g) => g.id === openId);
   const openedEvents = events.filter((e) => e.game_id === openId);
   const openedLabels = eventLabels(openedEvents);
@@ -370,6 +421,11 @@ function App() {
           <button className={filter == null ? "nav active" : "nav"} onClick={() => setFilter(null)}>
             <span>Todos os jogos</span>
             <span className="count">{games.length}</span>
+          </button>
+
+          <button className={filter === "target" ? "nav active" : "nav"} onClick={() => setFilter("target")}>
+            <span>No preço-alvo</span>
+            <span className="count">{targetCount}</span>
           </button>
 
           <h3>Listas</h3>
@@ -516,7 +572,7 @@ function App() {
             {shown.map((game) => (
               <button
                 key={game.id}
-                className="game-card"
+                className={hitsTarget(game) ? "game-card on-target" : "game-card"}
                 onClick={() => setOpenId(game.id)}
                 {...dragGame(game.id)}
               >
@@ -639,6 +695,35 @@ function App() {
                 <div className="field">
                   <span>Listas</span>
                   {listChips(opened)}
+                </div>
+                <div className="field">
+                  <span>Alerta</span>
+                  <div className="target" key={opened.id}>
+                    <input
+                      inputMode="decimal"
+                      placeholder="Preço-alvo"
+                      defaultValue={opened.target_price == null ? "" : (opened.target_price / 100).toFixed(2).replace(".", ",")}
+                      onBlur={(e) =>
+                        run(() => setTarget(opened.id, toCents(e.currentTarget.value), opened.target_discount))()
+                      }
+                      aria-label="Preço-alvo"
+                    />
+                    <span className="muted">ou</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      placeholder="% off"
+                      defaultValue={opened.target_discount ?? ""}
+                      onBlur={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
+                        const pct = Number.isInteger(v) && v >= 1 && v <= 100 ? v : null;
+                        run(() => setTarget(opened.id, opened.target_price, pct))();
+                      }}
+                      aria-label="Desconto mínimo em %"
+                    />
+                    {hitsTarget(opened) && <span className="sale">No alvo</span>}
+                  </div>
                 </div>
                 {(startedAt || finishedAt) && (
                   <p className="dates muted">

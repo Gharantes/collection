@@ -13,6 +13,7 @@
     "dialog:allow-ask",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
+    "notification:default",
     {
       "identifier": "http:default",
       "allow": [{ "url": "https://store.steampowered.com/api/*" }]

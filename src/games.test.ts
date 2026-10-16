@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, money, sortGames } from "./games.ts";
+import { discount, eventLabels, hitsTarget, money, sortGames, toCents } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -32,4 +32,16 @@ test("rótulos do histórico de status", () => {
     "Retomou",
     "Terminou",
   ]);
+});
+
+test("preço-alvo e desconto mínimo", () => {
+  const g = (price: number, price_initial: number, target_price: number | null, target_discount: number | null) =>
+    ({ price, price_initial, target_price, target_discount }) as Game;
+  assert.equal(hitsTarget(g(3000, 6000, 3500, null)), true);
+  assert.equal(hitsTarget(g(4000, 6000, 3500, null)), false);
+  assert.equal(hitsTarget(g(3000, 6000, null, 50)), true);
+  assert.equal(hitsTarget(g(6000, 6000, null, 50)), false);
+  assert.equal(toCents("R$ 49,90"), 4990);
+  assert.equal(toCents("abc"), null);
+  assert.equal(toCents(""), null);
 });

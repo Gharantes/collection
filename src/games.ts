@@ -57,3 +57,19 @@ export function eventLabels(events: StatusEvent[]): string[] {
 
 // AAAA-MM-DD -> DD/MM/AAAA.
 export const formatDate = (at: string) => at.split("-").reverse().join("/");
+
+// Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
+export const hitsTarget = (g: Game) => {
+  if (g.price == null) return false;
+  const off = discount(g.price_initial, g.price);
+  return (
+    (g.target_price != null && g.price <= g.target_price) ||
+    (g.target_discount != null && off > 0 && off >= g.target_discount)
+  );
+};
+
+// Texto digitado ("49,90", "R$ 49.90") para centavos; vazio ou inválido vira null.
+export const toCents = (text: string) => {
+  const clean = text.replace(/[^\d,.]/g, "").replace(",", ".");
+  return clean && Number.isFinite(Number(clean)) ? Math.round(Number(clean) * 100) : null;
+};

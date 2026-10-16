@@ -854,3 +854,26 @@ button.play:hover {
 .games tr[draggable="true"] {
   cursor: grab;
 }
+
+/* Alerta de promoção */
+
+.target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.target input {
+  width: 110px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.target input[type="number"] {
+  width: 80px;
+}
+
+.game-card.on-target .poster {
+  outline: 2px solid #beee11;
+  outline-offset: 2px;
+}
