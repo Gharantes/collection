@@ -30,6 +30,8 @@ function App() {
   const [lists, setLists] = useState<List[]>([]);
   const [members, setMembers] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<Status | "">("");
+  const [nameFilter, setNameFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<SteamApp[]>([]);
@@ -105,7 +107,13 @@ function App() {
     run(() => deleteList(list.id))();
   };
 
-  const shown = filter == null ? games : games.filter((g) => members.has(key(g.id, filter)));
+  const name = nameFilter.trim().toLowerCase();
+  const shown = games.filter(
+    (g) =>
+      (filter == null || members.has(key(g.id, filter))) &&
+      (!statusFilter || g.status === statusFilter) &&
+      g.name.toLowerCase().includes(name),
+  );
 
   return (
     <main className="container">
@@ -156,6 +164,23 @@ function App() {
         )}
 
         <div className="row">
+          <input
+            type="search"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.currentTarget.value)}
+            placeholder="Filtrar por nome"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.currentTarget.value as Status | "")}
+          >
+            <option value="">Todos os status</option>
+            {Object.entries(STATUSES).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
           <select
             value={filter ?? ""}
             onChange={(e) => setFilter(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
@@ -170,7 +195,7 @@ function App() {
         </div>
 
         {shown.length === 0 ? (
-          <p>{games.length === 0 ? "Nenhum jogo ainda." : "Nenhum jogo nesta lista."}</p>
+          <p>{games.length === 0 ? "Nenhum jogo ainda." : "Nenhum jogo com esses filtros."}</p>
         ) : (
           <table>
             <thead>
