@@ -14,7 +14,10 @@ App desktop para organizar sua coleção de jogos em listas, no estilo das cole�
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação
 - Histórico de status com datas: começou, voltou ao backlog, retomou, terminou
 - Vincula o jogo à Steam ou a um executável e abre direto do app
-- Backup dos saves de cada jogo, inclusive automático ao abrir
+- Backup manual dos saves de cada jogo
+- Tempo de jogo dos jogos abertos pelo executável
+- Página de estatísticas
+- Atualização automática do app
 - Arrastar jogos para as listas da sidebar
 - Anotações em markdown com live preview
 - Backup da coleção em JSON (exportar e importar)
@@ -35,6 +38,9 @@ npm test                         # testes do front
 cargo test --manifest-path src-tauri/Cargo.toml  # testes do Rust
 npm run tauri build              # gera o instalador
 ```
+
+O build de release assina a atualização; ele precisa da chave privada no ambiente:
+`export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/collection.key)"`.
 
 Para publicar uma versão com instaladores, crie uma tag `v*` (ex.: `git tag v0.2.0 && git push --tags`).
 
