@@ -3,6 +3,7 @@ import { fetchPrices, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
 
 export type Status = "backlog" | "playing" | "finished";
+export type Launch = "steam" | "exe";
 export type Game = {
   id: number;
   name: string;
@@ -14,6 +15,8 @@ export type Game = {
   price_initial: number | null;
   currency: string | null;
   notes: string | null;
+  launch: Launch | null;
+  exe_path: string | null;
 };
 export type List = { id: number; name: string };
 export type Membership = { game_id: number; list_id: number };
@@ -77,6 +80,9 @@ export const setStatus = async (id: number, status: Status | null) =>
 export const setNotes = async (id: number, notes: string) =>
   (await getDb()).execute("UPDATE games SET notes = $1 WHERE id = $2", [notes || null, id]);
 
+export const setLaunch = async (id: number, launch: Launch | null, exePath: string | null = null) =>
+  (await getDb()).execute("UPDATE games SET launch = $1, exe_path = $2 WHERE id = $3", [launch, exePath, id]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -98,6 +104,22 @@ export const setMembership = async (gameId: number, listId: number, member: bool
     [gameId, listId],
   );
 
+// Colunas de games restauradas do backup; ausentes no arquivo viram NULL.
+const GAME_COLUMNS = [
+  "id",
+  "name",
+  "rating",
+  "steam_id",
+  "status",
+  "image_url",
+  "price",
+  "price_initial",
+  "currency",
+  "notes",
+  "launch",
+  "exe_path",
+];
+
 export const exportBackup = async (): Promise<string> => {
   const [games, lists, game_lists] = await Promise.all([listGames(), listLists(), listMemberships()]);
   const backup: Backup = { app: "collection", version: 1, games, lists, game_lists };
@@ -115,10 +137,8 @@ export const restoreBackup = async (backup: Backup) => {
     [JSON.stringify(backup.lists)],
   );
   await database.execute(
-    `INSERT INTO games (id, name, rating, steam_id, status, image_url, price, price_initial, currency, notes)
-     SELECT value->>'id', value->>'name', value->>'rating', value->>'steam_id', value->>'status',
-            value->>'image_url', value->>'price', value->>'price_initial', value->>'currency', value->>'notes'
-     FROM json_each($1)`,
+    `INSERT INTO games (${GAME_COLUMNS.join(", ")})
+     SELECT ${GAME_COLUMNS.map((c) => `value->>'${c}'`).join(", ")} FROM json_each($1)`,
     [JSON.stringify(backup.games)],
   );
   await database.execute(

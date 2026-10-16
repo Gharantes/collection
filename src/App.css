@@ -713,3 +713,77 @@ select.pill[data-tier="bad"] {
 .backup button:hover {
   color: var(--text);
 }
+
+/* Vincular / Abrir */
+
+.launch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+button.play {
+  background: linear-gradient(90deg, #47bfff, #1a44c2);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 22px;
+}
+
+button.play:hover {
+  filter: brightness(1.15);
+}
+
+.menu {
+  position: relative;
+}
+
+.menu summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-weight: 500;
+}
+
+.menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu-items {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px #000a;
+}
+
+.menu-items button {
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-weight: 400;
+}
+
+.menu-items button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.menu-items button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.detail-info .error {
+  margin: 0 0 14px;
+}

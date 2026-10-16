@@ -10,6 +10,7 @@ import {
   listMemberships,
   refreshPrices,
   restoreBackup,
+  setLaunch,
   setMembership,
   setNotes,
   setRating,
@@ -22,6 +23,7 @@ import { searchSteam, type SteamApp } from "./steam";
 import { NotesEditor } from "./NotesEditor";
 import { parseBackup } from "./backup";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { SORTS, discount, money, ratingTier, sortGames, type Sort } from "./games";
 import "./App.css";
@@ -110,11 +112,15 @@ function App() {
     setMembers(new Set(m.map((x) => key(x.game_id, x.list_id))));
   };
 
-  // Roda a ação, recarrega tudo e mostra erro na tela.
+  // Roda a ação, recarrega tudo (mesmo se falhar) e mostra erro na tela.
   const run = (action: () => Promise<unknown>) => async () => {
     setError(null);
     try {
       await action();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+    try {
       await load();
     } catch (e) {
       setError(String(e));
@@ -207,6 +213,32 @@ function App() {
     setFilter(null);
     await restoreBackup(backup);
   });
+
+  const linkSteam = (game: Game) =>
+    run(async () => {
+      if (!(await invoke<boolean>("steam_installed", { appId: game.steam_id })))
+        throw new Error("O jogo não está instalado na Steam.");
+      await setLaunch(game.id, "steam");
+    })();
+
+  const linkExe = (game: Game) =>
+    run(async () => {
+      const path = await open({ multiple: false, directory: false, title: "Escolha o executável do jogo" });
+      if (path) await setLaunch(game.id, "exe", path);
+    })();
+
+  // Se o jogo sumiu, desvincula para o botão voltar a ser "Vincular".
+  const launchGame = (game: Game) =>
+    run(async () => {
+      try {
+        if (game.launch === "steam") await invoke("launch_steam", { appId: game.steam_id });
+        else await invoke("launch_exe", { path: game.exe_path });
+      } catch (e) {
+        if (e !== "not_found") throw e;
+        await setLaunch(game.id, null);
+        throw new Error("Não encontrei o jogo. Vincule de novo.");
+      }
+    })();
 
   const onDeleteGame = (game: Game) => {
     setOpenId(null);
@@ -526,6 +558,34 @@ function App() {
                 <p>
                   <Price final={opened.price} initial={opened.price_initial} currency={opened.currency} />
                 </p>
+
+                <div className="launch">
+                  {opened.launch ? (
+                    <>
+                      <button className="play" onClick={() => launchGame(opened)}>
+                        ▶ Abrir
+                      </button>
+                      <span className="muted">
+                        {opened.launch === "steam" ? "pela Steam" : opened.exe_path?.split(/[\\/]/).pop()}
+                      </span>
+                    </>
+                  ) : (
+                    <details className="menu">
+                      <summary>Vincular ▾</summary>
+                      <div className="menu-items">
+                        <button
+                          onClick={() => linkSteam(opened)}
+                          disabled={opened.steam_id == null}
+                          title={opened.steam_id == null ? "Este jogo não veio da Steam" : undefined}
+                        >
+                          Vincular com Steam
+                        </button>
+                        <button onClick={() => linkExe(opened)}>Vincular com executável</button>
+                      </div>
+                    </details>
+                  )}
+                </div>
+                {error && <p className="error">{error}</p>}
 
                 <label className="field">
                   <span>Status</span>
