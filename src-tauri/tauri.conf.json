@@ -38,7 +38,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5ODM0MTI4RTBGNDZCNTMKUldSVGEvVGdLRUdER1RzOUE0VEFETkYzZU96eVFBZDQ2Ym1FZlhUN0VNbGxXendjVllKVWFidE0K",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENGMzRCMTMyRTNCRDg1RTEKUldUaGhiM2pNckUwenlISmZUdVZkNG1UTWNMTVRjdWxDTldSZEk4ZzlBQllYV3loSUNxVjVCWUIK",
       "endpoints": [
         "https://github.com/Gharantes/collection/releases/latest/download/latest.json"
       ]
