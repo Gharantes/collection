@@ -132,24 +132,36 @@ function App() {
   const inList = (gameId: number, listId: number) => members.has(key(gameId, listId));
   const listCount = (listId: number) => games.filter((g) => inList(g.id, listId)).length;
 
+  const isLinked = (g: Game) => g.launch != null;
+  const inFilter = (g: Game) =>
+    filter == null || filter === "stats"
+      ? true
+      : filter === "target"
+        ? hitsTarget(g)
+        : filter === "linked"
+          ? isLinked(g)
+          : inList(g.id, filter);
+
   const name = nameFilter.trim().toLowerCase();
   const shown = sortGames(
     games.filter(
       (g) =>
-        (filter == null || filter === "stats" || (filter === "target" ? hitsTarget(g) : inList(g.id, filter))) &&
+        inFilter(g) &&
         (!statusFilter || g.status === statusFilter) &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
   );
-  const linked = shown.filter((g) => g.launch != null);
+  const linked = shown.filter(isLinked);
 
   const title =
     filter == null
       ? "Todos os jogos"
       : filter === "target"
         ? "No preço-alvo"
-        : filter === "stats"
+        : filter === "linked"
+          ? "Vinculados"
+          : filter === "stats"
           ? "Estatísticas"
           : (lists.find((l) => l.id === filter)?.name ?? "");
 
@@ -161,6 +173,7 @@ function App() {
         setFilter={setFilter}
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
+        linkedCount={games.filter(isLinked).length}
         listCount={listCount}
         run={run}
       />

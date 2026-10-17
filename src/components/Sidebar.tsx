@@ -5,8 +5,8 @@ import { addList, deleteList, exportBackup, restoreBackup, setMembership, type L
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
 
-// Lista selecionada, "target" (jogos no preço-alvo), "stats" (estatísticas) ou null (todos).
-export type Filter = number | "target" | "stats" | null;
+// Lista selecionada, "target" (jogos no preço-alvo), "linked" (vinculados), "stats" (estatísticas) ou null (todos).
+export type Filter = number | "target" | "linked" | "stats" | null;
 
 type Props = {
   lists: List[];
@@ -14,13 +14,14 @@ type Props = {
   setFilter: (f: Filter) => void;
   total: number;
   targetCount: number;
+  linkedCount: number;
   listCount: (listId: number) => number;
   run: Run;
 };
 
 const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
-export function Sidebar({ lists, filter, setFilter, total, targetCount, listCount, run }: Props) {
+export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCount, listCount, run }: Props) {
   const [dropList, setDropList] = useState<number | null>(null);
 
   const nav = (f: Filter, label: string, count?: number) => (
@@ -72,6 +73,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
       <nav>
         {nav(null, "Todos os jogos", total)}
         {nav("target", "No preço-alvo", targetCount)}
+        {nav("linked", "Vinculados", linkedCount)}
         {nav("stats", "Estatísticas")}
 
         <h3>Listas</h3>

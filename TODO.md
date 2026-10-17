@@ -13,6 +13,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Listas (um jogo em várias), nota de 0 a 10
 - Status: Backlog, Jogando, Terminado, Abandonado
 - Botão "O que jogar?": sorteia um jogo vinculado (Steam ou executável) entre os mostrados (respeita a lista)
+- Filtro "Vinculados" na sidebar (jogos com Steam ou executável)
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
