@@ -56,6 +56,25 @@ export function Cover({ game }: { game: Game }) {
   );
 }
 
+// Medalha de conquistas: dourada se platinado, cinza se ainda caçando a platina.
+export function Medal({ game }: { game: Game }) {
+  if (!game.achievements) return null;
+  const done = game.achievements === "platinum";
+  return (
+    <svg
+      className={done ? "medal gold" : "medal"}
+      viewBox="0 0 16 20"
+      role="img"
+      aria-label={done ? "Platinado" : "Caçando platina"}
+    >
+      <title>{done ? "Platinado" : "Caçando platina"}</title>
+      <path className="ribbon" d="M3 0h4l2 6H5zM9 0h4l-2 6H7z" />
+      <circle cx="8" cy="13" r="6" />
+      <path className="star" d="M8 9.6l1 2.1 2.3.3-1.7 1.6.4 2.3L8 14.8l-2 1.1.4-2.3-1.7-1.6 2.3-.3z" />
+    </svg>
+  );
+}
+
 // Preço atual; em promoção mostra também o original riscado e o desconto.
 export function Price(p: { final: number | null; initial: number | null; currency: string | null }) {
   const off = discount(p.initial, p.final);

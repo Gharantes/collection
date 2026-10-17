@@ -1211,6 +1211,37 @@ button.play:hover {
   font-weight: 600;
 }
 
+/* Medalha de conquistas */
+
+.medal {
+  width: 14px;
+  height: 17px;
+  margin-right: 6px;
+  vertical-align: -3px;
+  flex-shrink: 0;
+  fill: #6b7280;
+}
+
+.medal .ribbon {
+  fill: #4b5262;
+}
+
+.medal .star {
+  fill: #9ca3af;
+}
+
+.medal.gold {
+  fill: #f5c542;
+}
+
+.medal.gold .ribbon {
+  fill: #c0392b;
+}
+
+.medal.gold .star {
+  fill: #fff4c2;
+}
+
 /* Alerta de promoção */
 
 .target {

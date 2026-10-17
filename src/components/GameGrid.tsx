@@ -1,6 +1,6 @@
 import type { Game } from "../db";
 import { discount, hitsTarget, ratingTier } from "../games";
-import { Cover, STATUSES, dragGame } from "./common";
+import { Cover, Medal, STATUSES, dragGame } from "./common";
 
 export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number) => void }) {
   return (
@@ -21,7 +21,10 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
                 {game.rating}
               </span>
             )}
-            <span className="game-card-name">{game.name}</span>
+            <span className="game-card-name">
+              <Medal game={game} />
+              {game.name}
+            </span>
             {game.status && (
               <span className="status-text" data-status={game.status}>
                 {STATUSES[game.status]}

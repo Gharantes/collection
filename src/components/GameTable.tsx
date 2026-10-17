@@ -1,6 +1,6 @@
 import type { Game, List } from "../db";
 import { formatRelease } from "../games";
-import { ListChips, Price, RatingSelect, StatusSelect, dragGame, type Run } from "./common";
+import { ListChips, Medal, Price, RatingSelect, StatusSelect, dragGame, type Run } from "./common";
 
 type Props = {
   games: Game[];
@@ -50,7 +50,10 @@ export function GameTable({ games, compact = false, lists, inList, run, onDelete
                 <div className="cover placeholder" />
               )}
             </td>
-            <td className="name">{game.name}</td>
+            <td className="name">
+              <Medal game={game} />
+              {game.name}
+            </td>
             <td className="nowrap">
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
             </td>
