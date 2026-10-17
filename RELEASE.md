@@ -2,6 +2,16 @@
 
 O workflow [release.yml](.github/workflows/release.yml) roda quando uma tag `v*` é enviada ao GitHub. Ele gera os instaladores de Windows, Linux e macOS, assina a atualização e publica tudo numa release com o `latest.json` que o botão **Procurar atualizações** usa.
 
+## Jeito automático
+
+```sh
+npm run release -- patch    # 0.4.0 -> 0.4.1 (também aceita minor, major ou 0.5.0)
+```
+
+O [scripts/release.mjs](scripts/release.mjs) faz os passos 1 a 6 abaixo. Ele confere se você está na `main` sem mudanças pendentes, pede confirmação e roda os testes. Depois sobe a versão nos três arquivos, faz o commit, cria e envia a tag. Se o `gh` (GitHub CLI) estiver instalado e logado, também acompanha o build e confere se a release tem o `latest.json` e os `.sig`.
+
+Se a versão dos arquivos ainda não foi publicada, passe ela mesma (ex.: `npm run release -- 0.4.0`): o script pula o commit de versão e só cria a tag.
+
 ## Pré-requisitos (uma vez só)
 
 - Secret `TAURI_SIGNING_PRIVATE_KEY` cadastrado no repositório (Settings → Secrets and variables → Actions) com o conteúdo de `~/.tauri/collection.key`.
