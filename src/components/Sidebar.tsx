@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { check } from "@tauri-apps/plugin-updater";
 import { addList, deleteList, exportBackup, resetLibrary, restoreBackup, setMembership, type List, type ReleaseStage } from "../db";
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
@@ -85,6 +87,19 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
     await restoreBackup(backup);
   });
 
+  // Procura versão nova nas releases do GitHub e oferece atualizar e reiniciar.
+  const onCheckUpdate = run(async () => {
+    const update = await check();
+    if (!update) {
+      await message("Você já está na versão mais recente.", { title: "Atualizações" });
+      return;
+    }
+    const ok = await ask(`Versão ${update.version} disponível. Atualizar e reiniciar agora?`, { title: "Atualizações" });
+    if (!ok) return;
+    await update.downloadAndInstall();
+    await relaunch();
+  });
+
   const onReset = run(async () => {
     setFilter(null);
     await resetLibrary();
@@ -137,6 +152,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
         <div className="menu-items">
           <button onClick={fromMenu(onExport)}>Exportar backup</button>
           <button onClick={fromMenu(onImport)}>Importar backup</button>
+          <button onClick={fromMenu(onCheckUpdate)}>Procurar atualizações</button>
           <button className="menu-danger" onClick={fromMenu(() => setResetting(true))}>
             Resetar biblioteca
           </button>

@@ -18,7 +18,7 @@ App desktop para organizar sua coleção de jogos em listas, no estilo das cole�
 - Backup manual dos saves de cada jogo
 - Tempo de jogo dos jogos abertos pelo executável
 - Página de estatísticas
-- Atualização automática do app
+- Atualização do app pelas releases do GitHub (botão em Configurações)
 - Arrastar jogos para as listas da sidebar
 - Anotações em markdown com live preview
 - Backup da coleção em JSON (exportar e importar)

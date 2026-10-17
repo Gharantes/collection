@@ -4,7 +4,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 
 ## Pendente
 
-- [ ] Salvar a chave de assinatura como secret do repositório (necessário para releases com atualização automática):
+- [ ] Salvar a chave de assinatura como secret do repositório (necessário para releases com atualização):
       `gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/collection.key`
 
 ## Feito
@@ -32,7 +32,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
 - Tempo de jogo dos jogos abertos pelo executável
 - Página de estatísticas
-- Atualização automática do app pelas releases do GitHub
+- Atualização do app pelas releases do GitHub: só manual, pelo botão "Procurar atualizações" em Configurações (antes procurava ao abrir)
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`
 - `App.tsx` dividido em componentes
 - Botão para fechar a mensagem de erro

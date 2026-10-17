@@ -26,7 +26,6 @@ import { MoreFilters, NO_EXTRA, extraCount, inRating, withStage, type Extra } fr
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
-import { UpdateBanner } from "./components/UpdateBanner";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -240,7 +239,6 @@ function App() {
       />
 
       <main className="main">
-        <UpdateBanner run={run} />
         {openId == null && <AddGame run={run} onError={setError} />}
 
         {openId != null ? (
