@@ -22,7 +22,7 @@ import { ErrorBanner } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
-import { MoreFilters, NO_EXTRA, extraCount, type Extra } from "./components/MoreFilters";
+import { MoreFilters, NO_EXTRA, extraCount, withStage, type Extra } from "./components/MoreFilters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -185,15 +185,17 @@ function App() {
             ? g.release_stage === filter
             : inList(g.id, filter);
 
+  const stage = filter === "early_access" || filter === "pre_release" ? filter : null;
+  const active = withStage(extra, stage);
   const name = nameFilter.trim().toLowerCase();
   const shown = sortGames(
     games.filter(
       (g) =>
         inFilter(g) &&
-        matchModes((s) => g.status === s, extra.statuses) &&
-        matchModes((id) => inList(g.id, id), extra.lists) &&
-        (extra.showEarly || g.release_stage !== "early_access") &&
-        (extra.showPre || g.release_stage !== "pre_release") &&
+        matchModes((s) => g.status === s, active.statuses) &&
+        matchModes((id) => inList(g.id, id), active.lists) &&
+        (active.showEarly || g.release_stage !== "early_access") &&
+        (active.showPre || g.release_stage !== "pre_release") &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
@@ -291,7 +293,7 @@ function App() {
               placeholder="Filtrar por nome"
             />
             <button className={`ghost more-toggle ${moreOpen ? "on" : ""}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen}>
-              Mais filtros{extraCount(extra) > 0 && ` (${extraCount(extra)})`} {moreOpen ? "▴" : "▾"}
+              Mais filtros{extraCount(extra, stage) > 0 && ` (${extraCount(extra, stage)})`} {moreOpen ? "▴" : "▾"}
             </button>
             <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
               {Object.entries(SORTS).map(([value, label]) => (
@@ -310,7 +312,7 @@ function App() {
             </div>
           </div>
 
-          {moreOpen && <MoreFilters lists={lists} extra={extra} setExtra={setExtra} />}
+          {moreOpen && <MoreFilters lists={lists} stage={stage} extra={extra} setExtra={setExtra} />}
 
           <ErrorBanner error={error} onClose={() => setError(null)} />
 

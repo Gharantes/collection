@@ -413,6 +413,11 @@ button.more-toggle.on {
   border-color: #f8717155;
 }
 
+.more-filters .check:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .clear-filters {
   margin-left: auto;
   padding: 4px 10px;

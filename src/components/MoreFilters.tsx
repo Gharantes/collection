@@ -1,4 +1,4 @@
-import type { List, Status } from "../db";
+import type { List, ReleaseStage, Status } from "../db";
 import type { Mode } from "../games";
 import { STATUSES } from "./common";
 
@@ -64,11 +64,27 @@ export type Extra = {
 
 export const NO_EXTRA: Extra = { lists: new Map(), statuses: new Map(), showEarly: true, showPre: true };
 
-// Quantos filtros avançados estão ativos.
-export const extraCount = (x: Extra) => x.lists.size + x.statuses.size + Number(!x.showEarly) + Number(!x.showPre);
+// Nas páginas Early Access e Pre-release, os checkboxes ficam fixos: só a da página aparece.
+export const withStage = (x: Extra, stage: ReleaseStage | null): Extra =>
+  stage ? { ...x, showEarly: stage === "early_access", showPre: stage === "pre_release" } : x;
+
+// Quantos filtros avançados estão ativos (os checkboxes fixos não contam).
+export const extraCount = (x: Extra, stage: ReleaseStage | null) =>
+  x.lists.size + x.statuses.size + (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
 
 // Seção "Mais filtros": listas e status com incluir/exigir/excluir, e mostrar Early Access/Pre-release.
-export function MoreFilters({ lists, extra, setExtra }: { lists: List[]; extra: Extra; setExtra: (x: Extra) => void }) {
+export function MoreFilters({
+  lists,
+  stage,
+  extra,
+  setExtra,
+}: {
+  lists: List[];
+  stage: ReleaseStage | null;
+  extra: Extra;
+  setExtra: (x: Extra) => void;
+}) {
+  const shown = withStage(extra, stage);
   return (
     <div className="more-filters">
       <div className="more-row">
@@ -96,7 +112,8 @@ export function MoreFilters({ lists, extra, setExtra }: { lists: List[]; extra: 
         <label className="check">
           <input
             type="checkbox"
-            checked={extra.showEarly}
+            checked={shown.showEarly}
+            disabled={stage != null}
             onChange={(e) => setExtra({ ...extra, showEarly: e.currentTarget.checked })}
           />
           Mostrar Early Access
@@ -104,12 +121,13 @@ export function MoreFilters({ lists, extra, setExtra }: { lists: List[]; extra: 
         <label className="check">
           <input
             type="checkbox"
-            checked={extra.showPre}
+            checked={shown.showPre}
+            disabled={stage != null}
             onChange={(e) => setExtra({ ...extra, showPre: e.currentTarget.checked })}
           />
           Mostrar Pre-release
         </label>
-        {extraCount(extra) > 0 && (
+        {extraCount(extra, stage) > 0 && (
           <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
             Limpar filtros
           </button>
