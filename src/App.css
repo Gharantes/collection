@@ -1080,12 +1080,13 @@ button.play:hover {
   cursor: pointer;
 }
 
-.release input[type="date"] {
+.release input:not([type="checkbox"]) {
+  width: 130px;
   padding: 4px 10px;
   font-size: 13px;
 }
 
-.release input[type="date"]:disabled {
+.release input:not([type="checkbox"]):disabled {
   opacity: 0.4;
 }
 

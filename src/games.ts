@@ -62,6 +62,11 @@ export function eventLabels(events: StatusEvent[]): string[] {
 // AAAA-MM-DD -> DD/MM/AAAA.
 export const formatDate = (at: string) => at.split("-").reverse().join("/");
 
+// Release date é texto livre, como na Steam ("17/10/2026", "Q1 2027", "2027").
+// As antigas, salvas como AAAA-MM-DD, aparecem como DD/MM/AAAA.
+export const formatRelease = (text: string | null) =>
+  !text ? "" : /^\d{4}-\d{2}-\d{2}$/.test(text) ? formatDate(text) : text;
+
 // Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
 export const hitsTarget = (g: Game) => {
   if (g.price == null) return false;

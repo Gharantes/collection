@@ -1,5 +1,5 @@
 import type { Game, List } from "../db";
-import { formatDate } from "../games";
+import { formatRelease } from "../games";
 import { ListChips, Price, RatingSelect, StatusSelect, dragGame, type Run } from "./common";
 
 type Props = {
@@ -55,7 +55,7 @@ export function GameTable({ games, compact = false, lists, inList, run, onDelete
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
             </td>
             {compact ? (
-              <td className="nowrap">{game.release_date ? formatDate(game.release_date) : "—"}</td>
+              <td className="nowrap">{formatRelease(game.release_date) || "—"}</td>
             ) : (
               <>
                 <td>

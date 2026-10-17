@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, formatDuration, hitsTarget, money, sortGames, toCents } from "./games.ts";
+import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, money, sortGames, toCents } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -53,4 +53,11 @@ test("duração", () => {
   assert.equal(formatDuration(7200), "2 h");
   assert.equal(formatDuration(600), "10 min");
   assert.equal(formatDuration(30), "< 1 min");
+});
+
+test("release date em texto livre, convertendo as antigas AAAA-MM-DD", () => {
+  assert.equal(formatRelease("2026-10-17"), "17/10/2026");
+  assert.equal(formatRelease("Q1 2027"), "Q1 2027");
+  assert.equal(formatRelease("2027"), "2027");
+  assert.equal(formatRelease(null), "");
 });

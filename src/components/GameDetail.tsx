@@ -13,7 +13,7 @@ import {
   type ReleaseStage,
   type StatusEvent,
 } from "../db";
-import { eventLabels, formatDate, formatDuration, hitsTarget, toCents } from "../games";
+import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toCents } from "../games";
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
@@ -156,10 +156,11 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 </label>
               ))}
               <input
-                type="date"
-                value={game.release_date ?? ""}
+                key={game.id}
+                placeholder="Release Date"
+                defaultValue={formatRelease(game.release_date)}
                 disabled={game.release_stage == null}
-                onChange={(e) => run(() => setReleaseDate(game.id, e.currentTarget.value || null))()}
+                onBlur={(e) => run(() => setReleaseDate(game.id, e.currentTarget.value.trim() || null))()}
                 aria-label="Release Date"
                 title="Release Date"
               />

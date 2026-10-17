@@ -33,7 +33,7 @@ const validGame = (g: Game) =>
   isIntOrNull(g.target_price) &&
   isStrOrNull(g.save_path) &&
   (g.release_stage == null || g.release_stage === "early_access" || g.release_stage === "pre_release") &&
-  (g.release_date == null || /^\d{4}-\d{2}-\d{2}$/.test(g.release_date)) &&
+  isStrOrNull(g.release_date) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
