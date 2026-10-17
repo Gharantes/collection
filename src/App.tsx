@@ -23,6 +23,7 @@ import { STATUSES } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
+import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
 import { UpdateBanner } from "./components/UpdateBanner";
@@ -60,6 +61,7 @@ function App() {
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [pickedId, setPickedId] = useState<number | null>(null);
 
   const load = async () => {
     const [g, l, m, e, s] = await Promise.all([
@@ -191,6 +193,13 @@ function App() {
     sort,
   );
   const linked = shown.filter(isLinked);
+  const picked = games.find((g) => g.id === pickedId);
+
+  // Sorteia um vinculado entre os mostrados; no reroll, evita repetir o atual se houver outro.
+  const pick = () => {
+    const pool = linked.length > 1 ? linked.filter((g) => g.id !== pickedId) : linked;
+    if (pool.length > 0) setPickedId(pool[Math.floor(Math.random() * pool.length)].id);
+  };
 
   const title =
     filter == null
@@ -253,7 +262,7 @@ function App() {
             </button>
             <button
               className="ghost pick"
-              onClick={() => openGame(linked[Math.floor(Math.random() * linked.length)].id)}
+              onClick={pick}
               disabled={linked.length === 0}
               title="Sorteia um jogo vinculado (Steam ou executável) entre os mostrados"
             >
@@ -308,6 +317,20 @@ function App() {
             <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} onOpen={openGame} />
           )}
           </>
+        )}
+
+        {picked && (
+          <PickDialog
+            game={picked}
+            lists={lists}
+            inList={inList}
+            onOpen={() => {
+              setPickedId(null);
+              openGame(picked.id);
+            }}
+            onReroll={pick}
+            onClose={() => setPickedId(null)}
+          />
         )}
       </main>
     </div>

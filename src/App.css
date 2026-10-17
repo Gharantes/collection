@@ -1264,3 +1264,40 @@ button.play:hover {
   border-color: var(--accent);
   color: #0b1220;
 }
+
+/* O que jogar? */
+
+.pick-dialog {
+  width: min(320px, calc(100vw - 32px));
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.pick-dialog::backdrop {
+  background: #000a;
+}
+
+.pick-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.pick-dialog h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.chip.readonly {
+  padding-right: 10px;
+}
+
+.pick-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
