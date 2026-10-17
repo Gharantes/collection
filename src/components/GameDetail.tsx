@@ -4,10 +4,13 @@ import {
   deleteEvent,
   setEventDate,
   setLaunch,
+  setReleaseDate,
+  setReleaseStage,
   setTarget,
   type Game,
   type List,
   type PlaySession,
+  type ReleaseStage,
   type StatusEvent,
 } from "../db";
 import { eventLabels, formatDate, formatDuration, hitsTarget, toCents } from "../games";
@@ -135,6 +138,32 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
           <div className="field">
             <span>Listas</span>
             <ListChips game={game} lists={lists} inList={inList} run={run} />
+          </div>
+          <div className="field">
+            <span>Release</span>
+            <div className="release">
+              {(["early_access", "pre_release"] as ReleaseStage[]).map((stage) => (
+                <label key={stage} className="check">
+                  <input
+                    type="checkbox"
+                    checked={game.release_stage === stage}
+                    onChange={(e) => {
+                      const on = e.currentTarget.checked;
+                      run(() => setReleaseStage(game.id, on ? stage : null))();
+                    }}
+                  />
+                  {stage === "early_access" ? "Early Access" : "Pre-release"}
+                </label>
+              ))}
+              <input
+                type="date"
+                value={game.release_date ?? ""}
+                disabled={game.release_stage == null}
+                onChange={(e) => run(() => setReleaseDate(game.id, e.currentTarget.value || null))()}
+                aria-label="Release Date"
+                title="Release Date"
+              />
+            </div>
           </div>
           <div className="field">
             <span>Alerta</span>

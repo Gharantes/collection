@@ -90,6 +90,12 @@ pub fn run() {
             sql: include_str!("../migrations/014_note_image.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 15,
+            description: "add games.release_stage and release_date",
+            sql: include_str!("../migrations/015_release.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

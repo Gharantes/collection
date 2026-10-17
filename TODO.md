@@ -35,6 +35,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`
 - `App.tsx` dividido em componentes
 - Botão para fechar a mensagem de erro
+- Checkboxes "Early Access" e "Pre-release" (um ou outro) na página do jogo; marcar um libera a "Release Date"
 
 ## Recusado
 
