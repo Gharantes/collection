@@ -512,6 +512,10 @@ select.add-list {
   color: var(--muted);
 }
 
+select.add-list option {
+  color: var(--text);
+}
+
 select.add-list:hover {
   color: var(--text);
 }
