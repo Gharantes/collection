@@ -508,6 +508,16 @@ button.danger:hover {
   opacity: 1;
 }
 
+.chip-more {
+  padding: 1px 10px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chip-more:hover {
+  color: var(--text);
+}
+
 select.add-list {
   color: var(--muted);
 }

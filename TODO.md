@@ -17,7 +17,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
-- Coluna de listas compacta (chips + "+ Lista")
+- Coluna de listas compacta (chips + "+ Lista"); na tabela mostra 2 listas e "+N" para expandir
 - Sidebar estilo Steam, visualização em cards (capa vertical) ou tabela
 - Página de detalhes do jogo (rota `#/jogo/<id>`, com "Voltar"), no lugar do modal
 - Botão "Atualizar preços" (e automático uma vez por dia); promoção mostra o preço original riscado

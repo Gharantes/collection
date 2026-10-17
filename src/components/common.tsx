@@ -100,16 +100,27 @@ export function RatingSelect({ game, run }: { game: Game; run: Run }) {
   );
 }
 
-type ListChipsProps = { game: Game; lists: List[]; inList: (gameId: number, listId: number) => boolean; run: Run };
+type ListChipsProps = {
+  game: Game;
+  lists: List[];
+  inList: (gameId: number, listId: number) => boolean;
+  run: Run;
+  // Quantas listas mostrar antes de esconder o resto atrás de "+N".
+  max?: number;
+};
 
 // Listas do jogo com × para tirar, e menu "+ Lista" com as que faltam.
-export function ListChips({ game, lists, inList, run }: ListChipsProps) {
+export function ListChips({ game, lists, inList, run, max = Infinity }: ListChipsProps) {
+  const [expanded, setExpanded] = useState(false);
   const missing = lists.filter((list) => !inList(game.id, list.id));
+  const member = lists.filter((list) => inList(game.id, list.id));
+  // Só esconde se sobrar mais de uma, para "+1" não ocupar o lugar da própria lista.
+  const collapsible = member.length > max + 1;
+  const hidden = collapsible && !expanded ? member.slice(max) : [];
+  const shown = hidden.length ? member.slice(0, max) : member;
   return (
     <div className="chips">
-      {lists
-        .filter((list) => inList(game.id, list.id))
-        .map((list) => (
+      {shown.map((list) => (
           <span key={list.id} className="chip">
             {list.name}
             <button
@@ -121,6 +132,15 @@ export function ListChips({ game, lists, inList, run }: ListChipsProps) {
             </button>
           </span>
         ))}
+      {collapsible && (
+        <button
+          className="chip chip-more"
+          onClick={() => setExpanded(!expanded)}
+          title={hidden.map((list) => list.name).join(", ")}
+        >
+          {expanded ? "menos" : `+${hidden.length}`}
+        </button>
+      )}
       {missing.length > 0 && (
         <select
           className="pill add-list"

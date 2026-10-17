@@ -52,7 +52,7 @@ export function GameTable({ games, lists, inList, run, onDelete, onOpen }: Props
               <RatingSelect game={game} run={run} />
             </td>
             <td>
-              <ListChips game={game} lists={lists} inList={inList} run={run} />
+              <ListChips game={game} lists={lists} inList={inList} run={run} max={2} />
             </td>
             <td>
               <button className="danger" onClick={() => onDelete(game)} aria-label={`Remover ${game.name}`}>
