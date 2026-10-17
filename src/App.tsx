@@ -142,7 +142,7 @@ function App() {
     ),
     sort,
   );
-  const backlog = shown.filter((g) => g.status === "backlog");
+  const linked = shown.filter((g) => g.launch != null);
 
   const title =
     filter == null
@@ -188,9 +188,9 @@ function App() {
             </button>
             <button
               className="ghost pick"
-              onClick={() => setOpenId(backlog[Math.floor(Math.random() * backlog.length)].id)}
-              disabled={backlog.length === 0}
-              title="Sorteia um jogo do Backlog entre os mostrados"
+              onClick={() => setOpenId(linked[Math.floor(Math.random() * linked.length)].id)}
+              disabled={linked.length === 0}
+              title="Sorteia um jogo vinculado (Steam ou executável) entre os mostrados"
             >
               O que jogar?
             </button>

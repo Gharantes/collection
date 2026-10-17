@@ -12,7 +12,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Setup Tauri 2 + React + TypeScript + Vite + SQLite, igual ao price-tracker-v2
 - Listas (um jogo em várias), nota de 0 a 10
 - Status: Backlog, Jogando, Terminado, Abandonado
-- Botão "O que jogar?": sorteia um jogo do Backlog entre os mostrados (respeita a lista)
+- Botão "O que jogar?": sorteia um jogo vinculado (Steam ou executável) entre os mostrados (respeita a lista)
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
