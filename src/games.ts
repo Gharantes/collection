@@ -102,3 +102,19 @@ export const formatDuration = (seconds: number) => {
   if (h) return `${h} h`;
   return m ? `${m} min` : "< 1 min";
 };
+
+// Modo de um item nos filtros avançados (listas e status).
+export type Mode = "include" | "require" | "exclude";
+
+// Passa se tem algum dos incluídos (quando houver), todos os exigidos e nenhum excluído.
+export const matchModes = <K>(has: (k: K) => boolean, modes: Map<K, Mode>) => {
+  let anyInclude = false;
+  let included = false;
+  for (const [k, mode] of modes) {
+    if (mode === "include") {
+      anyInclude = true;
+      if (has(k)) included = true;
+    } else if (mode === "require" ? !has(k) : has(k)) return false;
+  }
+  return !anyInclude || included;
+};

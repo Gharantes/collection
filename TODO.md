@@ -38,6 +38,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Checkboxes "Early Access" e "Pre-release" (um ou outro) na página do jogo; marcar um libera a "Release Date"
 - Páginas "Early Access" e "Pre-release" na sidebar; a tabela delas mostra só imagem, nome, preço e release date
 - Release date em texto livre, como na Steam (data, "Q1 2027" ou só o ano)
+- Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), checkboxes "Mostrar Early Access" e "Mostrar Pre-release"; o select de status foi para lá
 
 ## Recusado
 

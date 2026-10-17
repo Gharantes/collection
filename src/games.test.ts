@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, money, sortGames, toCents } from "./games.ts";
+import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -60,4 +60,17 @@ test("release date em texto livre, convertendo as antigas AAAA-MM-DD", () => {
   assert.equal(formatRelease("Q1 2027"), "Q1 2027");
   assert.equal(formatRelease("2027"), "2027");
   assert.equal(formatRelease(null), "");
+});
+
+test("filtro incluir, exigir e excluir", () => {
+  const tags = new Set(["a", "b"]);
+  const has = (k: string) => tags.has(k);
+  const ok = (modes: [string, Mode][]) => matchModes(has, new Map(modes));
+  assert.equal(ok([]), true);
+  assert.equal(ok([["a", "include"], ["c", "include"]]), true);
+  assert.equal(ok([["c", "include"]]), false);
+  assert.equal(ok([["a", "require"], ["b", "require"]]), true);
+  assert.equal(ok([["c", "require"]]), false);
+  assert.equal(ok([["b", "exclude"]]), false);
+  assert.equal(ok([["c", "exclude"], ["a", "include"]]), true);
 });

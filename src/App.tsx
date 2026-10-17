@@ -13,16 +13,16 @@ import {
   type Game,
   type List,
   type PlaySession,
-  type Status,
   type StatusEvent,
 } from "./db";
-import { SORTS, discount, hitsTarget, money, sortGames, type Sort } from "./games";
+import { SORTS, discount, hitsTarget, matchModes, money, sortGames, type Sort } from "./games";
 import { readPref, readTime, savePref } from "./prefs";
 import { AddGame } from "./components/AddGame";
-import { ErrorBanner, STATUSES } from "./components/common";
+import { ErrorBanner } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
+import { MoreFilters, NO_EXTRA, extraCount, type Extra } from "./components/MoreFilters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -53,7 +53,8 @@ function App() {
   const [events, setEvents] = useState<StatusEvent[]>([]);
   const [sessions, setSessions] = useState<PlaySession[]>([]);
   const [filter, setFilter] = useState<Filter>(null);
-  const [statusFilter, setStatusFilter] = useState<Status | "">("");
+  const [extra, setExtra] = useState<Extra>(NO_EXTRA);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>(() => readPref("collection.view", ["cards", "table"], "cards"));
@@ -189,7 +190,10 @@ function App() {
     games.filter(
       (g) =>
         inFilter(g) &&
-        (!statusFilter || g.status === statusFilter) &&
+        matchModes((s) => g.status === s, extra.statuses) &&
+        matchModes((id) => inList(g.id, id), extra.lists) &&
+        (extra.showEarly || g.release_stage !== "early_access") &&
+        (extra.showPre || g.release_stage !== "pre_release") &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
@@ -286,18 +290,9 @@ function App() {
               onChange={(e) => setNameFilter(e.currentTarget.value)}
               placeholder="Filtrar por nome"
             />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.currentTarget.value as Status | "")}
-              aria-label="Filtrar por status"
-            >
-              <option value="">Todos os status</option>
-              {Object.entries(STATUSES).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            <button className={`ghost more-toggle ${moreOpen ? "on" : ""}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen}>
+              Mais filtros{extraCount(extra) > 0 && ` (${extraCount(extra)})`} {moreOpen ? "▴" : "▾"}
+            </button>
             <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
               {Object.entries(SORTS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -314,6 +309,8 @@ function App() {
               </button>
             </div>
           </div>
+
+          {moreOpen && <MoreFilters lists={lists} extra={extra} setExtra={setExtra} />}
 
           <ErrorBanner error={error} onClose={() => setError(null)} />
 

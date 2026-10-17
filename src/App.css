@@ -344,6 +344,81 @@ button.danger:hover {
   color: var(--text);
 }
 
+button.more-toggle.on {
+  background: var(--surface-2);
+}
+
+/* Mais filtros */
+
+.more-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: -8px 0 20px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.more-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.more-row > .muted:first-child {
+  width: 56px;
+  font-size: 13px;
+}
+
+.mode-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+}
+
+.mode-chip:hover {
+  color: var(--text);
+}
+
+.mode-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.mode-chip.include {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: #6aa8ff55;
+}
+
+.mode-chip.require {
+  color: var(--good);
+  background: #4ade8022;
+  border-color: #4ade8055;
+}
+
+.mode-chip.exclude {
+  color: var(--bad);
+  background: #f8717122;
+  border-color: #f8717155;
+}
+
+.clear-filters {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
 /* Grade de cards */
 
 .grid {
@@ -1072,7 +1147,8 @@ button.play:hover {
   gap: 12px;
 }
 
-.release .check {
+.release .check,
+.more-filters .check {
   display: flex;
   align-items: center;
   gap: 6px;
