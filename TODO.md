@@ -30,7 +30,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"
 - Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
-- Tempo de jogo dos jogos abertos pelo executável
+- Tempo de jogo dos jogos abertos pelo executável ou pela Steam (no Windows, pelo registro `Apps<id>Running`)
 - Página de estatísticas
 - Atualização do app pelas releases do GitHub: só manual, pelo botão "Procurar atualizações" em Configurações (antes procurava ao abrir)
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`

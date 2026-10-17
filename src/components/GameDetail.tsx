@@ -86,7 +86,7 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
   const launch = () =>
     run(async () => {
       try {
-        if (game.launch === "steam") await invoke("launch_steam", { appId: game.steam_id });
+        if (game.launch === "steam") await invoke("launch_steam", { gameId: game.id, appId: game.steam_id });
         else await invoke("launch_exe", { gameId: game.id, path: game.exe_path });
       } catch (e) {
         if (e !== "not_found") throw e;

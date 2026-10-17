@@ -16,7 +16,7 @@ App desktop para organizar sua coleção de jogos em listas, no estilo das cole�
 - Histórico de status com datas: começou, voltou ao backlog, retomou, terminou
 - Vincula o jogo à Steam ou a um executável e abre direto do app
 - Backup manual dos saves de cada jogo
-- Tempo de jogo dos jogos abertos pelo executável
+- Tempo de jogo dos jogos abertos pelo executável ou pela Steam (Steam só no Windows)
 - Página de estatísticas
 - Atualização do app pelas releases do GitHub (botão em Configurações)
 - Arrastar jogos para as listas da sidebar

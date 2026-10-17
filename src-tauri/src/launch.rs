@@ -66,13 +66,48 @@ pub fn steam_installed(app: tauri::AppHandle, app_id: u32) -> bool {
 
 // Erro "not_found" quando o jogo não está instalado.
 #[tauri::command]
-pub fn launch_steam(app: tauri::AppHandle, app_id: u32) -> Result<(), String> {
+pub fn launch_steam(app: tauri::AppHandle, game_id: i64, app_id: u32) -> Result<(), String> {
     if !steam_installed(app.clone(), app_id) {
         return Err("not_found".into());
     }
     app.opener()
         .open_url(format!("steam://rungameid/{app_id}"), None::<&str>)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    #[cfg(windows)]
+    std::thread::spawn(move || watch_steam(app, game_id, app_id));
+    #[cfg(not(windows))]
+    let _ = game_id;
+    Ok(())
+}
+
+// A Steam marca HKCU\Software\Valve\Steam\Apps\<id>\Running = 1 enquanto o jogo roda.
+#[cfg(windows)]
+fn steam_running(app_id: u32) -> bool {
+    winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+        .open_subkey(format!(r"Software\Valve\Steam\Apps\{app_id}"))
+        .and_then(|key| key.get_value::<u32, _>("Running"))
+        .is_ok_and(|v| v == 1)
+}
+
+// Espera o jogo começar (até 10 min, pode ter atualização) e emite "game-exited" quando ele fecha.
+#[cfg(windows)]
+fn watch_steam(app: tauri::AppHandle, game_id: i64, app_id: u32) {
+    use std::time::Duration;
+    let tick = Duration::from_secs(5);
+    let waiting = Instant::now();
+    while !steam_running(app_id) {
+        if waiting.elapsed() > Duration::from_secs(600) {
+            return;
+        }
+        std::thread::sleep(tick);
+    }
+    let started_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis();
+    let clock = Instant::now();
+    while steam_running(app_id) {
+        std::thread::sleep(tick);
+    }
+    let session = Session { game_id, started_at, seconds: clock.elapsed().as_secs() };
+    let _ = app.emit("game-exited", session);
 }
 
 // Abre a página da loja no Firefox; se não achar, no navegador padrão.
