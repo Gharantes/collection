@@ -180,7 +180,9 @@ function App() {
         ? hitsTarget(g)
         : filter === "linked"
           ? isLinked(g)
-          : inList(g.id, filter);
+          : typeof filter === "string"
+            ? g.release_stage === filter
+            : inList(g.id, filter);
 
   const name = nameFilter.trim().toLowerCase();
   const shown = sortGames(
@@ -208,6 +210,10 @@ function App() {
         ? "No preço-alvo"
         : filter === "linked"
           ? "Vinculados"
+          : filter === "early_access"
+          ? "Early Access"
+          : filter === "pre_release"
+          ? "Pre-release"
           : filter === "stats"
           ? "Estatísticas"
           : (lists.find((l) => l.id === filter)?.name ?? "");
@@ -221,6 +227,7 @@ function App() {
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
         linkedCount={games.filter(isLinked).length}
+        releaseCount={(stage) => games.filter((g) => g.release_stage === stage).length}
         listCount={listCount}
         run={run}
       />
@@ -315,7 +322,15 @@ function App() {
           ) : view === "cards" ? (
             <GameGrid games={shown} onOpen={openGame} />
           ) : (
-            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} onOpen={openGame} />
+            <GameTable
+              games={shown}
+              compact={filter === "early_access" || filter === "pre_release"}
+              lists={lists}
+              inList={inList}
+              run={run}
+              onDelete={onDeleteGame}
+              onOpen={openGame}
+            />
           )}
           </>
         )}

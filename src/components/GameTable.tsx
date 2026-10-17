@@ -1,8 +1,11 @@
 import type { Game, List } from "../db";
+import { formatDate } from "../games";
 import { ListChips, Price, RatingSelect, StatusSelect, dragGame, type Run } from "./common";
 
 type Props = {
   games: Game[];
+  // Páginas Early Access e Pre-release: só imagem, nome, preço e release date.
+  compact?: boolean;
   lists: List[];
   inList: (gameId: number, listId: number) => boolean;
   run: Run;
@@ -10,7 +13,7 @@ type Props = {
   onOpen: (id: number) => void;
 };
 
-export function GameTable({ games, lists, inList, run, onDelete, onOpen }: Props) {
+export function GameTable({ games, compact = false, lists, inList, run, onDelete, onOpen }: Props) {
   return (
     <table className="games">
       <thead>
@@ -18,10 +21,16 @@ export function GameTable({ games, lists, inList, run, onDelete, onOpen }: Props
           <th />
           <th>Jogo</th>
           <th>Preço</th>
-          <th>Status</th>
-          <th>Nota</th>
-          <th>Listas</th>
-          <th />
+          {compact ? (
+            <th>Release Date</th>
+          ) : (
+            <>
+              <th>Status</th>
+              <th>Nota</th>
+              <th>Listas</th>
+              <th />
+            </>
+          )}
         </tr>
       </thead>
       <tbody>
@@ -45,20 +54,26 @@ export function GameTable({ games, lists, inList, run, onDelete, onOpen }: Props
             <td className="nowrap">
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
             </td>
-            <td>
-              <StatusSelect game={game} run={run} />
-            </td>
-            <td>
-              <RatingSelect game={game} run={run} />
-            </td>
-            <td>
-              <ListChips game={game} lists={lists} inList={inList} run={run} max={2} />
-            </td>
-            <td>
-              <button className="danger" onClick={() => onDelete(game)} aria-label={`Remover ${game.name}`}>
-                Remover
-              </button>
-            </td>
+            {compact ? (
+              <td className="nowrap">{game.release_date ? formatDate(game.release_date) : "—"}</td>
+            ) : (
+              <>
+                <td>
+                  <StatusSelect game={game} run={run} />
+                </td>
+                <td>
+                  <RatingSelect game={game} run={run} />
+                </td>
+                <td>
+                  <ListChips game={game} lists={lists} inList={inList} run={run} max={2} />
+                </td>
+                <td>
+                  <button className="danger" onClick={() => onDelete(game)} aria-label={`Remover ${game.name}`}>
+                    Remover
+                  </button>
+                </td>
+              </>
+            )}
           </tr>
         ))}
       </tbody>
