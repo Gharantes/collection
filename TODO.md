@@ -28,6 +28,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
 - Arrastar card ou linha para uma lista da sidebar
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"
+- Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
 - Tempo de jogo dos jogos abertos pelo executável
 - Página de estatísticas

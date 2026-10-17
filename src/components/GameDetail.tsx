@@ -95,6 +95,21 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       }
     })();
 
+  const openStore = () => run(() => invoke("open_store", { appId: game.steam_id }))();
+
+  const openFolder = () =>
+    run(async () => {
+      try {
+        await invoke("open_game_folder", {
+          appId: game.launch === "steam" ? game.steam_id : null,
+          exePath: game.launch === "exe" ? game.exe_path : null,
+        });
+      } catch (e) {
+        if (e !== "not_found") throw e;
+        throw new Error("Não encontrei a pasta do jogo.");
+      }
+    })();
+
   return (
     <>
       <button className="ghost back" onClick={onBack}>
@@ -133,6 +148,20 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 </div>
               </details>
             )}
+            <button
+              onClick={openStore}
+              disabled={game.steam_id == null}
+              title={game.steam_id == null ? "Este jogo não veio da Steam" : undefined}
+            >
+              Loja Steam
+            </button>
+            <button
+              onClick={openFolder}
+              disabled={!game.launch}
+              title={game.launch ? undefined : "Vincule o jogo primeiro"}
+            >
+              Abrir pasta
+            </button>
           </div>
           <ErrorBanner error={error} onClose={onCloseError} />
 

@@ -127,6 +127,8 @@ pub fn run() {
             launch::steam_installed,
             launch::launch_steam,
             launch::launch_exe,
+            launch::open_store,
+            launch::open_game_folder,
             saves::list_save_backups,
             saves::backup_saves,
             saves::restore_saves,

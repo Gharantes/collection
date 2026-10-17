@@ -34,12 +34,28 @@ fn libraries(root: &Path) -> Vec<PathBuf> {
     libs
 }
 
-fn installed_in(roots: &[PathBuf], app_id: u32) -> bool {
+// Biblioteca onde está o appmanifest do jogo.
+fn library_of(roots: &[PathBuf], app_id: u32) -> Option<PathBuf> {
     let manifest = format!("appmanifest_{app_id}.acf");
     roots
         .iter()
         .flat_map(|r| libraries(r))
-        .any(|lib| lib.join("steamapps").join(&manifest).is_file())
+        .find(|lib| lib.join("steamapps").join(&manifest).is_file())
+}
+
+fn installed_in(roots: &[PathBuf], app_id: u32) -> bool {
+    library_of(roots, app_id).is_some()
+}
+
+// Pasta de instalação: steamapps/common/<installdir do appmanifest>.
+fn install_dir(roots: &[PathBuf], app_id: u32) -> Option<PathBuf> {
+    let lib = library_of(roots, app_id)?;
+    let acf = std::fs::read_to_string(lib.join(format!("steamapps/appmanifest_{app_id}.acf"))).ok()?;
+    acf.lines().find_map(|line| {
+        let parts: Vec<&str> = line.split('"').collect();
+        (parts.len() >= 4 && parts[1] == "installdir")
+            .then(|| lib.join("steamapps/common").join(parts[3]))
+    })
 }
 
 #[tauri::command]
@@ -56,6 +72,35 @@ pub fn launch_steam(app: tauri::AppHandle, app_id: u32) -> Result<(), String> {
     }
     app.opener()
         .open_url(format!("steam://rungameid/{app_id}"), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+// Abre a página da loja no Firefox; se não achar, no navegador padrão.
+#[tauri::command]
+pub fn open_store(app: tauri::AppHandle, app_id: u32) -> Result<(), String> {
+    let url = format!("https://store.steampowered.com/app/{app_id}/");
+    app.opener()
+        .open_url(&url, Some("firefox"))
+        .or_else(|_| app.opener().open_url(&url, None::<&str>))
+        .map_err(|e| e.to_string())
+}
+
+// Abre a pasta do jogo: a de instalação da Steam ou a do executável.
+#[tauri::command]
+pub fn open_game_folder(
+    app: tauri::AppHandle,
+    app_id: Option<u32>,
+    exe_path: Option<String>,
+) -> Result<(), String> {
+    let home = app.path().home_dir().unwrap_or_default();
+    let dir = match (exe_path, app_id) {
+        (Some(path), _) => Path::new(&path).parent().map(Path::to_path_buf),
+        (None, Some(id)) => install_dir(&steam_roots(&home), id),
+        _ => None,
+    };
+    let dir = dir.filter(|d| d.is_dir()).ok_or("not_found")?;
+    app.opener()
+        .open_path(dir.to_string_lossy(), None::<&str>)
         .map_err(|e| e.to_string())
 }
 
@@ -109,9 +154,18 @@ mod tests {
             extra.display()
         );
         std::fs::write(root.join("steamapps/libraryfolders.vdf"), vdf).unwrap();
-        std::fs::write(extra.join("steamapps/appmanifest_42.acf"), "").unwrap();
+        std::fs::write(
+            extra.join("steamapps/appmanifest_42.acf"),
+            "\"AppState\"
+{
+	\"installdir\"		\"Meu Jogo\"
+}
+",
+        )
+        .unwrap();
 
         assert!(installed_in(&[root.clone()], 42));
+        assert_eq!(install_dir(&[root.clone()], 42), Some(extra.join("steamapps/common/Meu Jogo")));
         assert!(!installed_in(&[root], 43));
         std::fs::remove_dir_all(base).unwrap();
     }
