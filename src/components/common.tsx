@@ -123,7 +123,7 @@ export function ListChips({ game, lists, inList, run }: ListChipsProps) {
         ))}
       {missing.length > 0 && (
         <select
-          className="add-list"
+          className="pill add-list"
           value=""
           onChange={(e) => run(() => setMembership(game.id, Number(e.currentTarget.value), true))()}
           aria-label={`Adicionar ${game.name} a uma lista`}

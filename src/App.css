@@ -509,15 +509,7 @@ button.danger:hover {
 }
 
 select.add-list {
-  appearance: none;
-  width: 64px;
-  text-align: center;
-  padding: 1px 8px;
-  border-radius: 999px;
-  border-style: dashed;
-  background: transparent;
   color: var(--muted);
-  font-size: 12px;
 }
 
 select.add-list:hover {
