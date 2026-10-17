@@ -240,7 +240,7 @@ function App() {
           ) : view === "cards" ? (
             <GameGrid games={shown} onOpen={setOpenId} />
           ) : (
-            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} />
+            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} onOpen={setOpenId} />
           )}
           </>
         )}

@@ -7,9 +7,10 @@ type Props = {
   inList: (gameId: number, listId: number) => boolean;
   run: Run;
   onDelete: (game: Game) => void;
+  onOpen: (id: number) => void;
 };
 
-export function GameTable({ games, lists, inList, run, onDelete }: Props) {
+export function GameTable({ games, lists, inList, run, onDelete, onOpen }: Props) {
   return (
     <table className="games">
       <thead>
@@ -25,7 +26,14 @@ export function GameTable({ games, lists, inList, run, onDelete }: Props) {
       </thead>
       <tbody>
         {games.map((game) => (
-          <tr key={game.id} {...dragGame(game.id)}>
+          <tr
+            key={game.id}
+            {...dragGame(game.id)}
+            onClick={(e) => {
+              // Cliques nos controles da linha (selects, chips, botões) não abrem o detalhe.
+              if (!(e.target as HTMLElement).closest("button, select, input, a, label")) onOpen(game.id);
+            }}
+          >
             <td>
               {game.image_url ? (
                 <img className="cover" src={game.image_url} alt="" />

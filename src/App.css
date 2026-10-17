@@ -447,6 +447,10 @@ button.danger:hover {
   border-top: 1px solid var(--border);
 }
 
+.games tbody tr {
+  cursor: pointer;
+}
+
 .games tbody tr:hover {
   background: var(--surface-2);
 }
@@ -861,7 +865,7 @@ button.play:hover {
 }
 
 .games tr[draggable="true"] {
-  cursor: grab;
+  cursor: pointer;
 }
 
 /* Alerta de promoção */
