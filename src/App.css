@@ -496,9 +496,15 @@ select.rating-bound {
   border-radius: 4px;
 }
 
+/* Capa do card com os selos: desconto no canto de cima à esquerda, medalha à direita, nota embaixo à direita. */
+.poster-wrap {
+  position: relative;
+  display: block;
+}
+
 .badge {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   min-width: 28px;
   padding: 2px 6px;
@@ -1251,13 +1257,12 @@ button.play:hover {
   fill: #c98a00;
 }
 
-/* No card: grande, centralizada, passando da borda de cima da capa. */
+/* No card: grande, no canto de cima à direita, passando da borda da capa. */
 .game-card .medal {
   top: -12px;
-  left: 50%;
+  right: -6px;
   width: 40px;
   height: 48px;
-  transform: translateX(-50%);
 }
 
 .game-card .medal:not(.gold) {

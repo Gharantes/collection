@@ -40,7 +40,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Release date em texto livre, como na Steam (data, "Q1 2027" ou só o ano)
 - Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), checkboxes "Mostrar Early Access" e "Mostrar Pre-release"; o select de status foi para lá. Nas páginas Early Access e Pre-release esses checkboxes ficam fixos. Nota mínima e máxima (sem nota fica de fora)
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"
-- Medalha em roseta (como a da Steam) no topo da capa nos cards e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina
+- Medalha em roseta (como a da Steam) no canto de cima à direita da capa nos cards (a nota foi para baixo à direita) e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina
 
 ## Recusado
 
