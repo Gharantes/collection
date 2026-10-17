@@ -1034,6 +1034,12 @@ button.play:hover {
   filter: brightness(1.15);
 }
 
+.launch > button:disabled {
+  color: var(--muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .menu {
   position: relative;
 }
