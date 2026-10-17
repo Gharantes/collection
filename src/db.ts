@@ -5,6 +5,7 @@ import type { Backup } from "./backup";
 export type Status = "backlog" | "playing" | "finished" | "abandoned";
 export type Launch = "steam" | "exe";
 export type ReleaseStage = "early_access" | "pre_release";
+export type Achievements = "later" | "hunting";
 export type Game = {
   id: number;
   name: string;
@@ -23,6 +24,7 @@ export type Game = {
   save_path: string | null;
   release_stage: ReleaseStage | null;
   release_date: string | null;
+  achievements: Achievements | null;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -154,6 +156,9 @@ export const setReleaseStage = async (id: number, stage: ReleaseStage | null) =>
 export const setReleaseDate = async (id: number, date: string | null) =>
   (await getDb()).execute("UPDATE games SET release_date = $1 WHERE id = $2", [date, id]);
 
+export const setAchievements = async (id: number, goal: Achievements | null) =>
+  (await getDb()).execute("UPDATE games SET achievements = $1 WHERE id = $2", [goal, id]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -193,6 +198,7 @@ const GAME_COLUMNS = [
   "save_path",
   "release_stage",
   "release_date",
+  "achievements",
 ];
 
 export const exportBackup = async (): Promise<string> => {

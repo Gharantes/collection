@@ -2,11 +2,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   deleteEvent,
+  setAchievements,
   setEventDate,
   setLaunch,
   setReleaseDate,
   setReleaseStage,
   setTarget,
+  type Achievements,
   type Game,
   type List,
   type PlaySession,
@@ -30,6 +32,13 @@ type Props = {
   onBack: () => void;
   onDelete: (game: Game) => void;
 };
+
+// Etapas do slider de conquistas: não importam, platinar depois de terminar, caçando a platina.
+const ACHIEVEMENT_STEPS: { goal: Achievements | null; label: string }[] = [
+  { goal: null, label: "Não importam" },
+  { goal: "later", label: "Platinar depois" },
+  { goal: "hunting", label: "Caçando platina" },
+];
 
 // Página de detalhes do jogo (rota #/jogo/<id>).
 export function GameDetail({ game, events, ...props }: Props) {
@@ -164,6 +173,33 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 aria-label="Release Date"
                 title="Release Date"
               />
+            </div>
+          </div>
+          <div className="field">
+            <span>Conquistas</span>
+            <div className="achievements">
+              <input
+                type="range"
+                min={0}
+                max={2}
+                step={1}
+                value={ACHIEVEMENT_STEPS.findIndex((s) => s.goal === game.achievements)}
+                onChange={(e) =>
+                  run(() => setAchievements(game.id, ACHIEVEMENT_STEPS[Number(e.currentTarget.value)].goal))()
+                }
+                aria-label="Conquistas"
+              />
+              <div className="steps">
+                {ACHIEVEMENT_STEPS.map((s) => (
+                  <button
+                    key={s.label}
+                    className={s.goal === game.achievements ? "active" : ""}
+                    onClick={run(() => setAchievements(game.id, s.goal))}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <div className="field">

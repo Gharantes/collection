@@ -96,6 +96,12 @@ pub fn run() {
             sql: include_str!("../migrations/015_release.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 16,
+            description: "add games.achievements",
+            sql: include_str!("../migrations/016_achievements.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
