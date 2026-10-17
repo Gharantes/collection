@@ -33,11 +33,11 @@ type Props = {
   onDelete: (game: Game) => void;
 };
 
-// Etapas do slider de conquistas: não importam, platinar depois de terminar, caçando a platina.
+// Etapas do slider de conquistas: não importam, caçando a platina, platinado.
 const ACHIEVEMENT_STEPS: { goal: Achievements | null; label: string }[] = [
   { goal: null, label: "Não importam" },
-  { goal: "later", label: "Platinar depois" },
   { goal: "hunting", label: "Caçando platina" },
+  { goal: "platinum", label: "Platinado" },
 ];
 
 // Página de detalhes do jogo (rota #/jogo/<id>).

@@ -34,7 +34,7 @@ const validGame = (g: Game) =>
   isStrOrNull(g.save_path) &&
   (g.release_stage == null || g.release_stage === "early_access" || g.release_stage === "pre_release") &&
   isStrOrNull(g.release_date) &&
-  (g.achievements == null || g.achievements === "later" || g.achievements === "hunting") &&
+  (g.achievements == null || g.achievements === "hunting" || g.achievements === "platinum") &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.

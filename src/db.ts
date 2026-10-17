@@ -5,7 +5,7 @@ import type { Backup } from "./backup";
 export type Status = "backlog" | "playing" | "finished" | "abandoned";
 export type Launch = "steam" | "exe";
 export type ReleaseStage = "early_access" | "pre_release";
-export type Achievements = "later" | "hunting";
+export type Achievements = "hunting" | "platinum";
 export type Game = {
   id: number;
   name: string;

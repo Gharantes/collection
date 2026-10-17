@@ -102,6 +102,12 @@ pub fn run() {
             sql: include_str!("../migrations/016_achievements.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 17,
+            description: "games.achievements becomes hunting or platinum",
+            sql: include_str!("../migrations/017_achievements_platinum.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
