@@ -4,7 +4,6 @@ import {
   deleteEvent,
   setEventDate,
   setLaunch,
-  setNotes,
   setTarget,
   type Game,
   type List,
@@ -13,7 +12,7 @@ import {
 } from "../db";
 import { eventLabels, formatDate, formatDuration, hitsTarget, toCents } from "../games";
 import { Cover, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
-import { NotesEditor } from "./NotesEditor";
+import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
 
 type Props = {
@@ -213,14 +212,7 @@ function Body({ game, events, sessions, lists, inList, run, error, onBack, onDel
 
       <SavesPanel game={game} run={run} />
 
-      <div className="detail-notes">
-        <h3>Anotações</h3>
-        <NotesEditor
-          gameId={game.id}
-          initial={game.notes ?? ""}
-          onSave={(text) => run(() => setNotes(game.id, text))()}
-        />
-      </div>
+      <NotesPanel gameId={game.id} run={run} />
 
       <div className="detail-actions">
         <button className="danger" onClick={() => onDelete(game)}>

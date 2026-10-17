@@ -4,10 +4,10 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { placeholder } from "@codemirror/view";
 import { livePreview } from "../livePreview";
 
-type Props = { gameId: number; initial: string; onSave: (text: string) => void };
+type Props = { noteId: number; initial: string; onSave: (text: string) => void };
 
 // Editor markdown com live preview; salva 500 ms depois de parar de digitar e ao fechar.
-export function NotesEditor({ gameId, initial, onSave }: Props) {
+export function NotesEditor({ noteId, initial, onSave }: Props) {
   const parent = useRef<HTMLDivElement>(null);
   const save = useRef(onSave);
   save.current = onSave;
@@ -43,8 +43,8 @@ export function NotesEditor({ gameId, initial, onSave }: Props) {
       flush();
       view.destroy();
     };
-    // Recria só ao trocar de jogo.
-  }, [gameId]);
+    // Recria só ao trocar de anotação.
+  }, [noteId]);
 
   return <div className="notes" ref={parent} />;
 }

@@ -1,4 +1,4 @@
-import type { Game, List, Membership, PlaySession, StatusEvent } from "./db";
+import type { Game, List, Membership, Note, PlaySession, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
@@ -8,6 +8,7 @@ export type Backup = {
   game_lists: Membership[];
   status_events: StatusEvent[];
   play_sessions: PlaySession[];
+  notes: Note[];
 };
 
 const STATUSES = ["backlog", "playing", "finished", "abandoned"];
@@ -71,5 +72,14 @@ export function parseBackup(text: string): Backup {
     )
   )
     throw new Error("Backup com sessões de jogo inválidas.");
+  // Backups antigos têm uma anotação só, em games.notes.
+  data.notes ??= data.games
+    .filter((g) => g.notes)
+    .map((g, i) => ({ id: i + 1, game_id: g.id, title: "Anotações", body: g.notes! }));
+  if (
+    !Array.isArray(data.notes) ||
+    !data.notes.every((n) => gameIds.has(n.game_id) && typeof n.title === "string" && typeof n.body === "string")
+  )
+    throw new Error("Backup com anotações inválidas.");
   return data;
 }

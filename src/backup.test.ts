@@ -16,3 +16,8 @@ test("recusa backup inválido", () => {
   assert.throws(() => parseBackup(json({ ...backup, games: [{ ...game, rating: 11 }] })));
   assert.throws(() => parseBackup(json({ ...backup, game_lists: [{ game_id: 2, list_id: 1 }] })));
 });
+
+test("converte a anotação antiga do jogo", () => {
+  const notes = parseBackup(json({ ...backup, games: [{ ...game, notes: "oi" }] })).notes;
+  assert.deepEqual(notes.map((n) => [n.game_id, n.body]), [[1, "oi"]]);
+});

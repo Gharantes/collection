@@ -694,6 +694,96 @@ select.pill[data-tier="bad"] {
   border-color: var(--accent);
 }
 
+.note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.note-card,
+.note-add {
+  height: 120px;
+}
+
+.note-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface);
+}
+
+.note-card:hover {
+  border-color: var(--accent);
+}
+
+.note-card strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-card span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+.note-add {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent);
+  font-size: 32px;
+  font-weight: 300;
+}
+
+.note-add:hover {
+  background: var(--accent-soft);
+}
+
+.note-dialog {
+  width: min(760px, calc(100vw - 32px));
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.note-dialog::backdrop {
+  background: #000a;
+}
+
+.note-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.note-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-dialog-head input {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.note-dialog .notes {
+  min-height: 50vh;
+  max-height: 65vh;
+}
+
 /* Backup */
 
 .backup {

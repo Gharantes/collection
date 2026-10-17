@@ -78,6 +78,12 @@ pub fn run() {
             sql: include_str!("../migrations/012_abandoned.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 13,
+            description: "create game_notes",
+            sql: include_str!("../migrations/013_game_notes.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

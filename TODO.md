@@ -23,6 +23,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Botão "Atualizar preços" (e automático uma vez por dia); promoção mostra o preço original riscado
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação do sistema
 - Anotações em markdown com live preview (CodeMirror, igual ao obsidian-clone)
+- Várias anotações por jogo: grid de cards, botão "+" cria "Untitled", edição num dialog
 - Backup da coleção em JSON (exportar e importar)
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
 - Arrastar card ou linha para uma lista da sidebar
