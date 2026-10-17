@@ -55,14 +55,47 @@ function ModeChips<K>({
   );
 }
 
+function RatingSelect({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  return (
+    <select
+      className="rating-bound"
+      value={value ?? ""}
+      onChange={(e) => onChange(e.currentTarget.value === "" ? null : Number(e.currentTarget.value))}
+    >
+      <option value="">—</option>
+      {RATINGS.map((r) => (
+        <option key={r} value={r}>
+          {r}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export type Extra = {
   lists: Map<number, Mode>;
   statuses: Map<Status, Mode>;
   showEarly: boolean;
   showPre: boolean;
+  minRating: number | null;
+  maxRating: number | null;
 };
 
-export const NO_EXTRA: Extra = { lists: new Map(), statuses: new Map(), showEarly: true, showPre: true };
+export const NO_EXTRA: Extra = {
+  lists: new Map(),
+  statuses: new Map(),
+  showEarly: true,
+  showPre: true,
+  minRating: null,
+  maxRating: null,
+};
+
+const RATINGS = Array.from({ length: 11 }, (_, i) => i);
+
+// Com nota mínima ou máxima, jogos sem nota ficam de fora.
+export const inRating = (rating: number | null, x: Extra) =>
+  (x.minRating == null && x.maxRating == null) ||
+  (rating != null && rating >= (x.minRating ?? 0) && rating <= (x.maxRating ?? 10));
 
 // Nas páginas Early Access e Pre-release, os checkboxes ficam fixos: só a da página aparece.
 export const withStage = (x: Extra, stage: ReleaseStage | null): Extra =>
@@ -70,7 +103,11 @@ export const withStage = (x: Extra, stage: ReleaseStage | null): Extra =>
 
 // Quantos filtros avançados estão ativos (os checkboxes fixos não contam).
 export const extraCount = (x: Extra, stage: ReleaseStage | null) =>
-  x.lists.size + x.statuses.size + (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
+  x.lists.size +
+  x.statuses.size +
+  Number(x.minRating != null) +
+  Number(x.maxRating != null) +
+  (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
 
 // Seção "Mais filtros": listas e status com incluir/exigir/excluir, e mostrar Early Access/Pre-release.
 export function MoreFilters({
@@ -106,6 +143,17 @@ export function MoreFilters({
             setModes={(m) => setExtra({ ...extra, lists: m })}
           />
         )}
+      </div>
+      <div className="more-row">
+        <span className="muted">Nota</span>
+        <label className="check">
+          Mínima
+          <RatingSelect value={extra.minRating} onChange={(minRating) => setExtra({ ...extra, minRating })} />
+        </label>
+        <label className="check">
+          Máxima
+          <RatingSelect value={extra.maxRating} onChange={(maxRating) => setExtra({ ...extra, maxRating })} />
+        </label>
       </div>
       <div className="more-row">
         <span className="muted">Release</span>

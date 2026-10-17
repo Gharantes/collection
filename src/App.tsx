@@ -22,7 +22,7 @@ import { ErrorBanner } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
-import { MoreFilters, NO_EXTRA, extraCount, withStage, type Extra } from "./components/MoreFilters";
+import { MoreFilters, NO_EXTRA, extraCount, inRating, withStage, type Extra } from "./components/MoreFilters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -196,6 +196,7 @@ function App() {
         matchModes((id) => inList(g.id, id), active.lists) &&
         (active.showEarly || g.release_stage !== "early_access") &&
         (active.showPre || g.release_stage !== "pre_release") &&
+        inRating(g.rating, active) &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
