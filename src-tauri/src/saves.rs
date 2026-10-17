@@ -163,11 +163,12 @@ mod tests {
 
     #[test]
     fn refuses_dangerous_targets_and_names() {
-        let home = Path::new("/home/eu");
-        assert!(!safe_target(Path::new("/"), home));
-        assert!(!safe_target(Path::new("/home"), home));
+        let root = Path::new(if cfg!(windows) { "C:\\" } else { "/" });
+        let home = &root.join("home").join("eu");
+        assert!(!safe_target(root, home));
+        assert!(!safe_target(&root.join("home"), home));
         assert!(!safe_target(home, home));
-        assert!(safe_target(Path::new("/home/eu/Jogo"), home));
+        assert!(safe_target(&home.join("Jogo"), home));
         assert!(valid_name("1700000000000") && valid_name("1700000000000-abrir"));
         assert!(!valid_name("../x") && !valid_name("123-../x") && !valid_name(""));
     }
