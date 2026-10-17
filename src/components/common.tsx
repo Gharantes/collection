@@ -56,21 +56,24 @@ export function Cover({ game }: { game: Game }) {
   );
 }
 
-// Medalha de conquistas: dourada se platinado, cinza se ainda caçando a platina.
+// Contorno em pétalas da roseta (estrela de 16 pontas arredondada pelo stroke).
+const ROSETTE = Array.from({ length: 32 }, (_, i) => {
+  const r = i % 2 ? 13.5 : 16;
+  const a = (i * Math.PI) / 16;
+  return `${(20 + r * Math.sin(a)).toFixed(2)},${(18 - r * Math.cos(a)).toFixed(2)}`;
+}).join(" ");
+
+// Medalha de conquistas, como a da Steam: dourada se platinado, cinza se ainda caçando a platina.
 export function Medal({ game }: { game: Game }) {
   if (!game.achievements) return null;
   const done = game.achievements === "platinum";
+  const label = done ? "Platinado" : "Caçando platina";
   return (
-    <svg
-      className={done ? "medal gold" : "medal"}
-      viewBox="0 0 16 20"
-      role="img"
-      aria-label={done ? "Platinado" : "Caçando platina"}
-    >
-      <title>{done ? "Platinado" : "Caçando platina"}</title>
-      <path className="ribbon" d="M3 0h4l2 6H5zM9 0h4l-2 6H7z" />
-      <circle cx="8" cy="13" r="6" />
-      <path className="star" d="M8 9.6l1 2.1 2.3.3-1.7 1.6.4 2.3L8 14.8l-2 1.1.4-2.3-1.7-1.6 2.3-.3z" />
+    <svg className={done ? "medal gold" : "medal"} viewBox="0 0 40 48" role="img" aria-label={label}>
+      <title>{label}</title>
+      <path className="ribbon" d="M12 24l-6 20 6-4 4 6 6-20zM28 24l6 20-6-4-4 6-6-20z" />
+      <polygon className="rosette" points={ROSETTE} />
+      <circle className="center" cx="20" cy="18" r="9" />
     </svg>
   );
 }

@@ -15,16 +15,14 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
             {...dragGame(game.id)}
           >
             <Cover game={game} />
+            <Medal game={game} />
             {off > 0 && <span className="sale sale-badge">-{off}%</span>}
             {game.rating != null && (
               <span className="badge" data-tier={ratingTier(game.rating)}>
                 {game.rating}
               </span>
             )}
-            <span className="game-card-name">
-              <Medal game={game} />
-              {game.name}
-            </span>
+            <span className="game-card-name">{game.name}</span>
             {game.status && (
               <span className="status-text" data-status={game.status}>
                 {STATUSES[game.status]}

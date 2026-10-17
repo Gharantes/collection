@@ -1211,35 +1211,69 @@ button.play:hover {
   font-weight: 600;
 }
 
-/* Medalha de conquistas */
+/* Medalha de conquistas (roseta como a da Steam) */
 
 .medal {
-  width: 14px;
-  height: 17px;
-  margin-right: 6px;
-  vertical-align: -3px;
-  flex-shrink: 0;
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.medal .rosette {
   fill: #6b7280;
+  stroke: #6b7280;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.medal .center {
+  fill: #a1a8b5;
 }
 
 .medal .ribbon {
   fill: #4b5262;
 }
 
-.medal .star {
-  fill: #9ca3af;
+.medal.gold {
+  filter: drop-shadow(0 0 6px #ffc83dcc) drop-shadow(0 2px 3px #000a);
 }
 
-.medal.gold {
-  fill: #f5c542;
+.medal.gold .rosette {
+  fill: #f0a800;
+  stroke: #f0a800;
+}
+
+.medal.gold .center {
+  fill: #ffe066;
 }
 
 .medal.gold .ribbon {
-  fill: #c0392b;
+  fill: #c98a00;
 }
 
-.medal.gold .star {
-  fill: #fff4c2;
+/* No card: grande, centralizada, passando da borda de cima da capa. */
+.game-card .medal {
+  top: -12px;
+  left: 50%;
+  width: 40px;
+  height: 48px;
+  transform: translateX(-50%);
+}
+
+.game-card .medal:not(.gold) {
+  filter: drop-shadow(0 2px 3px #000a);
+}
+
+/* Na tabela: no canto de cima da miniatura. */
+.games td.cover-cell {
+  position: relative;
+}
+
+.games td.cover-cell .medal {
+  top: 0;
+  left: 2px;
+  width: 22px;
+  height: 26px;
 }
 
 /* Alerta de promoção */

@@ -43,17 +43,15 @@ export function GameTable({ games, compact = false, lists, inList, run, onDelete
               if (!(e.target as HTMLElement).closest("button, select, input, a, label")) onOpen(game.id);
             }}
           >
-            <td>
+            <td className="cover-cell">
+              <Medal game={game} />
               {game.image_url ? (
                 <img className="cover" src={game.image_url} alt="" />
               ) : (
                 <div className="cover placeholder" />
               )}
             </td>
-            <td className="name">
-              <Medal game={game} />
-              {game.name}
-            </td>
+<td className="name">{game.name}</td>
             <td className="nowrap">
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
             </td>
