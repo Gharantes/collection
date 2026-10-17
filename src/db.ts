@@ -25,7 +25,7 @@ export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
 export type PlaySession = { id: number; game_id: number; started_at: string; seconds: number };
 export type Membership = { game_id: number; list_id: number };
-export type Note = { id: number; game_id: number; title: string; body: string };
+export type Note = { id: number; game_id: number; title: string; body: string; image: string | null };
 
 // Mesma URL das migrations em src-tauri/src/lib.rs.
 let db: Promise<Database> | null = null;
@@ -120,8 +120,8 @@ export const listNotes = async (gameId?: number) =>
     gameId == null ? [] : [gameId],
   );
 
-export const addNote = async (gameId: number) =>
-  (await getDb()).execute("INSERT INTO game_notes (game_id, title) VALUES ($1, 'Untitled')", [gameId]);
+export const addNote = async (gameId: number, title = "Untitled", image: string | null = null) =>
+  (await getDb()).execute("INSERT INTO game_notes (game_id, title, image) VALUES ($1, $2, $3)", [gameId, title, image]);
 
 export const setNoteTitle = async (id: number, title: string) =>
   (await getDb()).execute("UPDATE game_notes SET title = $1 WHERE id = $2", [title.trim() || "Untitled", id]);
@@ -227,8 +227,8 @@ export const restoreBackup = async (backup: Backup) => {
     [JSON.stringify(backup.play_sessions)],
   );
   await database.execute(
-    `INSERT INTO game_notes (game_id, title, body)
-     SELECT value->>'game_id', value->>'title', value->>'body' FROM json_each($1)`,
+    `INSERT INTO game_notes (game_id, title, body, image)
+     SELECT value->>'game_id', value->>'title', value->>'body', value->>'image' FROM json_each($1)`,
     [JSON.stringify(backup.notes)],
   );
 };

@@ -75,10 +75,13 @@ export function parseBackup(text: string): Backup {
   // Backups antigos têm uma anotação só, em games.notes.
   data.notes ??= data.games
     .filter((g) => g.notes)
-    .map((g, i) => ({ id: i + 1, game_id: g.id, title: "Anotações", body: g.notes! }));
+    .map((g, i) => ({ id: i + 1, game_id: g.id, title: "Anotações", body: g.notes!, image: null }));
   if (
     !Array.isArray(data.notes) ||
-    !data.notes.every((n) => gameIds.has(n.game_id) && typeof n.title === "string" && typeof n.body === "string")
+    !data.notes.every(
+      (n) =>
+        gameIds.has(n.game_id) && typeof n.title === "string" && typeof n.body === "string" && isStrOrNull(n.image),
+    )
   )
     throw new Error("Backup com anotações inválidas.");
   return data;

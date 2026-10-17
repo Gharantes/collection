@@ -84,6 +84,12 @@ pub fn run() {
             sql: include_str!("../migrations/013_game_notes.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 14,
+            description: "add game_notes.image",
+            sql: include_str!("../migrations/014_note_image.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
