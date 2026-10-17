@@ -43,7 +43,7 @@ npm run tauri build              # gera o instalador
 O build de release assina a atualização; ele precisa da chave privada no ambiente:
 `export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/collection.key)"`.
 
-Para publicar uma versão com instaladores, crie uma tag `v*` (ex.: `git tag v0.2.0 && git push --tags`).
+Para publicar uma versão com instaladores, veja [RELEASE.md](RELEASE.md).
 
 ## Onde ficam os dados
 
