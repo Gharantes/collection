@@ -30,6 +30,19 @@ const portrait = (steamId: number) =>
   `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${steamId}/library_600x900.jpg`;
 
 // Capa vertical; sem capa, mostra a imagem pequena e o nome.
+// Faixa de erro com botão para fechar.
+export function ErrorBanner({ error, onClose }: { error: string | null; onClose: () => void }) {
+  if (!error) return null;
+  return (
+    <p className="error">
+      <span>{error}</span>
+      <button className="ghost" onClick={onClose} aria-label="Fechar">
+        ×
+      </button>
+    </p>
+  );
+}
+
 export function Cover({ game }: { game: Game }) {
   const [broken, setBroken] = useState(false);
   if (game.steam_id != null && !broken) {

@@ -123,6 +123,20 @@ button.danger:hover {
   color: var(--bad);
   padding: 10px 14px;
   border-radius: var(--radius);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.error span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.error button {
+  color: inherit;
+  padding: 0 6px;
+  line-height: 1.2;
 }
 
 /* Layout: sidebar + conteúdo */

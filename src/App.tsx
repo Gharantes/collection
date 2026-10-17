@@ -19,7 +19,7 @@ import {
 import { SORTS, discount, hitsTarget, money, sortGames, type Sort } from "./games";
 import { readPref, readTime, savePref } from "./prefs";
 import { AddGame } from "./components/AddGame";
-import { STATUSES } from "./components/common";
+import { ErrorBanner, STATUSES } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
@@ -239,6 +239,7 @@ function App() {
               inList={inList}
               run={run}
               error={error}
+              onCloseError={() => setError(null)}
               onBack={closeGame}
               onDelete={onDeleteGame}
             />
@@ -307,7 +308,7 @@ function App() {
             </div>
           </div>
 
-          {error && <p className="error">{error}</p>}
+          <ErrorBanner error={error} onClose={() => setError(null)} />
 
           {shown.length === 0 ? (
             <p className="empty">{games.length === 0 ? "Nenhum jogo ainda. Busque um acima." : "Nenhum jogo aqui."}</p>

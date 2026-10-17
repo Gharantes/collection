@@ -11,7 +11,7 @@ import {
   type StatusEvent,
 } from "../db";
 import { eventLabels, formatDate, formatDuration, hitsTarget, toCents } from "../games";
-import { Cover, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
+import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
 
@@ -23,6 +23,7 @@ type Props = {
   inList: (gameId: number, listId: number) => boolean;
   run: Run;
   error: string | null;
+  onCloseError: () => void;
   onBack: () => void;
   onDelete: (game: Game) => void;
 };
@@ -50,7 +51,7 @@ export function GameDetail({ game, events, ...props }: Props) {
   );
 }
 
-function Body({ game, events, sessions, lists, inList, run, error, onBack, onDelete }: Props & { game: Game }) {
+function Body({ game, events, sessions, lists, inList, run, error, onCloseError, onBack, onDelete }: Props & { game: Game }) {
   const labels = eventLabels(events);
   const startedAt = events.find((_, i) => labels[i] === "Começou")?.at;
   const finishedAt = events.filter((e) => e.status === "finished").pop()?.at;
@@ -121,7 +122,7 @@ function Body({ game, events, sessions, lists, inList, run, error, onBack, onDel
               </details>
             )}
           </div>
-          {error && <p className="error">{error}</p>}
+          <ErrorBanner error={error} onClose={onCloseError} />
 
           <label className="field">
             <span>Status</span>

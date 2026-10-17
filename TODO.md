@@ -34,6 +34,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Atualização automática do app pelas releases do GitHub
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`
 - `App.tsx` dividido em componentes
+- Botão para fechar a mensagem de erro
 
 ## Recusado
 
