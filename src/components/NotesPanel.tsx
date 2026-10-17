@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { ask, open as openFile } from "@tauri-apps/plugin-dialog";
+import { ask, message, open as openFile } from "@tauri-apps/plugin-dialog";
 import { readFile } from "@tauri-apps/plugin-fs";
 import { addNote, deleteNote, listNotes, setNoteBody, setNoteTitle, type Note } from "../db";
+import { formatBytes } from "../games";
 import { NotesEditor } from "./NotesEditor";
 import type { Run } from "./common";
 
@@ -23,6 +24,45 @@ const toDataUrl = (bytes: Uint8Array<ArrayBuffer>, type: string) =>
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(new Blob([bytes], { type }));
   });
+
+// Maior lado da imagem reduzida; GIF (animação) e SVG ficam sempre no original.
+const MAX_SIDE = 1920;
+const KEEP_ORIGINAL = ["image/gif", "image/svg+xml"];
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Não consegui abrir a imagem."));
+    img.src = src;
+  });
+
+// Reduz para no máximo MAX_SIDE e converte para WebP.
+const shrink = (img: HTMLImageElement) => {
+  const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.naturalWidth * scale);
+  canvas.height = Math.round(img.naturalHeight * scale);
+  canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/webp", 0.85);
+};
+
+// Pergunta se reduz a imagem; null se cancelar.
+const chooseImage = async (original: string, type: string, bytes: number) => {
+  if (KEEP_ORIGINAL.includes(type)) return original;
+  const img = await loadImage(original);
+  const answer = await message(
+    `A imagem tem ${img.naturalWidth}×${img.naturalHeight} e ${formatBytes(bytes)}.\n\n` +
+      `Diminuir: até ${MAX_SIDE} px no maior lado, em WebP (bem menor, quase sem perda visível).\n` +
+      "Original: guarda o arquivo como está.",
+    { title: "Inserir imagem", kind: "info", buttons: { yes: "Diminuir", no: "Original", cancel: "Cancelar" } },
+  );
+  if (answer === "Original") return original;
+  if (answer !== "Diminuir") return null;
+  const small = shrink(img);
+  // Se a conversão não ajudou (imagem já pequena), fica com a original.
+  return small.length < original.length ? small : original;
+};
 
 // Anotações do jogo em cards; clicar abre o dialog de edição.
 export function NotesPanel({ gameId, run }: { gameId: number; run: Run }) {
@@ -76,7 +116,9 @@ export function NotesPanel({ gameId, run }: { gameId: number; run: Run }) {
     const type = IMAGE_TYPES[file.split(".").pop()!.toLowerCase()];
     if (!type) throw new Error("Formato de imagem não suportado.");
     const name = file.replace(/\.[^.]+$/, "");
-    return addNote(gameId, name, await toDataUrl(await readFile(path), type));
+    const bytes = await readFile(path);
+    const image = await chooseImage(await toDataUrl(bytes, type), type, bytes.length);
+    return image ? addNote(gameId, name, image) : null;
   };
 
   const open = notes.find((n) => n.id === openId);
@@ -155,20 +197,20 @@ function NoteDialog({ note, act, onClose, onDelete }: DialogProps) {
     >
       <div className="note-dialog-body">
         <div className="note-dialog-head">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.currentTarget.value)}
-          onBlur={saveTitle}
-          placeholder="Untitled"
-          aria-label="Título da anotação"
-        />
-        <button className="ghost" onClick={onDelete}>
-          Apagar
-        </button>
-        <button className="ghost" onClick={() => ref.current?.close()} aria-label="Fechar">
-          ×
-        </button>
-      </div>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.currentTarget.value)}
+            onBlur={saveTitle}
+            placeholder="Untitled"
+            aria-label="Título da anotação"
+          />
+          <button className="ghost" onClick={onDelete}>
+            Apagar
+          </button>
+          <button className="ghost" onClick={() => ref.current?.close()} aria-label="Fechar">
+            ×
+          </button>
+        </div>
         {note.image ? (
           <img className="note-image" src={note.image} alt={title} />
         ) : (
