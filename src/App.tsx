@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -34,6 +34,12 @@ const PRICES_AT = "collection.pricesAt";
 const DAY = 24 * 60 * 60 * 1000;
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
 
+// Rota do jogo aberto: #/jogo/<id>. Sem id, mostra a coleção.
+const routeId = () => {
+  const m = location.hash.match(/^#\/jogo\/(\d+)$/);
+  return m ? Number(m[1]) : null;
+};
+
 // Notificação do sistema; pede permissão na primeira vez.
 const notify = async (title: string, body: string) => {
   if ((await isPermissionGranted()) || (await requestPermission()) === "granted") sendNotification({ title, body });
@@ -51,7 +57,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>(() => readPref("collection.view", ["cards", "table"], "cards"));
   const [sort, setSort] = useState<Sort>(() => readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"));
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<number | null>(routeId);
+  const listScroll = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
@@ -98,6 +105,37 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const onHash = () => setOpenId(routeId());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // A página do jogo abre no topo; ao voltar, a coleção volta para onde estava.
+  useLayoutEffect(() => {
+    window.scrollTo(0, openId == null ? listScroll.current : 0);
+  }, [openId]);
+
+  const openGame = (id: number) => {
+    if (openId == null) listScroll.current = window.scrollY;
+    location.hash = `#/jogo/${id}`;
+  };
+
+  // Volta pelo histórico; se a página do jogo foi a primeira (recarregou nela), vai para a coleção.
+  const closeGame = () => {
+    if (routeId() == null) return;
+    if (history.length > 1) history.back();
+    else location.hash = "";
+  };
+
+  const selectFilter = (f: Filter) => {
+    setFilter(f);
+    if (openId != null) {
+      listScroll.current = 0;
+      location.hash = "";
+    }
+  };
+
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
@@ -125,7 +163,7 @@ function App() {
   }, []);
 
   const onDeleteGame = (game: Game) => {
-    setOpenId(null);
+    if (openId === game.id) closeGame();
     run(() => deleteGame(game.id))();
   };
 
@@ -170,7 +208,7 @@ function App() {
       <Sidebar
         lists={lists}
         filter={filter}
-        setFilter={setFilter}
+        setFilter={selectFilter}
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
         linkedCount={games.filter(isLinked).length}
@@ -180,9 +218,23 @@ function App() {
 
       <main className="main">
         <UpdateBanner run={run} />
-        <AddGame run={run} onError={setError} />
+        {openId == null && <AddGame run={run} onError={setError} />}
 
-        {filter === "stats" ? (
+        {openId != null ? (
+          games.length === 0 ? null : (
+            <GameDetail
+              game={games.find((g) => g.id === openId)}
+              events={events}
+              sessions={sessions}
+              lists={lists}
+              inList={inList}
+              run={run}
+              error={error}
+              onBack={closeGame}
+              onDelete={onDeleteGame}
+            />
+          )
+        ) : filter === "stats" ? (
           <>
             <div className="page-head">
               <h1>{title}</h1>
@@ -201,7 +253,7 @@ function App() {
             </button>
             <button
               className="ghost pick"
-              onClick={() => setOpenId(linked[Math.floor(Math.random() * linked.length)].id)}
+              onClick={() => openGame(linked[Math.floor(Math.random() * linked.length)].id)}
               disabled={linked.length === 0}
               title="Sorteia um jogo vinculado (Steam ou executável) entre os mostrados"
             >
@@ -251,25 +303,13 @@ function App() {
           {shown.length === 0 ? (
             <p className="empty">{games.length === 0 ? "Nenhum jogo ainda. Busque um acima." : "Nenhum jogo aqui."}</p>
           ) : view === "cards" ? (
-            <GameGrid games={shown} onOpen={setOpenId} />
+            <GameGrid games={shown} onOpen={openGame} />
           ) : (
-            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} onOpen={setOpenId} />
+            <GameTable games={shown} lists={lists} inList={inList} run={run} onDelete={onDeleteGame} onOpen={openGame} />
           )}
           </>
         )}
       </main>
-
-      <GameDetail
-        game={games.find((g) => g.id === openId)}
-        events={events}
-        sessions={sessions}
-        lists={lists}
-        inList={inList}
-        run={run}
-        error={error}
-        onClose={() => setOpenId(null)}
-        onDelete={onDeleteGame}
-      />
     </div>
   );
 }

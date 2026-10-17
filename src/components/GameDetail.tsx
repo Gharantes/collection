@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
@@ -25,44 +24,34 @@ type Props = {
   inList: (gameId: number, listId: number) => boolean;
   run: Run;
   error: string | null;
-  onClose: () => void;
+  onBack: () => void;
   onDelete: (game: Game) => void;
 };
 
-// Modal de detalhes; abre quando recebe um jogo e fecha quando recebe undefined.
-export function GameDetail({ game, events, sessions, lists, inList, run, error, onClose, onDelete }: Props) {
-  const dialog = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    if (!game) dialog.current?.close();
-    else if (!dialog.current?.open) dialog.current?.showModal();
-  }, [game?.id]);
-
+// Página de detalhes do jogo (rota #/jogo/<id>).
+export function GameDetail({ game, events, ...props }: Props) {
+  if (!game)
+    return (
+      <div className="detail">
+        <button className="ghost back" onClick={props.onBack}>
+          ← Voltar
+        </button>
+        <p className="empty">Jogo não encontrado.</p>
+      </div>
+    );
   return (
-    <dialog
-      ref={dialog}
-      className="detail"
-      onClose={onClose}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      {game && (
-        <Body
-          game={game}
-          events={events.filter((e) => e.game_id === game.id)}
-          sessions={sessions.filter((s) => s.game_id === game.id)}
-          lists={lists}
-          inList={inList}
-          run={run}
-          error={error}
-          onClose={onClose}
-          onDelete={onDelete}
-        />
-      )}
-    </dialog>
+    <div className="detail">
+      <Body
+        game={game}
+        events={events.filter((e) => e.game_id === game.id)}
+        {...props}
+        sessions={props.sessions.filter((s) => s.game_id === game.id)}
+      />
+    </div>
   );
 }
 
-function Body({ game, events, sessions, lists, inList, run, error, onClose, onDelete }: Props & { game: Game }) {
+function Body({ game, events, sessions, lists, inList, run, error, onBack, onDelete }: Props & { game: Game }) {
   const labels = eventLabels(events);
   const startedAt = events.find((_, i) => labels[i] === "Começou")?.at;
   const finishedAt = events.filter((e) => e.status === "finished").pop()?.at;
@@ -96,6 +85,9 @@ function Body({ game, events, sessions, lists, inList, run, error, onClose, onDe
 
   return (
     <>
+      <button className="ghost back" onClick={onBack}>
+        ← Voltar
+      </button>
       <div className="detail-body">
         <Cover key={game.id} game={game} />
         <div className="detail-info">
@@ -233,9 +225,6 @@ function Body({ game, events, sessions, lists, inList, run, error, onClose, onDe
       <div className="detail-actions">
         <button className="danger" onClick={() => onDelete(game)}>
           Remover jogo
-        </button>
-        <button className="ghost" onClick={onClose}>
-          Fechar
         </button>
       </div>
     </>

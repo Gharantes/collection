@@ -18,7 +18,8 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
 - Coluna de listas compacta (chips + "+ Lista")
-- Sidebar estilo Steam, visualização em cards (capa vertical) ou tabela, modal de detalhes
+- Sidebar estilo Steam, visualização em cards (capa vertical) ou tabela
+- Página de detalhes do jogo (rota `#/jogo/<id>`, com "Voltar"), no lugar do modal
 - Botão "Atualizar preços" (e automático uma vez por dia); promoção mostra o preço original riscado
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação do sistema
 - Anotações em markdown com live preview (CodeMirror, igual ao obsidian-clone)

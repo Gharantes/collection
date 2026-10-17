@@ -578,21 +578,21 @@ select.pill[data-tier="bad"] {
   border-radius: var(--radius);
 }
 
-/* Modal de detalhes */
+/* Página de detalhes */
 
 .detail {
-  width: min(720px, 92vw);
-  padding: 0;
-  color: var(--text);
+  max-width: 820px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 24px 64px #000c;
 }
 
-.detail::backdrop {
-  background: #000a;
-  backdrop-filter: blur(2px);
+.detail .back {
+  margin: 16px 0 0 24px;
+}
+
+.detail > .empty {
+  margin: 24px;
 }
 
 .detail-body {
