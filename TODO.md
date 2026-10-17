@@ -24,7 +24,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação do sistema
 - Anotações em markdown com live preview (CodeMirror, igual ao obsidian-clone)
 - Várias anotações por jogo: grid de cards, botão "+" com menu (Anotação ou Imagem; pergunta se reduz a imagem para WebP 1920 px), edição num dialog
-- Backup da coleção em JSON (exportar e importar)
+- Backup da coleção em JSON (exportar e importar), no menu "Configurações" da sidebar
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
 - Arrastar card ou linha para uma lista da sidebar
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"

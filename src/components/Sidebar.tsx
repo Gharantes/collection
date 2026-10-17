@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { addList, deleteList, exportBackup, restoreBackup, setMembership, type List } from "../db";
@@ -23,6 +23,21 @@ const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
 export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCount, listCount, run }: Props) {
   const [dropList, setDropList] = useState<number | null>(null);
+  const settings = useRef<HTMLDetailsElement>(null);
+
+  // Fecha o menu de configurações ao clicar fora dele.
+  useEffect(() => {
+    const close = (e: PointerEvent) => {
+      if (settings.current && !settings.current.contains(e.target as Node)) settings.current.open = false;
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
+
+  const fromMenu = (action: () => void) => () => {
+    settings.current!.open = false;
+    action();
+  };
 
   const nav = (f: Filter, label: string, count?: number) => (
     <button className={filter === f ? "nav active" : "nav"} onClick={() => setFilter(f)}>
@@ -106,14 +121,13 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
         <input name="name" placeholder="+ Nova lista" aria-label="Nova lista" required />
       </form>
 
-      <div className="backup">
-        <button className="ghost" onClick={onExport} title="Exportar backup">
-          Exportar
-        </button>
-        <button className="ghost" onClick={onImport} title="Importar backup">
-          Importar
-        </button>
-      </div>
+      <details className="menu settings" ref={settings}>
+        <summary>Configurações</summary>
+        <div className="menu-items">
+          <button onClick={fromMenu(onExport)}>Exportar backup</button>
+          <button onClick={fromMenu(onImport)}>Importar backup</button>
+        </div>
+      </details>
     </aside>
   );
 }
