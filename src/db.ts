@@ -198,6 +198,14 @@ export const exportBackup = async (): Promise<string> => {
 };
 
 // Troca todos os dados pelos do backup. Sem transação: validar antes com parseBackup.
+// Apaga a biblioteca inteira (jogos, listas e tudo que depende deles).
+export const resetLibrary = async () => {
+  const database = await getDb();
+  for (const table of ["game_notes", "play_sessions", "status_events", "game_lists", "games", "lists"]) {
+    await database.execute(`DELETE FROM ${table}`);
+  }
+};
+
 export const restoreBackup = async (backup: Backup) => {
   const database = await getDb();
   await database.execute("DELETE FROM game_lists");

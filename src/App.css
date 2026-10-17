@@ -855,6 +855,59 @@ select.pill[data-tier="bad"] {
   min-width: 100%;
 }
 
+.menu-items button.menu-danger {
+  color: var(--bad);
+}
+
+.reset-dialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.reset-dialog::backdrop {
+  background: #000a;
+}
+
+.reset-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.reset-dialog h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.reset-dialog p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.reset-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+button.confirm-reset {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.confirm-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Vincular / Abrir */
 
 .launch {
