@@ -1,0 +1,2 @@
+# O checksum das migrations (sqlx) inclui os finais de linha: fixa CRLF em todo checkout.
+src-tauri/migrations/*.sql text eol=crlf
