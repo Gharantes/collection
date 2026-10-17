@@ -176,33 +176,6 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
             </div>
           </div>
           <div className="field">
-            <span>Conquistas</span>
-            <div className="achievements">
-              <input
-                type="range"
-                min={0}
-                max={2}
-                step={1}
-                value={ACHIEVEMENT_STEPS.findIndex((s) => s.goal === game.achievements)}
-                onChange={(e) =>
-                  run(() => setAchievements(game.id, ACHIEVEMENT_STEPS[Number(e.currentTarget.value)].goal))()
-                }
-                aria-label="Conquistas"
-              />
-              <div className="steps">
-                {ACHIEVEMENT_STEPS.map((s) => (
-                  <button
-                    key={s.label}
-                    className={s.goal === game.achievements ? "active" : ""}
-                    onClick={run(() => setAchievements(game.id, s.goal))}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="field">
             <span>Alerta</span>
             <div className="target" key={game.id}>
               <input
@@ -242,6 +215,34 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
               {sessions.length === 1 ? "sessão" : "sessões"}
             </p>
           )}
+        </div>
+      </div>
+
+      <div className="detail-history">
+        <h3>Conquistas</h3>
+        <div className="achievements">
+          <input
+            type="range"
+            min={0}
+            max={2}
+            step={1}
+            value={ACHIEVEMENT_STEPS.findIndex((s) => s.goal === game.achievements)}
+            onChange={(e) =>
+              run(() => setAchievements(game.id, ACHIEVEMENT_STEPS[Number(e.currentTarget.value)].goal))()
+            }
+            aria-label="Conquistas"
+          />
+          <div className="steps">
+            {ACHIEVEMENT_STEPS.map((s) => (
+              <button
+                key={s.label}
+                className={s.goal === game.achievements ? "active" : ""}
+                onClick={run(() => setAchievements(game.id, s.goal))}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
