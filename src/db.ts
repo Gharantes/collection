@@ -34,6 +34,7 @@ export type PlaySession = { id: number; game_id: number; started_at: string; sec
 export type Membership = { game_id: number; list_id: number };
 export type Note = { id: number; game_id: number; title: string; body: string; image: string | null };
 export type SavedFilter = { id: number; name: string; filter: string };
+export type GameLink = { id: number; game_id: number; url: string };
 
 // Mesma URL das migrations em src-tauri/src/lib.rs.
 let db: Promise<Database> | null = null;
@@ -163,6 +164,18 @@ export const setNoteBody = async (id: number, body: string) =>
 export const deleteNote = async (id: number) =>
   (await getDb()).execute("DELETE FROM game_notes WHERE id = $1", [id]);
 
+export const listLinks = async (gameId?: number) =>
+  (await getDb()).select<GameLink[]>(
+    gameId == null ? "SELECT * FROM game_links ORDER BY id" : "SELECT * FROM game_links WHERE game_id = $1 ORDER BY id",
+    gameId == null ? [] : [gameId],
+  );
+
+export const addLink = async (gameId: number, url: string) =>
+  (await getDb()).execute("INSERT INTO game_links (game_id, url) VALUES ($1, $2)", [gameId, url]);
+
+export const deleteLink = async (id: number) =>
+  (await getDb()).execute("DELETE FROM game_links WHERE id = $1", [id]);
+
 export const setLaunch = async (id: number, launch: Launch | null, exePath: string | null = null) =>
   (await getDb()).execute("UPDATE games SET launch = $1, exe_path = $2 WHERE id = $3", [launch, exePath, id]);
 
@@ -228,7 +241,7 @@ const GAME_COLUMNS = [
 ];
 
 export const exportBackup = async (): Promise<string> => {
-  const [statuses, filters, games, lists, game_lists, status_events, play_sessions, notes] = await Promise.all([
+  const [statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links] = await Promise.all([
     listStatuses(),
     listSavedFilters(),
     listGames(),
@@ -237,8 +250,9 @@ export const exportBackup = async (): Promise<string> => {
     listStatusEvents(),
     listPlaySessions(),
     listNotes(),
+    listLinks(),
   ]);
-  const backup: Backup = { app: "collection", version: 1, statuses, filters, games, lists, game_lists, status_events, play_sessions, notes };
+  const backup: Backup = { app: "collection", version: 1, statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -246,7 +260,7 @@ export const exportBackup = async (): Promise<string> => {
 // Apaga a biblioteca inteira (jogos, listas e tudo que depende deles).
 export const resetLibrary = async () => {
   const database = await getDb();
-  for (const table of ["game_notes", "play_sessions", "status_events", "game_lists", "games", "lists"]) {
+  for (const table of ["game_links", "game_notes", "play_sessions", "status_events", "game_lists", "games", "lists"]) {
     await database.execute(`DELETE FROM ${table}`);
   }
 };
@@ -293,5 +307,9 @@ export const restoreBackup = async (backup: Backup) => {
     `INSERT INTO game_notes (game_id, title, body, image)
      SELECT value->>'game_id', value->>'title', value->>'body', value->>'image' FROM json_each($1)`,
     [JSON.stringify(backup.notes)],
+  );
+  await database.execute(
+    "INSERT INTO game_links (game_id, url) SELECT value->>'game_id', value->>'url' FROM json_each($1)",
+    [JSON.stringify(backup.links)],
   );
 };

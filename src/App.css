@@ -828,6 +828,66 @@ select.pill[data-tier="bad"] {
   cursor: default;
 }
 
+/* Links */
+
+.links {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.links li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 13px;
+  text-align: left;
+}
+
+.link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.link-icon.youtube {
+  color: #ff0033;
+}
+
+.link-icon.twitter {
+  color: var(--text);
+}
+
+.link-add {
+  display: flex;
+  gap: 8px;
+  max-width: 520px;
+}
+
+.link-add input {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Anotações */
 
 .detail-notes {

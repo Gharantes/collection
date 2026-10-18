@@ -120,6 +120,12 @@ pub fn run() {
             sql: include_str!("../migrations/019_saved_filters.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 20,
+            description: "create game_links",
+            sql: include_str!("../migrations/020_game_links.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
@@ -140,6 +146,7 @@ pub fn run() {
             launch::launch_steam,
             launch::launch_exe,
             launch::open_store,
+            launch::open_link,
             launch::open_game_folder,
             saves::list_save_backups,
             saves::backup_saves,

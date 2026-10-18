@@ -46,6 +46,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Grade mais leve ao tirar filtros: capas com `loading="lazy"` e `decoding="async"`, cards com `content-visibility: auto`; grade e tabela mostram 48 jogos por vez e trazem mais ao rolar perto do fim
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"
 - Medalha em roseta (como a da Steam) no canto de cima à direita da capa nos cards (a nota foi para baixo à direita) e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina
+- Seção "Links" na página do jogo: colar URL, salvar, clicar abre no Firefox (ou navegador padrão), × apaga; YouTube e Twitter/X ganham ícone próprio, o resto um ícone padrão; vão no backup
 
 ## Recusado
 

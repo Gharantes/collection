@@ -17,6 +17,7 @@ import {
 } from "../db";
 import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toCents } from "../games";
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
+import { LinksPanel } from "./LinksPanel";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
 
@@ -308,6 +309,8 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       </div>
 
       <SavesPanel game={game} run={run} />
+
+      <LinksPanel gameId={game.id} run={run} />
 
       <NotesPanel gameId={game.id} run={run} />
 

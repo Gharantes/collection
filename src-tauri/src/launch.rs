@@ -110,14 +110,26 @@ fn watch_steam(app: tauri::AppHandle, game_id: i64, app_id: u32) {
     let _ = app.emit("game-exited", session);
 }
 
-// Abre a página da loja no Firefox; se não achar, no navegador padrão.
+// Abre a URL no Firefox; se não achar, no navegador padrão.
+fn open_in_browser(app: &tauri::AppHandle, url: &str) -> Result<(), String> {
+    app.opener()
+        .open_url(url, Some("firefox"))
+        .or_else(|_| app.opener().open_url(url, None::<&str>))
+        .map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub fn open_store(app: tauri::AppHandle, app_id: u32) -> Result<(), String> {
-    let url = format!("https://store.steampowered.com/app/{app_id}/");
-    app.opener()
-        .open_url(&url, Some("firefox"))
-        .or_else(|_| app.opener().open_url(&url, None::<&str>))
-        .map_err(|e| e.to_string())
+    open_in_browser(&app, &format!("https://store.steampowered.com/app/{app_id}/"))
+}
+
+// Abre um link salvo do jogo; só http e https.
+#[tauri::command]
+pub fn open_link(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Link inválido.".into());
+    }
+    open_in_browser(&app, &url)
 }
 
 // Abre a pasta do jogo: a de instalação da Steam ou a do executável.

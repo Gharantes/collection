@@ -1,4 +1,4 @@
-import type { Game, List, Membership, Note, PlaySession, SavedFilter, StatusDef, StatusEvent } from "./db";
+import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
@@ -11,6 +11,7 @@ export type Backup = {
   status_events: StatusEvent[];
   play_sessions: PlaySession[];
   notes: Note[];
+  links: GameLink[];
 };
 
 // Backups antigos não têm a lista de status: usam os de fábrica.
@@ -111,5 +112,8 @@ export function parseBackup(text: string): Backup {
     )
   )
     throw new Error("Backup com anotações inválidas.");
+  data.links ??= [];
+  if (!Array.isArray(data.links) || !data.links.every((l) => gameIds.has(l.game_id) && typeof l.url === "string"))
+    throw new Error("Backup com links inválidos.");
   return data;
 }
