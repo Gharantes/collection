@@ -470,6 +470,11 @@ select.rating-bound {
   border: none;
   text-align: left;
   font-weight: 400;
+  /* Pula layout e pintura dos cards fora da tela; o tamanho estimado evita a barra de rolagem pular. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 150px auto 290px;
+  /* A contenção corta o que passa da borda; a margem mantém a sombra do hover visível. */
+  overflow-clip-margin: 40px;
 }
 
 .game-card .poster {

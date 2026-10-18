@@ -46,11 +46,20 @@ export function ErrorBanner({ error, onClose }: { error: string | null; onClose:
 export function Cover({ game }: { game: Game }) {
   const [broken, setBroken] = useState(false);
   if (game.steam_id != null && !broken) {
-    return <img className="poster" src={portrait(game.steam_id)} alt="" onError={() => setBroken(true)} />;
+    return (
+      <img
+        className="poster"
+        src={portrait(game.steam_id)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onError={() => setBroken(true)}
+      />
+    );
   }
   return (
     <div className="poster fallback">
-      {game.image_url && <img src={game.image_url} alt="" />}
+      {game.image_url && <img src={game.image_url} alt="" loading="lazy" decoding="async" />}
       <span>{game.name}</span>
     </div>
   );
