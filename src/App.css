@@ -1418,6 +1418,65 @@ button.play:hover {
   height: 26px;
 }
 
+/* Faixa de Early Access / Pre-release na base da capa. Cores da loja da Steam:
+   Early Access do cabeçalho "Early Access Game", Pre-release do quadro "Coming Soon". */
+.stage-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 4px;
+  border-radius: 0 0 6px 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0 #0003;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+}
+
+.stage-band[data-stage="early_access"] {
+  background: #57a4d0;
+  border-top: 1px solid #4e81ae;
+}
+
+.stage-band[data-stage="pre_release"] {
+  background: linear-gradient(135deg, #407898 10%, #66c0f4 100%);
+  border-top: 1px solid #407898;
+}
+
+/* No card a faixa sobe junto com a capa no hover, e a nota fica acima dela. */
+.game-card .stage-band {
+  transition: transform 0.15s;
+}
+
+.game-card:hover .stage-band {
+  transform: translateY(-3px);
+}
+
+.poster-wrap:has(.stage-band) .badge {
+  bottom: 28px;
+}
+
+/* Na tabela: base da miniatura (92×34, dentro do padding da célula). */
+.games td.cover-cell .stage-band {
+  left: 12px;
+  right: auto;
+  bottom: 10px;
+  width: 92px;
+  box-sizing: border-box;
+  padding: 1px 2px;
+  border-radius: 0 0 4px 4px;
+  font-size: 8px;
+  letter-spacing: 0.03em;
+}
+
 /* Alerta de promoção */
 
 .target {

@@ -1,6 +1,6 @@
 import type { Game } from "../db";
 import { discount, hitsTarget, ratingTier } from "../games";
-import { Cover, Medal, dragGame, useBatches, useStatusLabels } from "./common";
+import { Cover, Medal, StageBand, dragGame, useBatches, useStatusLabels } from "./common";
 
 export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number) => void }) {
   const statusLabels = useStatusLabels();
@@ -20,6 +20,7 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
               <span className="poster-wrap">
                 <Cover game={game} />
                 <Medal game={game} />
+                <StageBand game={game} />
                 {off > 0 && <span className="sale sale-badge">-{off}%</span>}
                 {game.rating != null && (
                   <span className="badge" data-tier={ratingTier(game.rating)}>

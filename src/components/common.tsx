@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { setMembership, setRating, setStatus, type Game, type List, type StatusDef } from "../db";
-import { discount, money, ratingTier } from "../games";
+import { discount, formatRelease, money, ratingTier } from "../games";
 
 // Ação do App: roda, recarrega tudo e mostra erro na tela.
 export type Run = (action: () => Promise<unknown>) => () => Promise<void>;
@@ -117,6 +117,18 @@ export function Medal({ game }: { game: Game }) {
       <polygon className="rosette" points={ROSETTE} />
       <circle className="center" cx="20" cy="18" r="9" />
     </svg>
+  );
+}
+
+// Faixa na base da capa para Early Access e Pre-release, nas cores da loja da Steam.
+export function StageBand({ game }: { game: Game }) {
+  if (!game.release_stage) return null;
+  const label = game.release_stage === "early_access" ? "Early Access" : "Pre-release";
+  const date = formatRelease(game.release_date);
+  return (
+    <span className="stage-band" data-stage={game.release_stage} title={date ? `${label} · ${date}` : label}>
+      {label}
+    </span>
   );
 }
 
