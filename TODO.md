@@ -14,7 +14,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Status: Backlog, Jogando, Terminado, Abandonado
 - "Registrar Status" em Configurações: adicionar e apagar status (apagar tira o status dos jogos e apaga o histórico dele); vão no backup
 - Botão "O que jogar?": sorteia um jogo vinculado (Steam ou executável) entre os mostrados (respeita a lista); mostra num dialog (capa, nome, listas) com "Ir à página" e "Reroll"
-- Filtro "Vinculados" na sidebar (jogos com Steam ou executável)
+- Filtro "Só vinculados" (jogos com Steam ou executável) em "Mais filtros"; a página "Vinculados" da sidebar saiu
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo

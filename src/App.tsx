@@ -190,9 +190,7 @@ function App() {
       ? true
       : filter === "target"
         ? hitsTarget(g)
-        : filter === "linked"
-          ? isLinked(g)
-          : typeof filter === "string"
+        : typeof filter === "string"
             ? g.release_stage === filter
             : inList(g.id, filter);
 
@@ -207,6 +205,7 @@ function App() {
         matchModes((id) => inList(g.id, id), active.lists) &&
         (active.showEarly || g.release_stage !== "early_access") &&
         (active.showPre || g.release_stage !== "pre_release") &&
+        (!active.onlyLinked || isLinked(g)) &&
         inRating(g.rating, active) &&
         g.name.toLowerCase().includes(name),
     ),
@@ -226,9 +225,7 @@ function App() {
       ? "Todos os jogos"
       : filter === "target"
         ? "No preço-alvo"
-        : filter === "linked"
-          ? "Vinculados"
-          : filter === "early_access"
+        : filter === "early_access"
           ? "Early Access"
           : filter === "pre_release"
           ? "Pre-release"
@@ -245,7 +242,6 @@ function App() {
         setFilter={selectFilter}
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
-        linkedCount={games.filter(isLinked).length}
         releaseCount={(stage) => games.filter((g) => g.release_stage === stage).length}
         listCount={listCount}
         run={run}

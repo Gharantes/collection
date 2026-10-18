@@ -9,9 +9,9 @@ import { DRAG_TYPE, type Run } from "./common";
 import { ResetDialog } from "./ResetDialog";
 import { StatusDialog } from "./StatusDialog";
 
-// Lista selecionada, "target" (jogos no preço-alvo), "linked" (vinculados), um estágio de release,
+// Lista selecionada, "target" (jogos no preço-alvo), um estágio de release,
 // "stats" (estatísticas) ou null (todos).
-export type Filter = number | "target" | "linked" | ReleaseStage | "stats" | null;
+export type Filter = number | "target" | ReleaseStage | "stats" | null;
 
 type Props = {
   lists: List[];
@@ -19,7 +19,6 @@ type Props = {
   setFilter: (f: Filter) => void;
   total: number;
   targetCount: number;
-  linkedCount: number;
   releaseCount: (stage: ReleaseStage) => number;
   listCount: (listId: number) => number;
   run: Run;
@@ -27,7 +26,7 @@ type Props = {
 
 const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
-export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCount, releaseCount, listCount, run }: Props) {
+export function Sidebar({ lists, filter, setFilter, total, targetCount, releaseCount, listCount, run }: Props) {
   const [dropList, setDropList] = useState<number | null>(null);
   const [resetting, setResetting] = useState(false);
   const [editingStatuses, setEditingStatuses] = useState(false);
@@ -114,7 +113,6 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
       <nav>
         {nav(null, "Todos os jogos", total)}
         {nav("target", "No preço-alvo", targetCount)}
-        {nav("linked", "Vinculados", linkedCount)}
         {nav("early_access", "Early Access", releaseCount("early_access"))}
         {nav("pre_release", "Pre-release", releaseCount("pre_release"))}
         {nav("stats", "Estatísticas")}

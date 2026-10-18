@@ -77,6 +77,7 @@ export type Extra = {
   statuses: Map<Status, Mode>;
   showEarly: boolean;
   showPre: boolean;
+  onlyLinked: boolean;
   minRating: number | null;
   maxRating: number | null;
 };
@@ -86,6 +87,7 @@ export const NO_EXTRA: Extra = {
   statuses: new Map(),
   showEarly: true,
   showPre: true,
+  onlyLinked: false,
   minRating: null,
   maxRating: null,
 };
@@ -107,9 +109,10 @@ export const extraCount = (x: Extra, stage: ReleaseStage | null) =>
   x.statuses.size +
   Number(x.minRating != null) +
   Number(x.maxRating != null) +
+  Number(x.onlyLinked) +
   (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
 
-// Seção "Mais filtros": listas e status com incluir/exigir/excluir, e mostrar Early Access/Pre-release.
+// Seção "Mais filtros": listas e status com incluir/exigir/excluir, só vinculados e mostrar Early Access/Pre-release.
 export function MoreFilters({
   lists,
   stage,
@@ -154,6 +157,17 @@ export function MoreFilters({
         <label className="check">
           Máxima
           <RatingSelect value={extra.maxRating} onChange={(maxRating) => setExtra({ ...extra, maxRating })} />
+        </label>
+      </div>
+      <div className="more-row">
+        <span className="muted">Vínculo</span>
+        <label className="check" title="Jogos com Steam ou executável">
+          <input
+            type="checkbox"
+            checked={extra.onlyLinked}
+            onChange={(e) => setExtra({ ...extra, onlyLinked: e.currentTarget.checked })}
+          />
+          Só vinculados
         </label>
       </div>
       <div className="more-row">
