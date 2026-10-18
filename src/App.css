@@ -1641,3 +1641,8 @@ button.play:hover {
   justify-content: flex-end;
   gap: 6px;
 }
+
+/* Marcador no fim da grade/tabela: ao chegar perto da tela, carrega o próximo lote. */
+.load-more {
+  height: 1px;
+}

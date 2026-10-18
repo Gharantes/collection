@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { setMembership, setRating, setStatus, type Game, type List, type StatusDef } from "../db";
 import { discount, money, ratingTier } from "../games";
 
@@ -24,6 +24,39 @@ export const dragGame = (gameId: number) => ({
     e.dataTransfer.effectAllowed = "copy";
   },
 });
+
+const BATCH = 48;
+// Último lote mostrado: ao voltar da página do jogo, a grade remonta com o mesmo tanto e a rolagem volta ao lugar.
+const lastBatch = { ids: "", count: BATCH };
+
+// Mostra os jogos em lotes: começa com BATCH e traz mais quando o marcador (`more`) chega perto da tela.
+// Volta ao primeiro lote quando a lista mostrada muda (filtro, busca, ordem).
+export function useBatches<T extends { id: number }>(items: T[]) {
+  const ids = items.map((i) => i.id).join();
+  const [count, setCount] = useState(() => (ids === lastBatch.ids ? lastBatch.count : BATCH));
+  const [prevIds, setPrevIds] = useState(ids);
+  if (ids !== prevIds) {
+    setPrevIds(ids);
+    setCount(BATCH);
+  }
+  lastBatch.ids = ids;
+  lastBatch.count = ids === prevIds ? count : BATCH;
+
+  const more = useRef<HTMLDivElement>(null);
+  const done = count >= items.length;
+  // Recria o observador a cada lote: se o marcador continuar visível, ele dispara de novo.
+  useEffect(() => {
+    if (done || !more.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting && setCount((c) => c + BATCH),
+      { rootMargin: "800px" },
+    );
+    observer.observe(more.current);
+    return () => observer.disconnect();
+  }, [count, done]);
+
+  return { visible: items.slice(0, count), more: done ? null : <div ref={more} className="load-more" /> };
+}
 
 // Capa vertical da biblioteca da Steam.
 const portrait = (steamId: number) =>
