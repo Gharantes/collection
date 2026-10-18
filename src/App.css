@@ -1418,8 +1418,8 @@ button.play:hover {
   height: 26px;
 }
 
-/* Faixa de Early Access / Pre-release na base da capa. Cores da loja da Steam:
-   Early Access do cabeçalho "Early Access Game", Pre-release do quadro "Coming Soon". */
+/* Faixa de Early Access / Pre-release na base da capa. Early Access na cor do cabeçalho
+   "Early Access Game" da loja da Steam; Pre-release em laranja/âmbar para não confundir. */
 .stage-band {
   position: absolute;
   left: 0;
@@ -1447,8 +1447,8 @@ button.play:hover {
 }
 
 .stage-band[data-stage="pre_release"] {
-  background: linear-gradient(135deg, #407898 10%, #66c0f4 100%);
-  border-top: 1px solid #407898;
+  background: linear-gradient(135deg, #b8651a 10%, #e0942e 100%);
+  border-top: 1px solid #b8651a;
 }
 
 /* No card a faixa sobe junto com a capa no hover, e a nota fica acima dela. */

@@ -47,7 +47,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"
 - Medalha em roseta (como a da Steam) no canto de cima à direita da capa nos cards (a nota foi para baixo à direita) e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina
 - Seção "Links" na página do jogo: colar URL, salvar, clicar abre no Firefox (ou navegador padrão), × apaga; YouTube e Twitter/X ganham ícone próprio, o resto um ícone padrão; vão no backup
-- Faixa "Early Access" / "Pre-release" na base da capa (cards e miniatura da tabela), nas cores da loja da Steam; passar o mouse mostra a release date
+- Faixa "Early Access" / "Pre-release" na base da capa (cards e miniatura da tabela): Early Access no azul da loja da Steam, Pre-release em laranja/âmbar; passar o mouse mostra a release date
 
 ## Recusado
 
