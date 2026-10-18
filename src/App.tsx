@@ -173,7 +173,7 @@ function App() {
         await deleteSavedFilter(f.id);
     })();
 
-  // O filtro salvo igual ao atual, para o select mostrar o nome dele.
+  // O filtro salvo igual ao atual, para o chip dele aparecer marcado.
   const current = toSaved(extra, nameFilter);
   const currentSaved = savedFilters.find((f) => {
     const saved = fromSaved(f.filter);
@@ -333,23 +333,6 @@ function App() {
             <button className={`ghost more-toggle ${moreOpen ? "on" : ""}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen}>
               Mais filtros{extraCount(extra, stage) > 0 && ` (${extraCount(extra, stage)})`} {moreOpen ? "▴" : "▾"}
             </button>
-            {savedFilters.length > 0 && (
-              <select
-                value={currentSaved?.id ?? ""}
-                onChange={(e) => {
-                  const f = savedFilters.find((x) => x.id === Number(e.currentTarget.value));
-                  if (f) loadFilter(f);
-                }}
-                aria-label="Filtros salvos"
-              >
-                <option value="">Filtros salvos</option>
-                {savedFilters.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    Filtro: {f.name}
-                  </option>
-                ))}
-              </select>
-            )}
             <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
               {Object.entries(SORTS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -373,11 +356,30 @@ function App() {
               stage={stage}
               extra={extra}
               setExtra={setExtra}
-              saved={savedFilters}
               onSave={(name) => run(() => saveFilter(name, current))()}
-              onLoad={loadFilter}
-              onDeleteSaved={onDeleteFilter}
             />
+          )}
+
+          {savedFilters.length > 0 && (
+            <div className="chips saved-filters">
+              {savedFilters.map((f) => {
+                const on = f.id === currentSaved?.id;
+                return (
+                  <span key={f.id} className={`chip saved-filter ${on ? "on" : ""}`}>
+                    <button
+                      className="chip-load"
+                      onClick={() => (on ? (setExtra(NO_EXTRA), setNameFilter("")) : loadFilter(f))}
+                      title={on ? "Limpar o filtro" : "Carregar este filtro"}
+                    >
+                      {f.name}
+                    </button>
+                    <button className="chip-remove" onClick={() => onDeleteFilter(f)} aria-label={`Apagar filtro ${f.name}`}>
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
           )}
 
           <ErrorBanner error={error} onClose={() => setError(null)} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { List, ReleaseStage, SavedFilter } from "../db";
+import type { List, ReleaseStage } from "../db";
 import { NO_EXTRA, extraCount, withStage, type Extra } from "../filters";
 import type { Mode } from "../games";
 import { useStatuses } from "./common";
@@ -77,25 +77,19 @@ function RatingSelect({ value, onChange }: { value: number | null; onChange: (v:
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
 // Seção "Mais filtros": listas e status com incluir/exigir/excluir, só vinculados, mostrar Early Access/Pre-release
-// e os filtros salvos (clique carrega, × apaga, salvar com um nome que já existe troca o filtro dele).
+// e salvar o filtro atual com um nome (um nome que já existe troca o filtro dele).
 export function MoreFilters({
   lists,
   stage,
   extra,
   setExtra,
-  saved,
   onSave,
-  onLoad,
-  onDeleteSaved,
 }: {
   lists: List[];
   stage: ReleaseStage | null;
   extra: Extra;
   setExtra: (x: Extra) => void;
-  saved: SavedFilter[];
   onSave: (name: string) => void;
-  onLoad: (f: SavedFilter) => void;
-  onDeleteSaved: (f: SavedFilter) => void;
 }) {
   const shown = withStage(extra, stage);
   const statuses = useStatuses();
@@ -103,21 +97,7 @@ export function MoreFilters({
   return (
     <div className="more-filters">
       <div className="more-row">
-        <span className="muted">Salvos</span>
-        {saved.length > 0 && (
-          <div className="chips">
-            {saved.map((f) => (
-              <span key={f.id} className="chip saved-filter">
-                <button className="chip-load" onClick={() => onLoad(f)} title="Carregar este filtro">
-                  {f.name}
-                </button>
-                <button className="chip-remove" onClick={() => onDeleteSaved(f)} aria-label={`Apagar filtro ${f.name}`}>
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
+        <span className="muted">Salvar</span>
         <form
           className="save-filter"
           onSubmit={(e) => {

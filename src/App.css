@@ -423,8 +423,25 @@ select.rating-bound {
   font-size: 13px;
 }
 
-.saved-filter {
+.saved-filters {
+  margin: -8px 0 20px;
+}
+
+.chip.saved-filter {
   padding: 1px 2px;
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.chip.saved-filter:hover,
+.chip.saved-filter.on {
+  color: var(--accent);
+  border-color: #6aa8ff55;
+}
+
+.chip.saved-filter.on {
+  background: var(--accent-soft);
 }
 
 .chip-load {
