@@ -31,6 +31,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
 - Tempo de jogo dos jogos abertos pelo executável ou pela Steam (no Windows, pelo registro `Apps<id>Running`)
+- Executável que exige administrador (erro 740) abre pedindo o UAC, mantendo o tempo de jogo
 - Página de estatísticas
 - Atualização do app pelas releases do GitHub: só manual, pelo botão "Procurar atualizações" em Configurações (antes procurava ao abrir)
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`

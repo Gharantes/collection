@@ -148,13 +148,35 @@ struct Session {
 }
 
 // Roda o executável na pasta dele. Erro "not_found" se o arquivo sumiu.
-fn spawn_exe(path: &str) -> Result<Child, String> {
+// Também diz se foi aberto como administrador.
+fn spawn_exe(path: &str) -> Result<(Child, bool), String> {
     let exe = Path::new(path);
     if !exe.is_file() {
         return Err("not_found".into());
     }
-    std::process::Command::new(exe)
-        .current_dir(exe.parent().unwrap_or(Path::new(".")))
+    let dir = exe.parent().unwrap_or(Path::new("."));
+    match std::process::Command::new(exe).current_dir(dir).spawn() {
+        Ok(child) => Ok((child, false)),
+        #[cfg(windows)]
+        Err(e) if e.raw_os_error() == Some(740) => spawn_elevated(exe, dir).map(|c| (c, true)),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+// Jogo que exige administrador (erro 740): o PowerShell pede o UAC e espera o jogo fechar.
+#[cfg(windows)]
+fn spawn_elevated(exe: &Path, dir: &Path) -> Result<Child, String> {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let quote = |p: &Path| format!("'{}'", p.to_string_lossy().replace('\'', "''"));
+    let script = format!(
+        "Start-Process -FilePath {} -WorkingDirectory {} -Verb RunAs -Wait",
+        quote(exe),
+        quote(dir)
+    );
+    std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .map_err(|e| e.to_string())
 }
@@ -162,11 +184,15 @@ fn spawn_exe(path: &str) -> Result<Child, String> {
 // Abre o jogo e, quando ele fecha, emite "game-exited" com a duração da sessão.
 #[tauri::command]
 pub fn launch_exe(app: tauri::AppHandle, game_id: i64, path: String) -> Result<(), String> {
-    let mut child = spawn_exe(&path)?;
+    let (mut child, elevated) = spawn_exe(&path)?;
     let started_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis();
     let clock = Instant::now();
     std::thread::spawn(move || {
-        let _ = child.wait();
+        let status = child.wait();
+        // Com UAC cancelado o PowerShell sai com erro e não houve sessão.
+        if elevated && !status.is_ok_and(|s| s.success()) {
+            return;
+        }
         let session = Session { game_id, started_at, seconds: clock.elapsed().as_secs() };
         let _ = app.emit("game-exited", session);
     });
