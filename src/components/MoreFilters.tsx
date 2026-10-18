@@ -1,6 +1,6 @@
 import type { List, ReleaseStage, Status } from "../db";
 import type { Mode } from "../games";
-import { STATUSES } from "./common";
+import { useStatuses } from "./common";
 
 const NEXT: Record<"none" | Mode, Mode | null> = {
   none: "include",
@@ -122,12 +122,13 @@ export function MoreFilters({
   setExtra: (x: Extra) => void;
 }) {
   const shown = withStage(extra, stage);
+  const statuses = useStatuses();
   return (
     <div className="more-filters">
       <div className="more-row">
         <span className="muted">Status</span>
         <ModeChips
-          items={(Object.keys(STATUSES) as Status[]).map((s) => ({ key: s, label: STATUSES[s] }))}
+          items={statuses.map((s) => ({ key: s.key, label: s.label }))}
           modes={extra.statuses}
           setModes={(statuses) => setExtra({ ...extra, statuses })}
         />

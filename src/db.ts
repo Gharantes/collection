@@ -2,7 +2,9 @@ import Database from "@tauri-apps/plugin-sql";
 import { fetchPrices, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
 
-export type Status = "backlog" | "playing" | "finished" | "abandoned";
+// Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
+export type Status = string;
+export type StatusDef = { key: Status; label: string };
 export type Launch = "steam" | "exe";
 export type ReleaseStage = "early_access" | "pre_release";
 export type Achievements = "hunting" | "platinum";
@@ -99,6 +101,16 @@ export const setStatus = async (id: number, status: Status | null) => {
       today(),
     ]);
 };
+
+export const listStatuses = async () =>
+  (await getDb()).select<StatusDef[]>("SELECT * FROM statuses ORDER BY rowid");
+
+export const addStatus = async (label: string) =>
+  (await getDb()).execute("INSERT INTO statuses (key, label) VALUES ($1, $2)", [crypto.randomUUID(), label]);
+
+// Os jogos com esse status ficam sem status e o histórico dele é apagado (ON DELETE no banco).
+export const deleteStatus = async (key: Status) =>
+  (await getDb()).execute("DELETE FROM statuses WHERE key = $1", [key]);
 
 export const listStatusEvents = async () =>
   (await getDb()).select<StatusEvent[]>("SELECT * FROM status_events ORDER BY at, id");
@@ -202,7 +214,8 @@ const GAME_COLUMNS = [
 ];
 
 export const exportBackup = async (): Promise<string> => {
-  const [games, lists, game_lists, status_events, play_sessions, notes] = await Promise.all([
+  const [statuses, games, lists, game_lists, status_events, play_sessions, notes] = await Promise.all([
+    listStatuses(),
     listGames(),
     listLists(),
     listMemberships(),
@@ -210,7 +223,7 @@ export const exportBackup = async (): Promise<string> => {
     listPlaySessions(),
     listNotes(),
   ]);
-  const backup: Backup = { app: "collection", version: 1, games, lists, game_lists, status_events, play_sessions, notes };
+  const backup: Backup = { app: "collection", version: 1, statuses, games, lists, game_lists, status_events, play_sessions, notes };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -228,6 +241,11 @@ export const restoreBackup = async (backup: Backup) => {
   await database.execute("DELETE FROM game_lists");
   await database.execute("DELETE FROM games");
   await database.execute("DELETE FROM lists");
+  await database.execute("DELETE FROM statuses");
+  await database.execute(
+    "INSERT INTO statuses (key, label) SELECT value->>'key', value->>'label' FROM json_each($1)",
+    [JSON.stringify(backup.statuses)],
+  );
   await database.execute(
     "INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)",
     [JSON.stringify(backup.lists)],

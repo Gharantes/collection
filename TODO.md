@@ -12,6 +12,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Setup Tauri 2 + React + TypeScript + Vite + SQLite, igual ao price-tracker-v2
 - Listas (um jogo em várias), nota de 0 a 10
 - Status: Backlog, Jogando, Terminado, Abandonado
+- "Registrar Status" em Configurações: adicionar e apagar status (apagar tira o status dos jogos e apaga o histórico dele); vão no backup
 - Botão "O que jogar?": sorteia um jogo vinculado (Steam ou executável) entre os mostrados (respeita a lista); mostra num dialog (capa, nome, listas) com "Ir à página" e "Reroll"
 - Filtro "Vinculados" na sidebar (jogos com Steam ou executável)
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço

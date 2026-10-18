@@ -17,6 +17,13 @@ test("recusa backup inválido", () => {
   assert.throws(() => parseBackup(json({ ...backup, game_lists: [{ game_id: 2, list_id: 1 }] })));
 });
 
+test("status registrados", () => {
+  assert.equal(parseBackup(json(backup)).statuses.length, 4);
+  const statuses = [{ key: "x", label: "Zerando" }];
+  assert.throws(() => parseBackup(json({ ...backup, statuses })));
+  assert.equal(parseBackup(json({ ...backup, statuses, games: [{ ...game, status: "x" }] })).games[0].status, "x");
+});
+
 test("converte a anotação antiga do jogo", () => {
   const notes = parseBackup(json({ ...backup, games: [{ ...game, notes: "oi" }] })).notes;
   assert.deepEqual(notes.map((n) => [n.game_id, n.body]), [[1, "oi"]]);

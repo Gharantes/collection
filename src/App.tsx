@@ -9,16 +9,18 @@ import {
   listMemberships,
   listPlaySessions,
   listStatusEvents,
+  listStatuses,
   refreshPrices,
   type Game,
   type List,
   type PlaySession,
+  type StatusDef,
   type StatusEvent,
 } from "./db";
 import { SORTS, discount, hitsTarget, matchModes, money, sortGames, type Sort } from "./games";
 import { readPref, readTime, savePref } from "./prefs";
 import { AddGame } from "./components/AddGame";
-import { ErrorBanner } from "./components/common";
+import { ErrorBanner, StatusesContext } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
@@ -50,6 +52,7 @@ function App() {
   const [lists, setLists] = useState<List[]>([]);
   const [members, setMembers] = useState<Set<string>>(new Set());
   const [events, setEvents] = useState<StatusEvent[]>([]);
+  const [statuses, setStatuses] = useState<StatusDef[]>([]);
   const [sessions, setSessions] = useState<PlaySession[]>([]);
   const [filter, setFilter] = useState<Filter>(null);
   const [extra, setExtra] = useState<Extra>(NO_EXTRA);
@@ -64,13 +67,15 @@ function App() {
   const [pickedId, setPickedId] = useState<number | null>(null);
 
   const load = async () => {
-    const [g, l, m, e, s] = await Promise.all([
+    const [st, g, l, m, e, s] = await Promise.all([
+      listStatuses(),
       listGames(),
       listLists(),
       listMemberships(),
       listStatusEvents(),
       listPlaySessions(),
     ]);
+    setStatuses(st);
     setGames(g);
     setLists(l);
     setMembers(new Set(m.map((x) => key(x.game_id, x.list_id))));
@@ -137,6 +142,13 @@ function App() {
       location.hash = "";
     }
   };
+
+  // Tira dos filtros os status que foram apagados.
+  useEffect(() => {
+    const keys = new Set(statuses.map((s) => s.key));
+    if ([...extra.statuses.keys()].some((k) => !keys.has(k)))
+      setExtra({ ...extra, statuses: new Map([...extra.statuses].filter(([k]) => keys.has(k))) });
+  }, [statuses]);
 
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
@@ -225,6 +237,7 @@ function App() {
           : (lists.find((l) => l.id === filter)?.name ?? "");
 
   return (
+    <StatusesContext.Provider value={statuses}>
     <div className="layout">
       <Sidebar
         lists={lists}
@@ -348,6 +361,7 @@ function App() {
         )}
       </main>
     </div>
+    </StatusesContext.Provider>
   );
 }
 

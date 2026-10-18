@@ -39,7 +39,8 @@ export const discount = (initial: number | null, final: number | null) =>
   initial == null || final == null || final >= initial ? 0 : Math.round((1 - final / initial) * 100);
 
 // Rótulo de cada evento (em ordem cronológica), conforme o que veio antes.
-export function eventLabels(events: StatusEvent[]): string[] {
+// Status registrados pelo usuário aparecem pelo nome, de `names`.
+export function eventLabels(events: StatusEvent[], names: Record<string, string> = {}): string[] {
   let played = false;
   return events.map((e) => {
     if (e.status === "playing") {
@@ -55,7 +56,8 @@ export function eventLabels(events: StatusEvent[]): string[] {
       played = true;
       return "Abandonou";
     }
-    return played ? "Voltou ao backlog" : "Entrou no backlog";
+    if (e.status === "backlog") return played ? "Voltou ao backlog" : "Entrou no backlog";
+    return names[e.status] ?? e.status;
   });
 }
 

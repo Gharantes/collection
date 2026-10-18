@@ -108,6 +108,12 @@ pub fn run() {
             sql: include_str!("../migrations/017_achievements_platinum.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 18,
+            description: "create statuses",
+            sql: include_str!("../migrations/018_statuses.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

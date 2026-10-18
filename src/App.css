@@ -1013,6 +1013,32 @@ button.confirm-reset:disabled {
   cursor: not-allowed;
 }
 
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.status-add input {
+  width: 100%;
+}
+
+.reset-dialog p.error-text {
+  color: var(--bad);
+}
+
 /* Vincular / Abrir */
 
 .launch {

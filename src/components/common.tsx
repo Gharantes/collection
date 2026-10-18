@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { setMembership, setRating, setStatus, type Game, type List, type Status } from "../db";
+import { createContext, useContext, useState } from "react";
+import { setMembership, setRating, setStatus, type Game, type List, type StatusDef } from "../db";
 import { discount, money, ratingTier } from "../games";
 
 // Ação do App: roda, recarrega tudo e mostra erro na tela.
 export type Run = (action: () => Promise<unknown>) => () => Promise<void>;
 
-export const STATUSES: Record<Status, string> = {
-  backlog: "Backlog",
-  playing: "Jogando",
-  finished: "Terminado",
-  abandoned: "Abandonado",
-};
+// Status registrados (tabela statuses), carregados pelo App.
+export const StatusesContext = createContext<StatusDef[]>([]);
+export const useStatuses = () => useContext(StatusesContext);
+
+// Nome de cada status pela chave.
+export const useStatusLabels = () => Object.fromEntries(useStatuses().map((s) => [s.key, s.label]));
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
@@ -92,21 +92,22 @@ export function Price(p: { final: number | null; initial: number | null; currenc
 }
 
 export function StatusSelect({ game, run }: { game: Game; run: Run }) {
+  const statuses = useStatuses();
   return (
     <select
       className="pill"
       data-status={game.status ?? ""}
       value={game.status ?? ""}
       onChange={(e) => {
-        const v = e.currentTarget.value as Status | "";
+        const v = e.currentTarget.value;
         run(() => setStatus(game.id, v || null))();
       }}
       aria-label="Status"
     >
       <option value="">—</option>
-      {Object.entries(STATUSES).map(([value, label]) => (
-        <option key={value} value={value}>
-          {label}
+      {statuses.map((s) => (
+        <option key={s.key} value={s.key}>
+          {s.label}
         </option>
       ))}
     </select>

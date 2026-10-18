@@ -1,8 +1,9 @@
 import type { Game } from "../db";
 import { discount, hitsTarget, ratingTier } from "../games";
-import { Cover, Medal, STATUSES, dragGame } from "./common";
+import { Cover, Medal, dragGame, useStatusLabels } from "./common";
 
 export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number) => void }) {
+  const statusLabels = useStatusLabels();
   return (
     <div className="grid">
       {games.map((game) => {
@@ -27,7 +28,7 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
             <span className="game-card-name">{game.name}</span>
             {game.status && (
               <span className="status-text" data-status={game.status}>
-                {STATUSES[game.status]}
+                {statusLabels[game.status]}
               </span>
             )}
           </button>

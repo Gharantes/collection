@@ -16,7 +16,7 @@ import {
   type StatusEvent,
 } from "../db";
 import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toCents } from "../games";
-import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, type Run } from "./common";
+import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
 
@@ -64,7 +64,7 @@ export function GameDetail({ game, events, ...props }: Props) {
 }
 
 function Body({ game, events, sessions, lists, inList, run, error, onCloseError, onBack, onDelete }: Props & { game: Game }) {
-  const labels = eventLabels(events);
+  const labels = eventLabels(events, useStatusLabels());
   const startedAt = events.find((_, i) => labels[i] === "Começou")?.at;
   const finishedAt = events.filter((e) => e.status === "finished").pop()?.at;
   const played = sessions.reduce((sum, s) => sum + s.seconds, 0);

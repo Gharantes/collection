@@ -7,6 +7,7 @@ import { addList, deleteList, exportBackup, resetLibrary, restoreBackup, setMemb
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
 import { ResetDialog } from "./ResetDialog";
+import { StatusDialog } from "./StatusDialog";
 
 // Lista selecionada, "target" (jogos no preço-alvo), "linked" (vinculados), um estágio de release,
 // "stats" (estatísticas) ou null (todos).
@@ -29,6 +30,7 @@ const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCount, releaseCount, listCount, run }: Props) {
   const [dropList, setDropList] = useState<number | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [editingStatuses, setEditingStatuses] = useState(false);
   const settings = useRef<HTMLDetailsElement>(null);
 
   // Fecha o menu de configurações ao clicar fora dele.
@@ -152,6 +154,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
         <div className="menu-items">
           <button onClick={fromMenu(onExport)}>Exportar backup</button>
           <button onClick={fromMenu(onImport)}>Importar backup</button>
+          <button onClick={fromMenu(() => setEditingStatuses(true))}>Registrar Status</button>
           <button onClick={fromMenu(onCheckUpdate)}>Procurar atualizações</button>
           <button className="menu-danger" onClick={fromMenu(() => setResetting(true))}>
             Resetar biblioteca
@@ -159,6 +162,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, linkedCo
         </div>
       </details>
       {resetting && <ResetDialog onConfirm={onReset} onClose={() => setResetting(false)} />}
+      {editingStatuses && <StatusDialog run={run} onClose={() => setEditingStatuses(false)} />}
     </aside>
   );
 }

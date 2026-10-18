@@ -1,8 +1,9 @@
-import type { Game, List, Membership, Note, PlaySession, StatusEvent } from "./db";
+import type { Game, List, Membership, Note, PlaySession, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
   version: 1;
+  statuses: StatusDef[];
   games: Game[];
   lists: List[];
   game_lists: Membership[];
@@ -11,18 +12,24 @@ export type Backup = {
   notes: Note[];
 };
 
-const STATUSES = ["backlog", "playing", "finished", "abandoned"];
+// Backups antigos não têm a lista de status: usam os de fábrica.
+export const DEFAULT_STATUSES: StatusDef[] = [
+  { key: "backlog", label: "Backlog" },
+  { key: "playing", label: "Jogando" },
+  { key: "finished", label: "Terminado" },
+  { key: "abandoned", label: "Abandonado" },
+];
 
 const isInt = (v: unknown) => Number.isInteger(v);
 const isIntOrNull = (v: unknown) => v == null || Number.isInteger(v);
 const isStrOrNull = (v: unknown) => v == null || typeof v === "string";
 
-const validGame = (g: Game) =>
+const validGame = (statuses: Set<string>) => (g: Game) =>
   isInt(g.id) &&
   typeof g.name === "string" &&
   (g.rating == null || (isInt(g.rating) && g.rating >= 0 && g.rating <= 10)) &&
   isIntOrNull(g.steam_id) &&
-  (g.status == null || STATUSES.includes(g.status)) &&
+  (g.status == null || statuses.has(g.status)) &&
   isStrOrNull(g.image_url) &&
   isIntOrNull(g.price) &&
   isIntOrNull(g.price_initial) &&
@@ -46,7 +53,16 @@ export function parseBackup(text: string): Backup {
     throw new Error("Arquivo não é um JSON válido.");
   }
   if (data?.app !== "collection" || data.version !== 1) throw new Error("Arquivo não é um backup do Collection.");
-  if (!Array.isArray(data.games) || !data.games.every(validGame)) throw new Error("Backup com jogos inválidos.");
+  data.statuses ??= DEFAULT_STATUSES;
+  if (
+    !Array.isArray(data.statuses) ||
+    !data.statuses.every((s) => typeof s.key === "string" && typeof s.label === "string")
+  )
+    throw new Error("Backup com status inválidos.");
+  const statuses = new Set(data.statuses.map((s) => s.key));
+  if (statuses.size !== data.statuses.length || new Set(data.statuses.map((s) => s.label)).size !== statuses.size)
+    throw new Error("Backup com status repetidos.");
+  if (!Array.isArray(data.games) || !data.games.every(validGame(statuses))) throw new Error("Backup com jogos inválidos.");
   if (!Array.isArray(data.lists) || !data.lists.every((l) => isInt(l.id) && typeof l.name === "string"))
     throw new Error("Backup com listas inválidas.");
 
@@ -63,7 +79,7 @@ export function parseBackup(text: string): Backup {
   if (
     !Array.isArray(data.status_events) ||
     !data.status_events.every(
-      (e) => gameIds.has(e.game_id) && STATUSES.includes(e.status) && /^\d{4}-\d{2}-\d{2}$/.test(e.at),
+      (e) => gameIds.has(e.game_id) && statuses.has(e.status) && /^\d{4}-\d{2}-\d{2}$/.test(e.at),
     )
   )
     throw new Error("Backup com histórico de status inválido.");
