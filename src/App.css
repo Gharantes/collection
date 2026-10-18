@@ -423,6 +423,29 @@ select.rating-bound {
   font-size: 13px;
 }
 
+.saved-filter {
+  padding: 1px 2px;
+}
+
+.chip-load {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0 4px 0 8px;
+  font-size: 12px;
+}
+
+.save-filter {
+  display: flex;
+  gap: 8px;
+}
+
+.save-filter input,
+.save-filter button {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
 .clear-filters {
   margin-left: auto;
   padding: 4px 10px;

@@ -114,6 +114,12 @@ pub fn run() {
             sql: include_str!("../migrations/018_statuses.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 19,
+            description: "create saved_filters",
+            sql: include_str!("../migrations/019_saved_filters.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

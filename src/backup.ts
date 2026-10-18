@@ -1,9 +1,10 @@
-import type { Game, List, Membership, Note, PlaySession, StatusDef, StatusEvent } from "./db";
+import type { Game, List, Membership, Note, PlaySession, SavedFilter, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
   version: 1;
   statuses: StatusDef[];
+  filters: SavedFilter[];
   games: Game[];
   lists: List[];
   game_lists: Membership[];
@@ -62,6 +63,13 @@ export function parseBackup(text: string): Backup {
   const statuses = new Set(data.statuses.map((s) => s.key));
   if (statuses.size !== data.statuses.length || new Set(data.statuses.map((s) => s.label)).size !== statuses.size)
     throw new Error("Backup com status repetidos.");
+  data.filters ??= [];
+  if (
+    !Array.isArray(data.filters) ||
+    !data.filters.every((f) => typeof f.name === "string" && typeof f.filter === "string") ||
+    new Set(data.filters.map((f) => f.name)).size !== data.filters.length
+  )
+    throw new Error("Backup com filtros salvos inválidos.");
   if (!Array.isArray(data.games) || !data.games.every(validGame(statuses))) throw new Error("Backup com jogos inválidos.");
   if (!Array.isArray(data.lists) || !data.lists.every((l) => isInt(l.id) && typeof l.name === "string"))
     throw new Error("Backup com listas inválidas.");

@@ -1,4 +1,6 @@
-import type { List, ReleaseStage, Status } from "../db";
+import { useState } from "react";
+import type { List, ReleaseStage, SavedFilter } from "../db";
+import { NO_EXTRA, extraCount, withStage, type Extra } from "../filters";
 import type { Mode } from "../games";
 import { useStatuses } from "./common";
 
@@ -72,62 +74,71 @@ function RatingSelect({ value, onChange }: { value: number | null; onChange: (v:
   );
 }
 
-export type Extra = {
-  lists: Map<number, Mode>;
-  statuses: Map<Status, Mode>;
-  showEarly: boolean;
-  showPre: boolean;
-  onlyLinked: boolean;
-  minRating: number | null;
-  maxRating: number | null;
-};
-
-export const NO_EXTRA: Extra = {
-  lists: new Map(),
-  statuses: new Map(),
-  showEarly: true,
-  showPre: true,
-  onlyLinked: false,
-  minRating: null,
-  maxRating: null,
-};
-
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
-// Com nota mínima ou máxima, jogos sem nota ficam de fora.
-export const inRating = (rating: number | null, x: Extra) =>
-  (x.minRating == null && x.maxRating == null) ||
-  (rating != null && rating >= (x.minRating ?? 0) && rating <= (x.maxRating ?? 10));
-
-// Nas páginas Early Access e Pre-release, os checkboxes ficam fixos: só a da página aparece.
-export const withStage = (x: Extra, stage: ReleaseStage | null): Extra =>
-  stage ? { ...x, showEarly: stage === "early_access", showPre: stage === "pre_release" } : x;
-
-// Quantos filtros avançados estão ativos (os checkboxes fixos não contam).
-export const extraCount = (x: Extra, stage: ReleaseStage | null) =>
-  x.lists.size +
-  x.statuses.size +
-  Number(x.minRating != null) +
-  Number(x.maxRating != null) +
-  Number(x.onlyLinked) +
-  (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
-
-// Seção "Mais filtros": listas e status com incluir/exigir/excluir, só vinculados e mostrar Early Access/Pre-release.
+// Seção "Mais filtros": listas e status com incluir/exigir/excluir, só vinculados, mostrar Early Access/Pre-release
+// e os filtros salvos (clique carrega, × apaga, salvar com um nome que já existe troca o filtro dele).
 export function MoreFilters({
   lists,
   stage,
   extra,
   setExtra,
+  saved,
+  onSave,
+  onLoad,
+  onDeleteSaved,
 }: {
   lists: List[];
   stage: ReleaseStage | null;
   extra: Extra;
   setExtra: (x: Extra) => void;
+  saved: SavedFilter[];
+  onSave: (name: string) => void;
+  onLoad: (f: SavedFilter) => void;
+  onDeleteSaved: (f: SavedFilter) => void;
 }) {
   const shown = withStage(extra, stage);
   const statuses = useStatuses();
+  const [saveName, setSaveName] = useState("");
   return (
     <div className="more-filters">
+      <div className="more-row">
+        <span className="muted">Salvos</span>
+        {saved.length > 0 && (
+          <div className="chips">
+            {saved.map((f) => (
+              <span key={f.id} className="chip saved-filter">
+                <button className="chip-load" onClick={() => onLoad(f)} title="Carregar este filtro">
+                  {f.name}
+                </button>
+                <button className="chip-remove" onClick={() => onDeleteSaved(f)} aria-label={`Apagar filtro ${f.name}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <form
+          className="save-filter"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const name = saveName.trim();
+            if (!name) return;
+            onSave(name);
+            setSaveName("");
+          }}
+        >
+          <input
+            value={saveName}
+            onChange={(e) => setSaveName(e.currentTarget.value)}
+            placeholder="Nome do filtro"
+            aria-label="Nome do filtro"
+          />
+          <button type="submit" className="ghost" disabled={!saveName.trim()}>
+            Salvar filtro atual
+          </button>
+        </form>
+      </div>
       <div className="more-row">
         <span className="muted">Status</span>
         <ModeChips

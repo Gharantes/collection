@@ -33,6 +33,7 @@ export type StatusEvent = { id: number; game_id: number; status: Status; at: str
 export type PlaySession = { id: number; game_id: number; started_at: string; seconds: number };
 export type Membership = { game_id: number; list_id: number };
 export type Note = { id: number; game_id: number; title: string; body: string; image: string | null };
+export type SavedFilter = { id: number; name: string; filter: string };
 
 // Mesma URL das migrations em src-tauri/src/lib.rs.
 let db: Promise<Database> | null = null;
@@ -111,6 +112,19 @@ export const addStatus = async (label: string) =>
 // Os jogos com esse status ficam sem status e o histórico dele é apagado (ON DELETE no banco).
 export const deleteStatus = async (key: Status) =>
   (await getDb()).execute("DELETE FROM statuses WHERE key = $1", [key]);
+
+export const listSavedFilters = async () =>
+  (await getDb()).select<SavedFilter[]>("SELECT * FROM saved_filters ORDER BY name");
+
+// Com um nome que já existe, troca o filtro dele.
+export const saveFilter = async (name: string, filter: string) =>
+  (await getDb()).execute(
+    "INSERT INTO saved_filters (name, filter) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET filter = excluded.filter",
+    [name, filter],
+  );
+
+export const deleteSavedFilter = async (id: number) =>
+  (await getDb()).execute("DELETE FROM saved_filters WHERE id = $1", [id]);
 
 export const listStatusEvents = async () =>
   (await getDb()).select<StatusEvent[]>("SELECT * FROM status_events ORDER BY at, id");
@@ -214,8 +228,9 @@ const GAME_COLUMNS = [
 ];
 
 export const exportBackup = async (): Promise<string> => {
-  const [statuses, games, lists, game_lists, status_events, play_sessions, notes] = await Promise.all([
+  const [statuses, filters, games, lists, game_lists, status_events, play_sessions, notes] = await Promise.all([
     listStatuses(),
+    listSavedFilters(),
     listGames(),
     listLists(),
     listMemberships(),
@@ -223,7 +238,7 @@ export const exportBackup = async (): Promise<string> => {
     listPlaySessions(),
     listNotes(),
   ]);
-  const backup: Backup = { app: "collection", version: 1, statuses, games, lists, game_lists, status_events, play_sessions, notes };
+  const backup: Backup = { app: "collection", version: 1, statuses, filters, games, lists, game_lists, status_events, play_sessions, notes };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -245,6 +260,11 @@ export const restoreBackup = async (backup: Backup) => {
   await database.execute(
     "INSERT INTO statuses (key, label) SELECT value->>'key', value->>'label' FROM json_each($1)",
     [JSON.stringify(backup.statuses)],
+  );
+  await database.execute("DELETE FROM saved_filters");
+  await database.execute(
+    "INSERT INTO saved_filters (name, filter) SELECT value->>'name', value->>'filter' FROM json_each($1)",
+    [JSON.stringify(backup.filters)],
   );
   await database.execute(
     "INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)",

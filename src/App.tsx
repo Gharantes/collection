@@ -1,19 +1,24 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { listen } from "@tauri-apps/api/event";
 import {
   addPlaySession,
   deleteGame,
+  deleteSavedFilter,
   listGames,
   listLists,
   listMemberships,
   listPlaySessions,
+  listSavedFilters,
   listStatusEvents,
   listStatuses,
   refreshPrices,
+  saveFilter,
   type Game,
   type List,
   type PlaySession,
+  type SavedFilter,
   type StatusDef,
   type StatusEvent,
 } from "./db";
@@ -24,7 +29,8 @@ import { ErrorBanner, StatusesContext } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
-import { MoreFilters, NO_EXTRA, extraCount, inRating, withStage, type Extra } from "./components/MoreFilters";
+import { MoreFilters } from "./components/MoreFilters";
+import { NO_EXTRA, extraCount, fromSaved, inRating, toSaved, withStage, type Extra } from "./filters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -54,6 +60,7 @@ function App() {
   const [events, setEvents] = useState<StatusEvent[]>([]);
   const [statuses, setStatuses] = useState<StatusDef[]>([]);
   const [sessions, setSessions] = useState<PlaySession[]>([]);
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [filter, setFilter] = useState<Filter>(null);
   const [extra, setExtra] = useState<Extra>(NO_EXTRA);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -67,13 +74,14 @@ function App() {
   const [pickedId, setPickedId] = useState<number | null>(null);
 
   const load = async () => {
-    const [st, g, l, m, e, s] = await Promise.all([
+    const [st, g, l, m, e, s, f] = await Promise.all([
       listStatuses(),
       listGames(),
       listLists(),
       listMemberships(),
       listStatusEvents(),
       listPlaySessions(),
+      listSavedFilters(),
     ]);
     setStatuses(st);
     setGames(g);
@@ -81,6 +89,7 @@ function App() {
     setMembers(new Set(m.map((x) => key(x.game_id, x.list_id))));
     setEvents(e);
     setSessions(s);
+    setSavedFilters(f);
   };
 
   // Roda a ação, recarrega tudo (mesmo se falhar) e mostra erro na tela.
@@ -149,6 +158,27 @@ function App() {
     if ([...extra.statuses.keys()].some((k) => !keys.has(k)))
       setExtra({ ...extra, statuses: new Map([...extra.statuses].filter(([k]) => keys.has(k))) });
   }, [statuses]);
+
+  // Carrega um filtro salvo, sem as listas que foram apagadas.
+  const loadFilter = (f: SavedFilter) => {
+    const { extra, text } = fromSaved(f.filter);
+    const ids = new Set(lists.map((l) => l.id));
+    setExtra({ ...extra, lists: new Map([...extra.lists].filter(([id]) => ids.has(id))) });
+    setNameFilter(text);
+  };
+
+  const onDeleteFilter = (f: SavedFilter) =>
+    run(async () => {
+      if (await ask(`Apagar o filtro salvo "${f.name}"?`, { title: "Filtros salvos", kind: "warning" }))
+        await deleteSavedFilter(f.id);
+    })();
+
+  // O filtro salvo igual ao atual, para o select mostrar o nome dele.
+  const current = toSaved(extra, nameFilter);
+  const currentSaved = savedFilters.find((f) => {
+    const saved = fromSaved(f.filter);
+    return toSaved(saved.extra, saved.text) === current;
+  });
 
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
@@ -303,6 +333,23 @@ function App() {
             <button className={`ghost more-toggle ${moreOpen ? "on" : ""}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen}>
               Mais filtros{extraCount(extra, stage) > 0 && ` (${extraCount(extra, stage)})`} {moreOpen ? "▴" : "▾"}
             </button>
+            {savedFilters.length > 0 && (
+              <select
+                value={currentSaved?.id ?? ""}
+                onChange={(e) => {
+                  const f = savedFilters.find((x) => x.id === Number(e.currentTarget.value));
+                  if (f) loadFilter(f);
+                }}
+                aria-label="Filtros salvos"
+              >
+                <option value="">Filtros salvos</option>
+                {savedFilters.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    Filtro: {f.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
               {Object.entries(SORTS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -320,7 +367,18 @@ function App() {
             </div>
           </div>
 
-          {moreOpen && <MoreFilters lists={lists} stage={stage} extra={extra} setExtra={setExtra} />}
+          {moreOpen && (
+            <MoreFilters
+              lists={lists}
+              stage={stage}
+              extra={extra}
+              setExtra={setExtra}
+              saved={savedFilters}
+              onSave={(name) => run(() => saveFilter(name, current))()}
+              onLoad={loadFilter}
+              onDeleteSaved={onDeleteFilter}
+            />
+          )}
 
           <ErrorBanner error={error} onClose={() => setError(null)} />
 

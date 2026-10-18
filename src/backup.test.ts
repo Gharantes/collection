@@ -24,6 +24,13 @@ test("status registrados", () => {
   assert.equal(parseBackup(json({ ...backup, statuses, games: [{ ...game, status: "x" }] })).games[0].status, "x");
 });
 
+test("filtros salvos", () => {
+  assert.deepEqual(parseBackup(json(backup)).filters, []);
+  const filters = [{ id: 1, name: "Vinculados", filter: "{}" }];
+  assert.equal(parseBackup(json({ ...backup, filters })).filters.length, 1);
+  assert.throws(() => parseBackup(json({ ...backup, filters: [...filters, { id: 2, name: "Vinculados", filter: "{}" }] })));
+});
+
 test("converte a anotação antiga do jogo", () => {
   const notes = parseBackup(json({ ...backup, games: [{ ...game, notes: "oi" }] })).notes;
   assert.deepEqual(notes.map((n) => [n.game_id, n.body]), [[1, "oi"]]);
