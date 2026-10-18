@@ -1,12 +1,15 @@
 import type { ReleaseStage, Status } from "./db";
 import type { Mode } from "./games";
 
+// Estágio de release de um jogo; sem estágio, é lançado.
+export type Stage = ReleaseStage | "released";
+export const stageOf = (g: { release_stage: ReleaseStage | null }): Stage => g.release_stage ?? "released";
+
 // Filtros da seção "Mais filtros".
 export type Extra = {
   lists: Map<number, Mode>;
   statuses: Map<Status, Mode>;
-  showEarly: boolean;
-  showPre: boolean;
+  stages: Map<Stage, Mode>;
   onlyLinked: boolean;
   minRating: number | null;
   maxRating: number | null;
@@ -15,8 +18,7 @@ export type Extra = {
 export const NO_EXTRA: Extra = {
   lists: new Map(),
   statuses: new Map(),
-  showEarly: true,
-  showPre: true,
+  stages: new Map(),
   onlyLinked: false,
   minRating: null,
   maxRating: null,
@@ -27,25 +29,25 @@ export const inRating = (rating: number | null, x: Extra) =>
   (x.minRating == null && x.maxRating == null) ||
   (rating != null && rating >= (x.minRating ?? 0) && rating <= (x.maxRating ?? 10));
 
-// Nas páginas Early Access e Pre-release, os checkboxes ficam fixos: só a da página aparece.
-export const withStage = (x: Extra, stage: ReleaseStage | null): Extra =>
-  stage ? { ...x, showEarly: stage === "early_access", showPre: stage === "pre_release" } : x;
-
-// Quantos filtros avançados estão ativos (os checkboxes fixos não contam).
-export const extraCount = (x: Extra, stage: ReleaseStage | null) =>
+// Quantos filtros avançados estão ativos.
+export const extraCount = (x: Extra) =>
   x.lists.size +
   x.statuses.size +
+  x.stages.size +
   Number(x.minRating != null) +
   Number(x.maxRating != null) +
-  Number(x.onlyLinked) +
-  (stage ? 0 : Number(!x.showEarly) + Number(!x.showPre));
+  Number(x.onlyLinked);
 
 // Filtro salvo: o texto da busca e os "Mais filtros", em JSON (os Maps viram listas de pares).
 export const toSaved = (extra: Extra, text: string) =>
-  JSON.stringify({ ...extra, text, lists: [...extra.lists], statuses: [...extra.statuses] });
+  JSON.stringify({ ...extra, text, lists: [...extra.lists], statuses: [...extra.statuses], stages: [...extra.stages] });
 
-// Campos que faltam (filtros salvos antes de existirem) ficam no padrão.
+// Campos que faltam (filtros salvos antes de existirem) ficam no padrão. Os antigos "Mostrar Early Access" e
+// "Mostrar Pre-release" desmarcados viram excluir o estágio.
 export const fromSaved = (json: string): { extra: Extra; text: string } => {
-  const { text = "", lists = [], statuses = [], ...rest } = JSON.parse(json);
-  return { text, extra: { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses) } };
+  const { text = "", lists = [], statuses = [], stages = [], showEarly, showPre, ...rest } = JSON.parse(json);
+  const stageModes = new Map<Stage, Mode>(stages);
+  if (showEarly === false) stageModes.set("early_access", "exclude");
+  if (showPre === false) stageModes.set("pre_release", "exclude");
+  return { text, extra: { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes } };
 };

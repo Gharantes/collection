@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { List, ReleaseStage } from "../db";
-import { NO_EXTRA, extraCount, withStage, type Extra } from "../filters";
+import type { List } from "../db";
+import { NO_EXTRA, extraCount, type Extra, type Stage } from "../filters";
 import type { Mode } from "../games";
 import { useStatuses } from "./common";
 
@@ -76,22 +76,25 @@ function RatingSelect({ value, onChange }: { value: number | null; onChange: (v:
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
-// Seção "Mais filtros": listas e status com incluir/exigir/excluir, só vinculados, mostrar Early Access/Pre-release
+const STAGES: { key: Stage; label: string }[] = [
+  { key: "released", label: "Lançado" },
+  { key: "early_access", label: "Early Access" },
+  { key: "pre_release", label: "Pre-release" },
+];
+
+// Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados
 // e salvar o filtro atual com um nome (um nome que já existe troca o filtro dele).
 export function MoreFilters({
   lists,
-  stage,
   extra,
   setExtra,
   onSave,
 }: {
   lists: List[];
-  stage: ReleaseStage | null;
   extra: Extra;
   setExtra: (x: Extra) => void;
   onSave: (name: string) => void;
 }) {
-  const shown = withStage(extra, stage);
   const statuses = useStatuses();
   const [saveName, setSaveName] = useState("");
   return (
@@ -163,25 +166,8 @@ export function MoreFilters({
       </div>
       <div className="more-row">
         <span className="muted">Release</span>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={shown.showEarly}
-            disabled={stage != null}
-            onChange={(e) => setExtra({ ...extra, showEarly: e.currentTarget.checked })}
-          />
-          Mostrar Early Access
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={shown.showPre}
-            disabled={stage != null}
-            onChange={(e) => setExtra({ ...extra, showPre: e.currentTarget.checked })}
-          />
-          Mostrar Pre-release
-        </label>
-        {extraCount(extra, stage) > 0 && (
+        <ModeChips items={STAGES} modes={extra.stages} setModes={(stages) => setExtra({ ...extra, stages })} />
+        {extraCount(extra) > 0 && (
           <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
             Limpar filtros
           </button>

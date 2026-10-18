@@ -3,15 +3,14 @@ import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { addList, deleteList, exportBackup, resetLibrary, restoreBackup, setMembership, type List, type ReleaseStage } from "../db";
+import { addList, deleteList, exportBackup, resetLibrary, restoreBackup, setMembership, type List } from "../db";
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
 import { ResetDialog } from "./ResetDialog";
 import { StatusDialog } from "./StatusDialog";
 
-// Lista selecionada, "target" (jogos no preço-alvo), um estágio de release,
-// "stats" (estatísticas) ou null (todos).
-export type Filter = number | "target" | ReleaseStage | "stats" | null;
+// Lista selecionada, "target" (jogos no preço-alvo), "stats" (estatísticas) ou null (todos).
+export type Filter = number | "target" | "stats" | null;
 
 type Props = {
   lists: List[];
@@ -19,14 +18,13 @@ type Props = {
   setFilter: (f: Filter) => void;
   total: number;
   targetCount: number;
-  releaseCount: (stage: ReleaseStage) => number;
   listCount: (listId: number) => number;
   run: Run;
 };
 
 const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
-export function Sidebar({ lists, filter, setFilter, total, targetCount, releaseCount, listCount, run }: Props) {
+export function Sidebar({ lists, filter, setFilter, total, targetCount, listCount, run }: Props) {
   const [dropList, setDropList] = useState<number | null>(null);
   const [resetting, setResetting] = useState(false);
   const [editingStatuses, setEditingStatuses] = useState(false);
@@ -113,8 +111,6 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, releaseC
       <nav>
         {nav(null, "Todos os jogos", total)}
         {nav("target", "No preço-alvo", targetCount)}
-        {nav("early_access", "Early Access", releaseCount("early_access"))}
-        {nav("pre_release", "Pre-release", releaseCount("pre_release"))}
         {nav("stats", "Estatísticas")}
 
         <h3>Listas</h3>

@@ -30,7 +30,7 @@ import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
 import { MoreFilters } from "./components/MoreFilters";
-import { NO_EXTRA, extraCount, fromSaved, inRating, toSaved, withStage, type Extra } from "./filters";
+import { NO_EXTRA, extraCount, fromSaved, inRating, stageOf, toSaved, type Extra } from "./filters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -220,23 +220,18 @@ function App() {
       ? true
       : filter === "target"
         ? hitsTarget(g)
-        : typeof filter === "string"
-            ? g.release_stage === filter
-            : inList(g.id, filter);
+        : inList(g.id, filter);
 
-  const stage = filter === "early_access" || filter === "pre_release" ? filter : null;
-  const active = withStage(extra, stage);
   const name = nameFilter.trim().toLowerCase();
   const shown = sortGames(
     games.filter(
       (g) =>
         inFilter(g) &&
-        matchModes((s) => g.status === s, active.statuses) &&
-        matchModes((id) => inList(g.id, id), active.lists) &&
-        (active.showEarly || g.release_stage !== "early_access") &&
-        (active.showPre || g.release_stage !== "pre_release") &&
-        (!active.onlyLinked || isLinked(g)) &&
-        inRating(g.rating, active) &&
+        matchModes((s) => g.status === s, extra.statuses) &&
+        matchModes((id) => inList(g.id, id), extra.lists) &&
+        matchModes((s) => stageOf(g) === s, extra.stages) &&
+        (!extra.onlyLinked || isLinked(g)) &&
+        inRating(g.rating, extra) &&
         g.name.toLowerCase().includes(name),
     ),
     sort,
@@ -255,11 +250,7 @@ function App() {
       ? "Todos os jogos"
       : filter === "target"
         ? "No preço-alvo"
-        : filter === "early_access"
-          ? "Early Access"
-          : filter === "pre_release"
-          ? "Pre-release"
-          : filter === "stats"
+        : filter === "stats"
           ? "Estatísticas"
           : (lists.find((l) => l.id === filter)?.name ?? "");
 
@@ -272,7 +263,6 @@ function App() {
         setFilter={selectFilter}
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
-        releaseCount={(stage) => games.filter((g) => g.release_stage === stage).length}
         listCount={listCount}
         run={run}
       />
@@ -331,7 +321,7 @@ function App() {
               placeholder="Filtrar por nome"
             />
             <button className={`ghost more-toggle ${moreOpen ? "on" : ""}`} onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen}>
-              Mais filtros{extraCount(extra, stage) > 0 && ` (${extraCount(extra, stage)})`} {moreOpen ? "▴" : "▾"}
+              Mais filtros{extraCount(extra) > 0 && ` (${extraCount(extra)})`} {moreOpen ? "▴" : "▾"}
             </button>
             <select value={sort} onChange={(e) => setSort(e.currentTarget.value as Sort)} aria-label="Ordenar por">
               {Object.entries(SORTS).map(([value, label]) => (
@@ -353,7 +343,6 @@ function App() {
           {moreOpen && (
             <MoreFilters
               lists={lists}
-              stage={stage}
               extra={extra}
               setExtra={setExtra}
               onSave={(name) => run(() => saveFilter(name, current))()}
@@ -391,7 +380,7 @@ function App() {
           ) : (
             <GameTable
               games={shown}
-              compact={filter === "early_access" || filter === "pre_release"}
+              compact={shown.every((g) => g.release_stage != null)}
               lists={lists}
               inList={inList}
               run={run}

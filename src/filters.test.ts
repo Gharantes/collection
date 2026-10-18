@@ -9,4 +9,7 @@ test("filtro salvo volta igual", () => {
 
 test("filtro salvo antigo usa o padrão no que falta", () => {
   assert.deepEqual(fromSaved("{}"), { extra: NO_EXTRA, text: "" });
+  const old = fromSaved(JSON.stringify({ showEarly: false, showPre: true }));
+  assert.deepEqual([...old.extra.stages], [["early_access", "exclude"]]);
+  assert.equal("showEarly" in old.extra, false);
 });
