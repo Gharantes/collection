@@ -151,17 +151,17 @@ export const matchModes = <K>(has: (k: K) => boolean, modes: Map<K, Mode>) => {
   return !anyInclude || included;
 };
 
-// Mudança de preço encontrada ao atualizar; guarda o nome caso o jogo seja apagado depois.
-export type PriceChange = { gameId: number; name: string; kind: "down" | "up" | "target"; text: string };
+// Mudança encontrada ao atualizar; guarda o nome caso o jogo seja apagado depois.
+export type GameChange = { gameId: number; name: string; kind: "down" | "up" | "target" | "release"; text: string };
 
 // Compara os jogos antes e depois de atualizar os preços.
-export const priceChanges = (before: Game[], after: Game[]): PriceChange[] => {
+export const priceChanges = (before: Game[], after: Game[]): GameChange[] => {
   const old = new Map(before.map((g) => [g.id, g]));
-  const changes: PriceChange[] = [];
+  const changes: GameChange[] = [];
   for (const g of after) {
     const b = old.get(g.id);
     if (!b) continue;
-    const add = (kind: PriceChange["kind"], text: string) => changes.push({ gameId: g.id, name: g.name, kind, text });
+    const add = (kind: GameChange["kind"], text: string) => changes.push({ gameId: g.id, name: g.name, kind, text });
     const was = discount(b.price_initial, b.price);
     const now = discount(g.price_initial, g.price);
     const price = money(g.price, g.currency);
@@ -174,6 +174,34 @@ export const priceChanges = (before: Game[], after: Game[]): PriceChange[] => {
     else if (b.price !== g.price)
       add(g.price < b.price ? "down" : "up", `Preço mudou de ${money(b.price, b.currency)} para ${price}`);
     if (hitsTarget(g) && !hitsTarget(b)) add("target", "Entrou no preço-alvo");
+  }
+  return changes;
+};
+
+const STAGE_NAMES = { early_access: "Early Access", pre_release: "Pre-release" };
+
+// Compara Early Access/Pre-release e release date antes e depois de atualizar.
+export const releaseChanges = (before: Game[], after: Game[]): GameChange[] => {
+  const old = new Map(before.map((g) => [g.id, g]));
+  const changes: GameChange[] = [];
+  for (const g of after) {
+    const b = old.get(g.id);
+    if (!b) continue;
+    const add = (text: string) => changes.push({ gameId: g.id, name: g.name, kind: "release", text });
+    const was = b.release_stage;
+    const now = g.release_stage;
+    if (was !== now) {
+      if (was == null) add(`Voltou para ${STAGE_NAMES[now!]}`);
+      else if (now == null) add(`Saiu de ${STAGE_NAMES[was]} para Full Release`);
+      else if (was === "pre_release") add("Saiu de Pre-release e entrou em Early Access");
+      else add("Saiu de Early Access e voltou para Pre-release");
+    } else if (now === "pre_release" && formatRelease(b.release_date) !== formatRelease(g.release_date)) {
+      add(
+        b.release_date
+          ? `Release date mudou de ${formatRelease(b.release_date)} para ${formatRelease(g.release_date) || "sem data"}`
+          : `Ganhou release date: ${formatRelease(g.release_date)}`,
+      );
+    }
   }
   return changes;
 };

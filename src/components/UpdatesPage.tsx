@@ -1,7 +1,7 @@
-import type { PriceChange } from "../games";
+import type { GameChange } from "../games";
 
 // Uma atualização que encontrou mudanças.
-export type UpdateRun = { at: number; changes: PriceChange[] };
+export type UpdateRun = { at: number; changes: GameChange[] };
 
 type Props = {
   runs: UpdateRun[];

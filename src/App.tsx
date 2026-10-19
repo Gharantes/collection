@@ -14,6 +14,7 @@ import {
   listStatusEvents,
   listStatuses,
   refreshPrices,
+  refreshReleases,
   saveFilter,
   type Game,
   type List,
@@ -22,7 +23,7 @@ import {
   type StatusDef,
   type StatusEvent,
 } from "./db";
-import { SORTS, discount, hitsTarget, matchModes, money, priceChanges, sortGames, type Sort } from "./games";
+import { SORTS, discount, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, type Sort } from "./games";
 import { readJson, readPref, readTime, savePref } from "./prefs";
 import { AddGame } from "./components/AddGame";
 import { ErrorBanner, StatusesContext } from "./components/common";
@@ -188,17 +189,18 @@ function App() {
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
-  // Atualiza preços, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
+  // Atualiza preços e Early Access/Pre-release, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
   const onRefresh = async () => {
     setRefreshing(true);
     await run(async () => {
       const before = await listGames();
       await refreshPrices();
+      await refreshReleases();
       const after = await listGames();
       const now = Date.now();
       savePref(PRICES_AT, String(now));
       setPricesAt(now);
-      const changes = priceChanges(before, after);
+      const changes = [...priceChanges(before, after), ...releaseChanges(before, after)];
       if (changes.length > 0)
         setUpdates((u) => {
           const next = [{ at: now, changes }, ...u].slice(0, MAX_UPDATES);

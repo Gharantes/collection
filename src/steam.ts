@@ -71,6 +71,7 @@ export type SteamRelease = { stage: "early_access" | "pre_release" | null; date:
 
 export const fetchRelease = async (appId: number): Promise<SteamRelease | null> => {
   if (!online()) return null;
+  // A Steam só aceita vários appids de uma vez com filters=price_overview; aqui é um por vez.
   const res = await fetch(
     `https://store.steampowered.com/api/appdetails?appids=${appId}&filters=release_date,genres&l=english`,
     { signal: AbortSignal.timeout(TIMEOUT) },

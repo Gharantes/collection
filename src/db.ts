@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import { fetchPrices, type SteamApp } from "./steam";
+import { fetchPrices, fetchRelease, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
 
 // Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
@@ -80,6 +80,20 @@ export const refreshPrices = async () => {
         game.id,
       ],
     );
+  }
+};
+
+// Confere na Steam os jogos marcados como Early Access/Pre-release e atualiza o estado e a release date.
+// Jogos que falharam (sem internet, erro da Steam) ficam como estão.
+export const refreshReleases = async () => {
+  const database = await getDb();
+  const games = (await listGames()).filter((g) => g.steam_id != null && g.release_stage != null);
+  for (const game of games) {
+    const r = await fetchRelease(game.steam_id!).catch(() => null);
+    if (!r) continue;
+    await database.execute("UPDATE games SET release_stage = $1 WHERE id = $2", [r.stage, game.id]);
+    if (r.stage === "pre_release" && r.date)
+      await database.execute("UPDATE games SET release_date = $1 WHERE id = $2", [r.date, game.id]);
   }
 };
 

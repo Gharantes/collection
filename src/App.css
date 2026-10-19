@@ -1916,6 +1916,10 @@ button.update-button:disabled {
   border-left-color: var(--ok);
 }
 
+.update-change.release {
+  border-left-color: var(--accent);
+}
+
 .update-change > :first-child {
   font-weight: 600;
 }

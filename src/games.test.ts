@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, sortGames, toCents, type Mode } from "./games.ts";
+import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -92,4 +92,21 @@ test("mudanças de preço", () => {
   );
   const target = priceChanges([g(1, 5000, 5000, 50)], [g(1, 2500, 5000, 50)]);
   assert.deepEqual(target.map((c) => c.kind), ["down", "target"]);
+});
+
+test("mudanças de release", () => {
+  const g = (id: number, release_stage: Game["release_stage"], release_date: string | null = null) =>
+    ({ id, name: `j${id}`, release_stage, release_date }) as Game;
+  const before = [g(1, "early_access"), g(2, "pre_release"), g(3, "pre_release"), g(4, "pre_release", "Q1 2027"), g(5, "pre_release"), g(6, null)];
+  const after = [g(1, null), g(2, "early_access"), g(3, null), g(4, "pre_release", "17/03/2027"), g(5, "pre_release", "2027"), g(6, null)];
+  assert.deepEqual(
+    releaseChanges(before, after).map((c) => `${c.gameId} ${c.text}`),
+    [
+      "1 Saiu de Early Access para Full Release",
+      "2 Saiu de Pre-release e entrou em Early Access",
+      "3 Saiu de Pre-release para Full Release",
+      "4 Release date mudou de Q1 2027 para 17/03/2027",
+      "5 Ganhou release date: 2027",
+    ],
+  );
 });
