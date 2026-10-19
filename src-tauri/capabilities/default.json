@@ -20,7 +20,10 @@
     "process:allow-restart",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://store.steampowered.com/api/*" }]
+      "allow": [
+        { "url": "https://store.steampowered.com/api/*" },
+        { "url": "https://api.steampowered.com/ISteamNews/*" }
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { addGame } from "../db";
-import { searchSteam, type SteamApp } from "../steam";
+import { addGame, setReleaseDate, setReleaseStage } from "../db";
+import { fetchRelease, searchSteam, type SteamApp } from "../steam";
 import { Price, type Run } from "./common";
 
 // Campo de busca na Steam com sugestões; Enter adiciona só pelo nome.
@@ -27,10 +27,16 @@ export function AddGame({ run, onError }: { run: Run; onError: (message: string)
     };
   }, [term]);
 
+  // Vindo da Steam, já marca Early Access/Pre-release e a release date; sem internet, fica sem.
   const pick = (name: string, app: SteamApp | null) =>
     run(async () => {
-      await addGame(name, app);
+      const { lastInsertId: id } = await addGame(name, app);
       setTerm("");
+      if (!app || id == null) return;
+      const release = await fetchRelease(app.id).catch(() => null);
+      if (!release?.stage) return;
+      await setReleaseStage(id, release.stage);
+      if (release.date) await setReleaseDate(id, release.date);
     })();
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {

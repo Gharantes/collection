@@ -18,6 +18,7 @@ import {
 import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toCents } from "../games";
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
 import { LinksPanel } from "./LinksPanel";
+import { NewsPanel } from "./NewsPanel";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
 
@@ -195,7 +196,7 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 </label>
               ))}
               <input
-                key={game.id}
+                key={`${game.id}-${game.release_date}`}
                 placeholder="Release Date"
                 defaultValue={formatRelease(game.release_date)}
                 disabled={game.release_stage == null}
@@ -313,6 +314,8 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       <LinksPanel gameId={game.id} run={run} />
 
       <NotesPanel gameId={game.id} run={run} />
+
+      <NewsPanel game={game} run={run} />
 
       <div className="detail-actions">
         <button className="danger" onClick={() => onDelete(game)}>

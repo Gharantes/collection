@@ -1,4 +1,5 @@
 import type { Game, StatusEvent } from "./db";
+import type { SteamRelease } from "./steam";
 
 export type Sort = "name" | "rating" | "price" | "recent";
 
@@ -68,6 +69,35 @@ export const formatDate = (at: string) => at.split("-").reverse().join("/");
 // As antigas, salvas como AAAA-MM-DD, aparecem como DD/MM/AAAA.
 export const formatRelease = (text: string | null) =>
   !text ? "" : /^\d{4}-\d{2}-\d{2}$/.test(text) ? formatDate(text) : text;
+
+// Aviso quando a Steam diz algo diferente do que está marcado no jogo; null se bate.
+export const releaseNotice = (g: Pick<Game, "release_stage" | "release_date">, s: SteamRelease) => {
+  if (g.release_stage !== s.stage) {
+    if (s.stage === null)
+      return {
+        text:
+          g.release_stage === "early_access"
+            ? "Na Steam este jogo não está mais em Early Access."
+            : "Na Steam este jogo já foi lançado.",
+        action: "Marcar como lançado",
+      };
+    if (s.stage === "early_access")
+      return {
+        text:
+          g.release_stage === "pre_release"
+            ? "Na Steam este jogo entrou em Early Access."
+            : "Na Steam este jogo está em Early Access.",
+        action: "Marcar como Early Access",
+      };
+    return {
+      text: `Na Steam este jogo ainda não foi lançado${s.date ? ` (previsto: ${s.date})` : ""}.`,
+      action: "Marcar como Pre-release",
+    };
+  }
+  if (s.stage === "pre_release" && s.date && formatRelease(g.release_date) !== s.date)
+    return { text: `Na Steam a data de lançamento é ${s.date}.`, action: "Atualizar data" };
+  return null;
+};
 
 // Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
 export const hitsTarget = (g: Game) => {
