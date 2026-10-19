@@ -150,3 +150,30 @@ export const matchModes = <K>(has: (k: K) => boolean, modes: Map<K, Mode>) => {
   }
   return !anyInclude || included;
 };
+
+// Mudança de preço encontrada ao atualizar; guarda o nome caso o jogo seja apagado depois.
+export type PriceChange = { gameId: number; name: string; kind: "down" | "up" | "target"; text: string };
+
+// Compara os jogos antes e depois de atualizar os preços.
+export const priceChanges = (before: Game[], after: Game[]): PriceChange[] => {
+  const old = new Map(before.map((g) => [g.id, g]));
+  const changes: PriceChange[] = [];
+  for (const g of after) {
+    const b = old.get(g.id);
+    if (!b) continue;
+    const add = (kind: PriceChange["kind"], text: string) => changes.push({ gameId: g.id, name: g.name, kind, text });
+    const was = discount(b.price_initial, b.price);
+    const now = discount(g.price_initial, g.price);
+    const price = money(g.price, g.currency);
+    if (b.price == null && g.price != null) add("up", `Ganhou preço: ${price}`);
+    else if (b.price != null && g.price == null) add("down", "Ficou sem preço");
+    else if (b.price == null || g.price == null) continue;
+    else if (!was && now) add("down", `Entrou em desconto: -${now}% (${price})`);
+    else if (was && !now) add("up", `Saiu de desconto: ${price}`);
+    else if (was !== now) add(now > was ? "down" : "up", `Desconto mudou de -${was}% para -${now}% (${price})`);
+    else if (b.price !== g.price)
+      add(g.price < b.price ? "down" : "up", `Preço mudou de ${money(b.price, b.currency)} para ${price}`);
+    if (hitsTarget(g) && !hitsTarget(b)) add("target", "Entrou no preço-alvo");
+  }
+  return changes;
+};

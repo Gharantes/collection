@@ -24,3 +24,13 @@ export const readTime = (key: string) => {
     return 0;
   }
 };
+
+// JSON salvo, ou o padrão se não houver ou for inválido.
+export const readJson = <T>(key: string, fallback: T): T => {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? (JSON.parse(v) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};

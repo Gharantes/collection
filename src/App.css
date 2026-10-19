@@ -813,16 +813,11 @@ select.pill[data-tier="bad"] {
   left: 8px;
 }
 
-.refresh {
+.pick {
   margin-left: auto;
   padding: 6px 12px;
 }
 
-.pick {
-  padding: 6px 12px;
-}
-
-.refresh:disabled,
 .pick:disabled {
   opacity: 0.6;
   cursor: default;
@@ -1855,4 +1850,84 @@ button.play:hover {
 /* Marcador no fim da grade/tabela: ao chegar perto da tela, carrega o próximo lote. */
 .load-more {
   height: 1px;
+}
+
+/* Atualizações */
+
+.updates-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+button.update-button {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+button.update-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.update-run {
+  margin-bottom: 20px;
+}
+
+.update-run h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.update-run ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.update-change {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 14px;
+  border-left: 3px solid transparent;
+}
+
+.update-change + .update-change {
+  border-top: 1px solid var(--border);
+}
+
+.update-change.down {
+  border-left-color: var(--good);
+}
+
+.update-change.up {
+  border-left-color: var(--bad);
+}
+
+.update-change.target {
+  border-left-color: var(--ok);
+}
+
+.update-change > :first-child {
+  font-weight: 600;
+}
+
+button.update-game {
+  padding: 0;
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+button.update-game:hover {
+  color: var(--accent);
 }

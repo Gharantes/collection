@@ -22,8 +22,8 @@ import {
   type StatusDef,
   type StatusEvent,
 } from "./db";
-import { SORTS, discount, hitsTarget, matchModes, money, sortGames, type Sort } from "./games";
-import { readPref, readTime, savePref } from "./prefs";
+import { SORTS, discount, hitsTarget, matchModes, money, priceChanges, sortGames, type Sort } from "./games";
+import { readJson, readPref, readTime, savePref } from "./prefs";
 import { AddGame } from "./components/AddGame";
 import { ErrorBanner, StatusesContext } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
@@ -34,11 +34,14 @@ import { NO_EXTRA, extraCount, fromSaved, inRating, stageOf, toSaved, type Extra
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
+import { UpdatesPage, type UpdateRun } from "./components/UpdatesPage";
 import "./App.css";
 
 type View = "cards" | "table";
 
 const PRICES_AT = "collection.pricesAt";
+const UPDATES = "collection.updates";
+const MAX_UPDATES = 30;
 const DAY = 24 * 60 * 60 * 1000;
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
 
@@ -71,6 +74,8 @@ function App() {
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [updates, setUpdates] = useState<UpdateRun[]>(() => readJson(UPDATES, []));
+  const [pricesAt, setPricesAt] = useState(() => readTime(PRICES_AT));
   const [pickedId, setPickedId] = useState<number | null>(null);
 
   const load = async () => {
@@ -183,14 +188,25 @@ function App() {
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
-  // Atualiza preços e avisa dos jogos que entraram no preço-alvo agora.
+  // Atualiza preços, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
   const onRefresh = async () => {
     setRefreshing(true);
     await run(async () => {
-      const before = new Set((await listGames()).filter(hitsTarget).map((g) => g.id));
+      const before = await listGames();
       await refreshPrices();
-      savePref(PRICES_AT, String(Date.now()));
-      const hits = (await listGames()).filter((g) => hitsTarget(g) && !before.has(g.id));
+      const after = await listGames();
+      const now = Date.now();
+      savePref(PRICES_AT, String(now));
+      setPricesAt(now);
+      const changes = priceChanges(before, after);
+      if (changes.length > 0)
+        setUpdates((u) => {
+          const next = [{ at: now, changes }, ...u].slice(0, MAX_UPDATES);
+          savePref(UPDATES, JSON.stringify(next));
+          return next;
+        });
+      const hitIds = new Set(changes.filter((c) => c.kind === "target").map((c) => c.gameId));
+      const hits = after.filter((g) => hitIds.has(g.id));
       if (hits.length === 1) {
         const g = hits[0];
         await notify(`${g.name} no preço-alvo`, `${money(g.price, g.currency)} (-${discount(g.price_initial, g.price)}%)`);
@@ -216,7 +232,7 @@ function App() {
 
   const isLinked = (g: Game) => g.launch != null;
   const inFilter = (g: Game) =>
-    filter == null || filter === "stats"
+    filter == null || filter === "stats" || filter === "updates"
       ? true
       : filter === "target"
         ? hitsTarget(g)
@@ -252,7 +268,9 @@ function App() {
         ? "No preço-alvo"
         : filter === "stats"
           ? "Estatísticas"
-          : (lists.find((l) => l.id === filter)?.name ?? "");
+          : filter === "updates"
+            ? "Atualizações"
+            : (lists.find((l) => l.id === filter)?.name ?? "");
 
   return (
     <StatusesContext.Provider value={statuses}>
@@ -292,6 +310,21 @@ function App() {
             </div>
             <StatsPage games={games} events={events} sessions={sessions} />
           </>
+        ) : filter === "updates" ? (
+          <>
+            <div className="page-head">
+              <h1>{title}</h1>
+            </div>
+            <ErrorBanner error={error} onClose={() => setError(null)} />
+            <UpdatesPage
+              runs={updates}
+              lastAt={pricesAt}
+              refreshing={refreshing}
+              exists={(id) => games.some((g) => g.id === id)}
+              onRefresh={onRefresh}
+              onOpen={openGame}
+            />
+          </>
         ) : (
           <>
           <div className="page-head">
@@ -299,9 +332,6 @@ function App() {
             <span className="muted">
               {shown.length} {shown.length === 1 ? "jogo" : "jogos"}
             </span>
-            <button className="ghost refresh" onClick={onRefresh} disabled={refreshing}>
-              {refreshing ? "Atualizando…" : "Atualizar preços"}
-            </button>
             <button
               className="ghost pick"
               onClick={pick}

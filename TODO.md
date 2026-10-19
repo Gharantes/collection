@@ -21,7 +21,8 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Coluna de listas compacta (chips + "+ Lista"); na tabela mostra 2 listas e "+N" para expandir
 - Sidebar estilo Steam, visualização em cards (capa vertical) ou tabela
 - Página de detalhes do jogo (rota `#/jogo/<id>`, com "Voltar"), no lugar do modal
-- Botão "Atualizar preços" (e automático uma vez por dia); promoção mostra o preço original riscado
+- Atualização de preços (automática uma vez por dia); promoção mostra o preço original riscado
+- Aba "Atualizações" na sidebar, no lugar do botão "Atualizar preços" da página principal: botão "Atualizar Dados" e, abaixo, as mudanças encontradas por atualização (entrou/saiu de desconto, desconto mudou, preço mudou, ganhou/ficou sem preço, entrou no preço-alvo); clicar no nome abre o jogo. Guarda as 30 últimas atualizações com mudanças (localStorage, fora do backup)
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação do sistema
 - Anotações em markdown com live preview (CodeMirror, igual ao obsidian-clone)
 - Várias anotações por jogo: grid de cards, botão "+" com menu (Anotação ou Imagem; pergunta se reduz a imagem para WebP 1920 px), edição num dialog

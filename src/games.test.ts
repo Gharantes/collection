@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, sortGames, toCents, type Mode } from "./games.ts";
+import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -73,4 +73,23 @@ test("filtro incluir, exigir e excluir", () => {
   assert.equal(ok([["c", "require"]]), false);
   assert.equal(ok([["b", "exclude"]]), false);
   assert.equal(ok([["c", "exclude"], ["a", "include"]]), true);
+});
+
+test("mudanças de preço", () => {
+  const g = (id: number, price: number | null, price_initial: number | null, target_discount: number | null = null) =>
+    ({ id, name: `j${id}`, price, price_initial, currency: "BRL", target_price: null, target_discount }) as Game;
+  const before = [g(1, 5000, 5000), g(2, 2500, 5000), g(3, 2500, 5000), g(4, 5000, 5000), g(5, null, null), g(6, 5000, 5000, 50)];
+  const after = [g(1, 2500, 5000), g(2, 5000, 5000), g(3, 1000, 5000), g(4, 6000, 6000), g(5, 3000, 3000), g(6, 5000, 5000, 50), g(7, 1, 1)];
+  assert.deepEqual(
+    priceChanges(before, after).map((c) => `${c.gameId} ${c.kind} ${c.text}`),
+    [
+      "1 down Entrou em desconto: -50% (R$ 25,00)",
+      "2 up Saiu de desconto: R$ 50,00",
+      "3 down Desconto mudou de -50% para -80% (R$ 10,00)",
+      "4 up Preço mudou de R$ 50,00 para R$ 60,00",
+      "5 up Ganhou preço: R$ 30,00",
+    ],
+  );
+  const target = priceChanges([g(1, 5000, 5000, 50)], [g(1, 2500, 5000, 50)]);
+  assert.deepEqual(target.map((c) => c.kind), ["down", "target"]);
 });
