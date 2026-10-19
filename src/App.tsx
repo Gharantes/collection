@@ -35,7 +35,7 @@ import { NO_EXTRA, extraCount, fromSaved, inRating, stageOf, toSaved, type Extra
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
-import { UpdatesPage, type UpdateRun } from "./components/UpdatesPage";
+import { UpdatesPage, type UpdateProgress, type UpdateRun } from "./components/UpdatesPage";
 import "./App.css";
 
 type View = "cards" | "table";
@@ -75,6 +75,7 @@ function App() {
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [progress, setProgress] = useState<UpdateProgress | null>(null);
   const [updates, setUpdates] = useState<UpdateRun[]>(() => readJson(UPDATES, []));
   const [pricesAt, setPricesAt] = useState(() => readTime(PRICES_AT));
   const [pickedId, setPickedId] = useState<number | null>(null);
@@ -194,8 +195,8 @@ function App() {
     setRefreshing(true);
     await run(async () => {
       const before = await listGames();
-      await refreshPrices();
-      await refreshReleases();
+      await refreshPrices((done, total) => setProgress({ label: "Preços", done, total }));
+      await refreshReleases((done, total) => setProgress({ label: "Early Access/Pre-release", done, total }));
       const after = await listGames();
       const now = Date.now();
       savePref(PRICES_AT, String(now));
@@ -217,6 +218,7 @@ function App() {
       }
     })();
     setRefreshing(false);
+    setProgress(null);
   };
 
   // Atualiza os preços sozinho uma vez por dia, ao abrir o app.
@@ -322,6 +324,7 @@ function App() {
               runs={updates}
               lastAt={pricesAt}
               refreshing={refreshing}
+              progress={progress}
               exists={(id) => games.some((g) => g.id === id)}
               onRefresh={onRefresh}
               onOpen={openGame}

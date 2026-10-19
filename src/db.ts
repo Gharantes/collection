@@ -59,11 +59,18 @@ export const addGame = async (name: string, app: SteamApp | null = null) =>
     ],
   );
 
+// Progresso de uma atualização: quantos jogos já foram pesquisados de quantos.
+export type Progress = (done: number, total: number) => void;
+
 // Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
-export const refreshPrices = async () => {
+export const refreshPrices = async (onProgress?: Progress) => {
   const database = await getDb();
   const games = (await listGames()).filter((g) => g.steam_id != null);
-  const prices = await fetchPrices(games.map((g) => g.steam_id!));
+  onProgress?.(0, games.length);
+  const prices = await fetchPrices(
+    games.map((g) => g.steam_id!),
+    (done) => onProgress?.(done, games.length),
+  );
   for (const game of games) {
     const id = game.steam_id!;
     if (!(id in prices)) continue;
@@ -85,11 +92,13 @@ export const refreshPrices = async () => {
 
 // Confere na Steam os jogos marcados como Early Access/Pre-release e atualiza o estado e a release date.
 // Jogos que falharam (sem internet, erro da Steam) ficam como estão.
-export const refreshReleases = async () => {
+export const refreshReleases = async (onProgress?: Progress) => {
   const database = await getDb();
   const games = (await listGames()).filter((g) => g.steam_id != null && g.release_stage != null);
-  for (const game of games) {
+  onProgress?.(0, games.length);
+  for (const [i, game] of games.entries()) {
     const r = await fetchRelease(game.steam_id!).catch(() => null);
+    onProgress?.(i + 1, games.length);
     if (!r) continue;
     await database.execute("UPDATE games SET release_stage = $1 WHERE id = $2", [r.stage, game.id]);
     if (r.stage === "pre_release" && r.date)

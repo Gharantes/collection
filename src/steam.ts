@@ -26,7 +26,8 @@ type Details = {
 };
 
 // Preço atual por appid, em lotes de 100; null = sem preço (gratuito). Appids que falharam ficam de fora.
-export const fetchPrices = async (appIds: number[]) => {
+// onProgress recebe quantos já foram buscados.
+export const fetchPrices = async (appIds: number[], onProgress?: (done: number) => void) => {
   const prices: Record<number, SteamPrice | null> = {};
   for (let i = 0; i < appIds.length; i += 100) {
     const ids = appIds.slice(i, i + 100).join(",");
@@ -40,6 +41,7 @@ export const fetchPrices = async (appIds: number[]) => {
       const p = Array.isArray(entry.data) ? undefined : entry.data?.price_overview;
       prices[Number(id)] = p ? { currency: p.currency, initial: p.initial, final: p.final } : null;
     }
+    onProgress?.(Math.min(i + 100, appIds.length));
   }
   return prices;
 };

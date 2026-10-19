@@ -1872,6 +1872,30 @@ button.update-button:disabled {
   cursor: default;
 }
 
+.update-progress {
+  margin-bottom: 20px;
+}
+
+.update-progress-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.update-progress-bar {
+  height: 6px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: 3px;
+}
+
+.update-progress-bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
 .update-run {
   margin-bottom: 20px;
 }
