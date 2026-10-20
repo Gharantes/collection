@@ -72,6 +72,8 @@ function App() {
   const [nameFilter, setNameFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>(() => readPref("collection.view", ["cards", "table"], "cards"));
+  // Tabela compacta (imagem, nome, preço, release date); completa por padrão.
+  const [compact, setCompact] = useState(() => readPref("collection.compact", ["on", "off"], "off") === "on");
   const [sort, setSort] = useState<Sort>(() => readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"));
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
@@ -189,6 +191,7 @@ function App() {
   });
 
   useEffect(() => savePref("collection.view", view), [view]);
+  useEffect(() => savePref("collection.compact", compact ? "on" : "off"), [compact]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
   // Atualiza preços, Early Access/Pre-release e demos, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
@@ -375,6 +378,11 @@ function App() {
                 Tabela
               </button>
             </div>
+            {view === "table" && (
+              <button className={`ghost more-toggle ${compact ? "on" : ""}`} onClick={() => setCompact(!compact)} aria-pressed={compact}>
+                Compacta
+              </button>
+            )}
           </div>
 
           {moreOpen && (
@@ -417,7 +425,7 @@ function App() {
           ) : (
             <GameTable
               games={shown}
-              compact={shown.every((g) => g.release_stage != null)}
+              compact={compact}
               lists={lists}
               inList={inList}
               run={run}
