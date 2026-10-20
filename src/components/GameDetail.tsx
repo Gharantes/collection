@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import {
   deleteEvent,
   setAchievements,
+  setOwned,
   setEventDate,
   setLaunch,
   setReleaseDate,
@@ -175,6 +176,22 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
             <span>Nota</span>
             <RatingSelect game={game} run={run} />
           </label>
+          <div className="field">
+            <span>Posse</span>
+            <div className="release">
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={!!game.owned}
+                  onChange={(e) => {
+                    const on = e.currentTarget.checked;
+                    run(() => setOwned(game.id, on))();
+                  }}
+                />
+                Tenho o jogo
+              </label>
+            </div>
+          </div>
           <div className="field">
             <span>Listas</span>
             <ListChips game={game} lists={lists} inList={inList} run={run} />

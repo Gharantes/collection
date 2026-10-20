@@ -52,6 +52,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Faixa "Early Access" / "Pre-release" na base da capa (cards e miniatura da tabela): Early Access no azul da loja da Steam, Pre-release em laranja/âmbar; passar o mouse mostra a release date
 - Seção "Notícias" na página do jogo: últimas 5 da API de notícias da Steam, buscadas ao abrir e nunca salvas; sem internet não aparece. Padrão só anúncios oficiais, com toggle para todas as fontes. Aviso quando o Early Access/Pre-release/release date da Steam difere do marcado, com botão para atualizar
 - Ao adicionar jogo da Steam, Early Access/Pre-release e release date vêm preenchidos pela Steam
+- Checkbox "Tenho o jogo" na página do jogo; jogos que não tem aparecem escurecidos nos cards e na tabela (clareiam um pouco no hover); vai no backup
 
 ## Recusado
 

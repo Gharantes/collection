@@ -505,6 +505,18 @@ select.rating-bound {
   box-shadow: 0 12px 28px #000c;
 }
 
+/* Jogos que o usuário não tem ficam escurecidos (cards e linhas da tabela). */
+.game-card.not-owned,
+.games tbody tr.not-owned {
+  filter: brightness(0.55);
+  transition: filter 0.15s;
+}
+
+.game-card.not-owned:hover,
+.games tbody tr.not-owned:hover {
+  filter: brightness(0.8);
+}
+
 .game-card-name {
   margin-top: 6px;
   font-size: 14px;

@@ -13,7 +13,7 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
           return (
             <button
               key={game.id}
-              className={hitsTarget(game) ? "game-card on-target" : "game-card"}
+              className={["game-card", hitsTarget(game) && "on-target", !game.owned && "not-owned"].filter(Boolean).join(" ")}
               onClick={() => onOpen(game.id)}
               {...dragGame(game.id)}
             >

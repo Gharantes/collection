@@ -27,6 +27,7 @@ export type Game = {
   release_stage: ReleaseStage | null;
   release_date: string | null;
   achievements: Achievements | null;
+  owned: 0 | 1;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -221,6 +222,9 @@ export const setReleaseDate = async (id: number, date: string | null) =>
 export const setAchievements = async (id: number, goal: Achievements | null) =>
   (await getDb()).execute("UPDATE games SET achievements = $1 WHERE id = $2", [goal, id]);
 
+export const setOwned = async (id: number, owned: boolean) =>
+  (await getDb()).execute("UPDATE games SET owned = $1 WHERE id = $2", [owned ? 1 : 0, id]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -242,7 +246,7 @@ export const setMembership = async (gameId: number, listId: number, member: bool
     [gameId, listId],
   );
 
-// Colunas de games restauradas do backup; ausentes no arquivo viram NULL.
+// Colunas de games restauradas do backup; ausentes no arquivo viram NULL (owned vira 0).
 const GAME_COLUMNS = [
   "id",
   "name",
@@ -261,6 +265,7 @@ const GAME_COLUMNS = [
   "release_stage",
   "release_date",
   "achievements",
+  "owned",
 ];
 
 // Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.
@@ -316,7 +321,8 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
     ["INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)", [json(backup.lists)]],
     [
       `INSERT INTO games (${GAME_COLUMNS.join(", ")})
-     SELECT ${GAME_COLUMNS.map((c) => `value->>'${c}'`).join(", ")} FROM json_each($1)`,
+     SELECT ${GAME_COLUMNS.map((c) => (c === "owned" ? "COALESCE(value->>'owned', 0)" : `value->>'${c}'`)).join(", ")}
+     FROM json_each($1)`,
       [json(backup.games)],
     ],
     [

@@ -126,6 +126,12 @@ pub fn run() {
             sql: include_str!("../migrations/020_game_links.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 21,
+            description: "add games.owned",
+            sql: include_str!("../migrations/021_owned.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

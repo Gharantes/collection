@@ -39,6 +39,7 @@ export function GameTable({ games, compact = false, lists, inList, run, onDelete
           {visible.map((game) => (
             <tr
               key={game.id}
+              className={game.owned ? undefined : "not-owned"}
               {...dragGame(game.id)}
               onClick={(e) => {
                 // Cliques nos controles da linha (selects, chips, botões) não abrem o detalhe.
