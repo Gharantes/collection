@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
+import { demoChanges, discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price }) as Game;
@@ -108,5 +108,15 @@ test("mudanças de release", () => {
       "4 Release date mudou de Q1 2027 para 17/03/2027",
       "5 Ganhou release date: 2027",
     ],
+  );
+});
+
+test("mudanças de demo", () => {
+  const g = (id: number, demo_steam_id: number | null) => ({ id, name: `j${id}`, demo_steam_id }) as Game;
+  const before = [g(1, null), g(2, 10), g(3, 20), g(4, 30)];
+  const after = [g(1, 5), g(2, null), g(3, 21), g(4, 30), g(5, 40)];
+  assert.deepEqual(
+    demoChanges(before, after).map((c) => `${c.name}: ${c.text}`),
+    ["j1: Ganhou demo", "j2: Demo removida", "j3: Demo mudou"],
   );
 });

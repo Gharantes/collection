@@ -45,6 +45,7 @@ const validGame = (statuses: Set<string>) => (g: Game) =>
   isStrOrNull(g.release_date) &&
   (g.achievements == null || g.achievements === "hunting" || g.achievements === "platinum") &&
   (g.owned == null || g.owned === 0 || g.owned === 1) &&
+  isIntOrNull(g.demo_steam_id) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
@@ -83,6 +84,8 @@ export function parseBackup(text: string): Backup {
   if (gameIds.size !== data.games.length || listIds.size !== data.lists.length || listNames.size !== data.lists.length)
     throw new Error("Backup com ids ou nomes de lista repetidos.");
   if (new Set(steamIds).size !== steamIds.length) throw new Error("Backup com jogo da Steam repetido.");
+  const demoIds = data.games.map((g) => g.demo_steam_id).filter((id) => id != null);
+  if (new Set(demoIds).size !== demoIds.length) throw new Error("Backup com demo repetida.");
   if (!Array.isArray(data.game_lists) || !data.game_lists.every((m) => gameIds.has(m.game_id) && listIds.has(m.list_id)))
     throw new Error("Backup com vínculos inválidos entre jogos e listas.");
   data.status_events ??= [];

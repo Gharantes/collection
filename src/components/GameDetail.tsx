@@ -98,6 +98,17 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       }
     })();
 
+  // A demo abre pela Steam, mas o tempo de jogo conta para este jogo.
+  const playDemo = () =>
+    run(async () => {
+      try {
+        await invoke("launch_steam", { gameId: game.id, appId: game.demo_steam_id });
+      } catch (e) {
+        if (e !== "not_found") throw e;
+        throw new Error("A demo não está instalada na Steam.");
+      }
+    })();
+
   const openStore = () => run(() => invoke("open_store", { appId: game.steam_id }))();
 
   const openFolder = () =>
@@ -151,6 +162,7 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 </div>
               </details>
             )}
+            {game.demo_steam_id != null && !game.owned && <button onClick={playDemo}>▶ Jogar demo</button>}
             <button
               onClick={openStore}
               disabled={game.steam_id == null}

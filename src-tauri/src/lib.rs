@@ -132,6 +132,12 @@ pub fn run() {
             sql: include_str!("../migrations/021_owned.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 22,
+            description: "add games.demo_steam_id",
+            sql: include_str!("../migrations/022_demo.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

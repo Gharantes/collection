@@ -53,6 +53,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Seção "Notícias" na página do jogo: últimas 5 da API de notícias da Steam, buscadas ao abrir e nunca salvas; sem internet não aparece. Padrão só anúncios oficiais, com toggle para todas as fontes. Aviso quando o Early Access/Pre-release/release date da Steam difere do marcado, com botão para atualizar
 - Ao adicionar jogo da Steam, Early Access/Pre-release e release date vêm preenchidos pela Steam
 - Checkbox "Tenho o jogo" na página do jogo; jogos que não tem aparecem escurecidos nos cards e na tabela (clareiam um pouco no hover); vai no backup
+- Demo dentro da página do jogo (`demo_steam_id`, vai no backup): ao adicionar da Steam marca a demo sozinho; escolher uma demo adiciona o jogo completo (ou marca a demo nele). Botão "▶ Jogar demo" (só se não tem o jogo) abre pela Steam e o tempo soma no jogo. Etapa "Demos" no "Atualizar Dados" (só jogos que não tem): "Ganhou demo", "Demo removida". "Juntar demos" em Configurações, com barra de progresso: junta páginas de demo com a do jogo completo (ou transforma a demo nele). Usa a `IStoreBrowseService/GetItems` da Steam, em lotes de 100
 
 ## Recusado
 

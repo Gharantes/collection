@@ -152,7 +152,7 @@ export const matchModes = <K>(has: (k: K) => boolean, modes: Map<K, Mode>) => {
 };
 
 // Mudança encontrada ao atualizar; guarda o nome caso o jogo seja apagado depois.
-export type GameChange = { gameId: number; name: string; kind: "down" | "up" | "target" | "release"; text: string };
+export type GameChange = { gameId: number; name: string; kind: "down" | "up" | "target" | "release" | "demo"; text: string };
 
 // Compara os jogos antes e depois de atualizar os preços.
 export const priceChanges = (before: Game[], after: Game[]): GameChange[] => {
@@ -202,6 +202,20 @@ export const releaseChanges = (before: Game[], after: Game[]): GameChange[] => {
           : `Ganhou release date: ${formatRelease(g.release_date)}`,
       );
     }
+  }
+  return changes;
+};
+
+// Compara a demo dos jogos antes e depois de atualizar.
+export const demoChanges = (before: Game[], after: Game[]): GameChange[] => {
+  const old = new Map(before.map((g) => [g.id, g]));
+  const changes: GameChange[] = [];
+  for (const g of after) {
+    const was = old.get(g.id)?.demo_steam_id;
+    const now = g.demo_steam_id;
+    if (was === undefined || was === now) continue;
+    const text = was == null ? "Ganhou demo" : now == null ? "Demo removida" : "Demo mudou";
+    changes.push({ gameId: g.id, name: g.name, kind: "demo", text });
   }
   return changes;
 };

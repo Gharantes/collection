@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import { fetchPrices, fetchRelease, type SteamApp } from "./steam";
+import { capsule, fetchItems, fetchPrices, fetchRelease, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
 
 // Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
@@ -28,6 +28,8 @@ export type Game = {
   release_date: string | null;
   achievements: Achievements | null;
   owned: 0 | 1;
+  // Demo na Steam; o tempo jogado nela conta para este jogo.
+  demo_steam_id: number | null;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -46,10 +48,10 @@ export const listGames = async () =>
   (await getDb()).select<Game[]>("SELECT * FROM games ORDER BY name");
 
 // Sem `app`, o jogo entra só pelo nome (fora da Steam).
-export const addGame = async (name: string, app: SteamApp | null = null) =>
+export const addGame = async (name: string, app: SteamApp | null = null, demo: number | null = null) =>
   (await getDb()).execute(
-    `INSERT INTO games (name, steam_id, image_url, price, price_initial, currency)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO games (name, steam_id, image_url, price, price_initial, currency, demo_steam_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       name,
       app?.id ?? null,
@@ -57,8 +59,15 @@ export const addGame = async (name: string, app: SteamApp | null = null) =>
       app?.price?.final ?? null,
       app?.price?.initial ?? null,
       app?.price?.currency ?? null,
+      demo,
     ],
   );
+
+export const gameBySteamId = async (steamId: number) =>
+  (await (await getDb()).select<Game[]>("SELECT * FROM games WHERE steam_id = $1", [steamId]))[0] ?? null;
+
+export const setDemo = async (id: number, demo: number | null) =>
+  (await getDb()).execute("UPDATE games SET demo_steam_id = $1 WHERE id = $2", [demo, id]);
 
 // Progresso de uma atualização: quantos jogos já foram pesquisados de quantos.
 export type Progress = (done: number, total: number) => void;
@@ -84,7 +93,7 @@ export const refreshPrices = async (onProgress?: Progress) => {
         p?.final ?? null,
         p?.initial ?? null,
         p?.currency ?? null,
-        `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/capsule_231x87.jpg`,
+        capsule(id),
         game.id,
       ],
     );
@@ -105,6 +114,106 @@ export const refreshReleases = async (onProgress?: Progress) => {
     if (r.stage === "pre_release" && r.date)
       await database.execute("UPDATE games SET release_date = $1 WHERE id = $2", [r.date, game.id]);
   }
+};
+
+// Confere na Steam se os jogos que o usuário não tem ganharam ou perderam a demo.
+export const refreshDemos = async (onProgress?: Progress) => {
+  const games = (await listGames()).filter((g) => g.steam_id != null && !g.owned);
+  onProgress?.(0, games.length);
+  const items = await fetchItems(
+    games.map((g) => g.steam_id!),
+    (done) => onProgress?.(done, games.length),
+  );
+  for (const game of games) {
+    const item = items[game.steam_id!];
+    // Página que ainda é a própria demo fica para o "Juntar demos".
+    if (!item || item.fullgame != null || item.demo === game.demo_steam_id) continue;
+    await setDemo(game.id, item.demo);
+  }
+};
+
+// Junta as páginas de demo com a do jogo completo. Se ele está na biblioteca, recebe as sessões, anotações,
+// links e listas da demo (status, histórico e nota só se não tiver) e a página da demo é apagada; senão,
+// a própria página vira a do jogo completo. Também marca a demo dos jogos que têm uma e estão sem.
+export const mergeDemos = async (onProgress?: BackupProgress) => {
+  const database = await getDb();
+  const games = (await listGames()).filter((g) => g.steam_id != null);
+  onProgress?.("Consultando a Steam", 0, games.length);
+  const items = await fetchItems(
+    games.map((g) => g.steam_id!),
+    (done) => onProgress?.("Consultando a Steam", done, games.length),
+  );
+  const fullOf = (g: Game) => items[g.steam_id!]?.fullgame ?? null;
+
+  let found = 0;
+  for (const g of games) {
+    const demo = items[g.steam_id!]?.demo;
+    if (fullOf(g) != null || demo == null || g.demo_steam_id != null) continue;
+    await setDemo(g.id, demo);
+    found++;
+  }
+
+  const demos = games.filter((g) => fullOf(g) != null);
+  const bySteam = new Map(games.map((g) => [g.steam_id!, g]));
+  const missing = [...new Set(demos.map((d) => fullOf(d)!).filter((id) => !bySteam.has(id)))];
+  onProgress?.("Buscando os jogos completos", 0, 1);
+  const full = missing.length ? await fetchItems(missing) : {};
+  const prices = missing.length ? await fetchPrices(missing) : {};
+
+  let merged = 0;
+  let converted = 0;
+  for (const [i, demo] of demos.entries()) {
+    onProgress?.("Juntando demos", i, demos.length);
+    const fullId = fullOf(demo)!;
+    const target = bySteam.get(fullId);
+    if (target) {
+      for (const table of ["play_sessions", "game_notes", "game_links"])
+        await database.execute(`UPDATE ${table} SET game_id = $1 WHERE game_id = $2`, [target.id, demo.id]);
+      await database.execute(
+        "INSERT OR IGNORE INTO game_lists (game_id, list_id) SELECT $1, list_id FROM game_lists WHERE game_id = $2",
+        [target.id, demo.id],
+      );
+      const history = await database.select<unknown[]>("SELECT 1 FROM status_events WHERE game_id = $1 LIMIT 1", [target.id]);
+      if (history.length === 0)
+        await database.execute("UPDATE status_events SET game_id = $1 WHERE game_id = $2", [target.id, demo.id]);
+      await deleteGame(demo.id);
+      await database.execute(
+        "UPDATE games SET status = COALESCE(status, $1), rating = COALESCE(rating, $2), demo_steam_id = $3 WHERE id = $4",
+        [demo.status, demo.rating, demo.steam_id, target.id],
+      );
+      merged++;
+    } else {
+      const p = prices[fullId];
+      // Vinculada pela Steam abriria o jogo completo, que não está instalado.
+      await database.execute(
+        `UPDATE games SET steam_id = $1, demo_steam_id = $2, name = $3, image_url = $4,
+           price = $5, price_initial = $6, currency = $7,
+           launch = CASE launch WHEN 'steam' THEN NULL ELSE launch END
+         WHERE id = $8`,
+        [
+          fullId,
+          demo.steam_id,
+          full[fullId]?.name ?? demo.name.replace(/\s+demo$/i, ""),
+          capsule(fullId),
+          p?.final ?? null,
+          p?.initial ?? null,
+          p?.currency ?? null,
+          demo.id,
+        ],
+      );
+      const r = await fetchRelease(fullId).catch(() => null);
+      if (r) {
+        await database.execute("UPDATE games SET release_stage = $1 WHERE id = $2", [r.stage, demo.id]);
+        if (r.stage === "pre_release" && r.date)
+          await database.execute("UPDATE games SET release_date = $1 WHERE id = $2", [r.date, demo.id]);
+      }
+      bySteam.set(fullId, { ...demo, steam_id: fullId });
+      converted++;
+    }
+  }
+  onProgress?.("Juntando demos", demos.length, demos.length);
+  if (!demos.length && !found) return "Nenhuma demo encontrada.";
+  return `${merged} demos juntadas ao jogo completo, ${converted} viraram a página do jogo completo e ${found} jogos ganharam demo.`;
 };
 
 export const deleteGame = async (id: number) =>
@@ -266,6 +375,7 @@ const GAME_COLUMNS = [
   "release_date",
   "achievements",
   "owned",
+  "demo_steam_id",
 ];
 
 // Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.

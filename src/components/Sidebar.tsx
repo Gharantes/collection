@@ -3,7 +3,7 @@ import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { addList, deleteList, exportBackup, type BackupProgress, resetLibrary, restoreBackup, setMembership, type List } from "../db";
+import { addList, deleteList, exportBackup, type BackupProgress, mergeDemos, resetLibrary, restoreBackup, setMembership, type List } from "../db";
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
 import { BackupDialog, type BackupJob } from "./BackupDialog";
@@ -109,6 +109,17 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
     });
   });
 
+  // Junta as páginas de demo com as do jogo completo; apaga páginas, então pede confirmação.
+  const onMergeDemos = run(async () => {
+    const ok = await ask(
+      "Procura na Steam as páginas que são demo e junta cada uma com a do jogo completo (tempo de jogo, anotações, links e listas). " +
+        "Se o jogo completo não estiver na biblioteca, a página da demo vira a dele. Exporte um backup antes. Continuar?",
+      { title: "Juntar demos", kind: "warning" },
+    );
+    if (!ok) return;
+    await withProgress("Juntar demos", mergeDemos);
+  });
+
   // Procura versão nova nas releases do GitHub e oferece atualizar e reiniciar.
   const onCheckUpdate = run(async () => {
     const update = await check();
@@ -173,6 +184,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
           <button onClick={fromMenu(onExport)}>Exportar backup</button>
           <button onClick={fromMenu(onImport)}>Importar backup</button>
           <button onClick={fromMenu(() => setEditingStatuses(true))}>Registrar Status</button>
+          <button onClick={fromMenu(onMergeDemos)}>Juntar demos</button>
           <button onClick={fromMenu(onCheckUpdate)}>Procurar atualizações</button>
           <button className="menu-danger" onClick={fromMenu(() => setResetting(true))}>
             Resetar biblioteca

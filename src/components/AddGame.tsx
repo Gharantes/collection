@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { addGame, setReleaseDate, setReleaseStage } from "../db";
-import { fetchRelease, searchSteam, type SteamApp } from "../steam";
+import { message } from "@tauri-apps/plugin-dialog";
+import { addGame, gameBySteamId, setDemo, setReleaseDate, setReleaseStage } from "../db";
+import { capsule, fetchItem, fetchPrices, fetchRelease, searchSteam, type SteamApp, type SteamPrice } from "../steam";
 import { Price, type Run } from "./common";
 
 // Campo de busca na Steam com sugestões; Enter adiciona só pelo nome.
@@ -27,10 +28,28 @@ export function AddGame({ run, onError }: { run: Run; onError: (message: string)
     };
   }, [term]);
 
-  // Vindo da Steam, já marca Early Access/Pre-release e a release date; sem internet, fica sem.
+  // Vindo da Steam, já marca a demo, Early Access/Pre-release e a release date; sem internet, fica sem.
+  // Escolher uma demo adiciona o jogo completo com ela (ou só marca a demo nele, se já está na biblioteca).
   const pick = (name: string, app: SteamApp | null) =>
     run(async () => {
-      const { lastInsertId: id } = await addGame(name, app);
+      const item = app && (await fetchItem(app.id));
+      let demo = item?.demo ?? null;
+      if (app && item?.fullgame != null) {
+        const fullId = item.fullgame;
+        demo = app.id;
+        const owner = await gameBySteamId(fullId);
+        if (owner) {
+          await setDemo(owner.id, demo);
+          setTerm("");
+          await message(`${owner.name} já está na biblioteca; a demo foi marcada nele.`, { title: "Demo" });
+          return;
+        }
+        const full = await fetchItem(fullId);
+        const prices = await fetchPrices([fullId]).catch((): Record<number, SteamPrice | null> => ({}));
+        name = full?.name ?? name.replace(/\s+demo$/i, "");
+        app = { id: fullId, name, tiny_image: capsule(fullId), price: prices[fullId] ?? undefined };
+      }
+      const { lastInsertId: id } = await addGame(name, app, demo);
       setTerm("");
       if (!app || id == null) return;
       const release = await fetchRelease(app.id).catch(() => null);

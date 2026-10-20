@@ -46,6 +46,58 @@ export const fetchPrices = async (appIds: number[], onProgress?: (done: number) 
   return prices;
 };
 
+// Capa pequena da loja, usada quando o jogo não veio da busca.
+export const capsule = (appId: number) =>
+  `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/capsule_231x87.jpg`;
+
+// Demo aponta para o jogo completo (fullgame); jogo aponta para a sua demo, se tiver.
+export type SteamItem = { id: number; name: string; fullgame: number | null; demo: number | null };
+
+type StoreItem = {
+  id: number;
+  success: number;
+  name: string;
+  // 1 = demo.
+  type?: number;
+  related_items?: { parent_appid?: number; demo_appid?: number[] };
+};
+
+// Nome, demo e jogo completo por appid, em lotes de 100 (essa API aceita vários appids de uma vez).
+// Appids que falharam ficam de fora. onProgress recebe quantos já foram buscados.
+export const fetchItems = async (appIds: number[], onProgress?: (done: number) => void) => {
+  const items: Record<number, SteamItem> = {};
+  for (let i = 0; i < appIds.length; i += 100) {
+    const input = {
+      ids: appIds.slice(i, i + 100).map((appid) => ({ appid })),
+      context: { language: "english", country_code: "BR" },
+      data_request: { include_related_items: true },
+    };
+    const res = await fetch(
+      `https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=${encodeURIComponent(JSON.stringify(input))}`,
+    );
+    if (!res.ok) throw new Error(`Steam retornou ${res.status}`);
+    const body = (await res.json()) as { response?: { store_items?: StoreItem[] } };
+    for (const it of body.response?.store_items ?? []) {
+      if (it.success !== 1) continue;
+      const related = it.related_items ?? {};
+      items[it.id] = {
+        id: it.id,
+        name: it.name,
+        fullgame: it.type === 1 ? (related.parent_appid ?? null) : null,
+        demo: related.demo_appid?.[0] ?? null,
+      };
+    }
+    onProgress?.(Math.min(i + 100, appIds.length));
+  }
+  return items;
+};
+
+// Um app só; null se falhou (sem internet, erro da Steam).
+export const fetchItem = (appId: number) =>
+  fetchItems([appId])
+    .then((items) => items[appId] ?? null)
+    .catch(() => null);
+
 // Sem internet não adianta tentar; com internet lenta, desiste depois de 8 s.
 const online = () => typeof navigator === "undefined" || navigator.onLine;
 const TIMEOUT = 8000;

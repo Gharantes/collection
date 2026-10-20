@@ -1956,6 +1956,10 @@ button.update-button:disabled {
   border-left-color: var(--accent);
 }
 
+.update-change.demo {
+  border-left-color: var(--muted);
+}
+
 .update-change > :first-child {
   font-weight: 600;
 }
