@@ -27,7 +27,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Anotações em markdown com live preview (CodeMirror, igual ao obsidian-clone)
 - Várias anotações por jogo: grid de cards, botão "+" com menu (Anotação ou Imagem; pergunta se reduz a imagem para WebP 1920 px), edição num dialog
 - Menu "Configurações" na sidebar: exportar e importar backup em JSON, "Resetar biblioteca" (confirma digitando RESET_ALL)
-- Exportar/importar backup mostram um dialog com barra de progresso por etapa; só fecha no fim, avisando que já pode fechar o app (ou o erro)
+- Exportar/importar backup mostram um dialog com barra de progresso por etapa; só fecha no fim, mostrando onde salvou (ou o erro)
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
 - Arrastar card ou linha para uma lista da sidebar
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"

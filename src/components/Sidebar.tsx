@@ -89,7 +89,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
       const text = await exportBackup(progress);
       progress("Salvando arquivo", 0, 1);
       await writeTextFile(path, text);
-      return `Backup salvo em ${path}. Já pode fechar o app.`;
+      return `Backup salvo em ${path}.`;
     });
   });
 
@@ -105,7 +105,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
     setFilter(null);
     await withProgress("Importar backup", async (progress) => {
       await restoreBackup(backup, progress);
-      return `Backup importado (${backup.games.length} jogos). Já pode fechar o app.`;
+      return `Backup importado (${backup.games.length} jogos).`;
     });
   });
 
