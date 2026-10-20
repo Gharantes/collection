@@ -3,9 +3,10 @@ import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { addList, deleteList, exportBackup, resetLibrary, restoreBackup, setMembership, type List } from "../db";
+import { addList, deleteList, exportBackup, type BackupProgress, resetLibrary, restoreBackup, setMembership, type List } from "../db";
 import { parseBackup } from "../backup";
 import { DRAG_TYPE, type Run } from "./common";
+import { BackupDialog, type BackupJob } from "./BackupDialog";
 import { ResetDialog } from "./ResetDialog";
 import { StatusDialog } from "./StatusDialog";
 
@@ -28,6 +29,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
   const [dropList, setDropList] = useState<number | null>(null);
   const [resetting, setResetting] = useState(false);
   const [editingStatuses, setEditingStatuses] = useState(false);
+  const [backupJob, setBackupJob] = useState<BackupJob | null>(null);
   const settings = useRef<HTMLDetailsElement>(null);
 
   // Fecha o menu de configurações ao clicar fora dele.
@@ -67,10 +69,28 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
     run(() => deleteList(list.id))();
   };
 
+  // Roda exportar/importar mostrando a barra de progresso; no fim o dialog diz se deu certo.
+  const withProgress = async (title: string, work: (progress: BackupProgress) => Promise<string>) => {
+    const progress: BackupProgress = (label, done, total) => setBackupJob({ title, label, done, total });
+    progress("Começando", 0, 1);
+    try {
+      setBackupJob({ title, label: "", done: 1, total: 1, result: { ok: true, text: await work(progress) } });
+    } catch (e) {
+      const text = e instanceof Error ? e.message : String(e);
+      setBackupJob({ title, label: "", done: 0, total: 1, result: { ok: false, text: `Falhou: ${text}` } });
+    }
+  };
+
   const onExport = run(async () => {
     const day = new Date().toISOString().slice(0, 10);
     const path = await save({ defaultPath: `collection-backup-${day}.json`, filters: BACKUP_FILTER });
-    if (path) await writeTextFile(path, await exportBackup());
+    if (!path) return;
+    await withProgress("Exportar backup", async (progress) => {
+      const text = await exportBackup(progress);
+      progress("Salvando arquivo", 0, 1);
+      await writeTextFile(path, text);
+      return `Backup salvo em ${path}. Já pode fechar o app.`;
+    });
   });
 
   const onImport = run(async () => {
@@ -83,7 +103,10 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
     );
     if (!ok) return;
     setFilter(null);
-    await restoreBackup(backup);
+    await withProgress("Importar backup", async (progress) => {
+      await restoreBackup(backup, progress);
+      return `Backup importado (${backup.games.length} jogos). Já pode fechar o app.`;
+    });
   });
 
   // Procura versão nova nas releases do GitHub e oferece atualizar e reiniciar.
@@ -158,6 +181,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
       </details>
       {resetting && <ResetDialog onConfirm={onReset} onClose={() => setResetting(false)} />}
       {editingStatuses && <StatusDialog run={run} onClose={() => setEditingStatuses(false)} />}
+      {backupJob && <BackupDialog job={backupJob} onClose={() => setBackupJob(null)} />}
     </aside>
   );
 }

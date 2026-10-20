@@ -263,17 +263,28 @@ const GAME_COLUMNS = [
   "achievements",
 ];
 
-export const exportBackup = async (): Promise<string> => {
+// Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.
+export type BackupProgress = (label: string, done: number, total: number) => void;
+
+export const exportBackup = async (onProgress?: BackupProgress): Promise<string> => {
+  const total = 9;
+  let done = 0;
+  const tick = <T,>(read: Promise<T>) =>
+    read.then((rows) => {
+      onProgress?.("Lendo dados", ++done, total);
+      return rows;
+    });
+  onProgress?.("Lendo dados", done, total);
   const [statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links] = await Promise.all([
-    listStatuses(),
-    listSavedFilters(),
-    listGames(),
-    listLists(),
-    listMemberships(),
-    listStatusEvents(),
-    listPlaySessions(),
-    listNotes(),
-    listLinks(),
+    tick(listStatuses()),
+    tick(listSavedFilters()),
+    tick(listGames()),
+    tick(listLists()),
+    tick(listMemberships()),
+    tick(listStatusEvents()),
+    tick(listPlaySessions()),
+    tick(listNotes()),
+    tick(listLinks()),
   ]);
   const backup: Backup = { app: "collection", version: 1, statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links };
   return JSON.stringify(backup, null, 2);
@@ -288,51 +299,50 @@ export const resetLibrary = async () => {
   }
 };
 
-export const restoreBackup = async (backup: Backup) => {
+export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress) => {
   const database = await getDb();
-  await database.execute("DELETE FROM game_lists");
-  await database.execute("DELETE FROM games");
-  await database.execute("DELETE FROM lists");
-  await database.execute("DELETE FROM statuses");
-  await database.execute(
-    "INSERT INTO statuses (key, label) SELECT value->>'key', value->>'label' FROM json_each($1)",
-    [JSON.stringify(backup.statuses)],
-  );
-  await database.execute("DELETE FROM saved_filters");
-  await database.execute(
-    "INSERT INTO saved_filters (name, filter) SELECT value->>'name', value->>'filter' FROM json_each($1)",
-    [JSON.stringify(backup.filters)],
-  );
-  await database.execute(
-    "INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)",
-    [JSON.stringify(backup.lists)],
-  );
-  await database.execute(
-    `INSERT INTO games (${GAME_COLUMNS.join(", ")})
+  const json = JSON.stringify;
+  const steps: [string, unknown[]?][] = [
+    ["DELETE FROM game_lists"],
+    ["DELETE FROM games"],
+    ["DELETE FROM lists"],
+    ["DELETE FROM statuses"],
+    ["INSERT INTO statuses (key, label) SELECT value->>'key', value->>'label' FROM json_each($1)", [json(backup.statuses)]],
+    ["DELETE FROM saved_filters"],
+    [
+      "INSERT INTO saved_filters (name, filter) SELECT value->>'name', value->>'filter' FROM json_each($1)",
+      [json(backup.filters)],
+    ],
+    ["INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)", [json(backup.lists)]],
+    [
+      `INSERT INTO games (${GAME_COLUMNS.join(", ")})
      SELECT ${GAME_COLUMNS.map((c) => `value->>'${c}'`).join(", ")} FROM json_each($1)`,
-    [JSON.stringify(backup.games)],
-  );
-  await database.execute(
-    "INSERT INTO game_lists (game_id, list_id) SELECT value->>'game_id', value->>'list_id' FROM json_each($1)",
-    [JSON.stringify(backup.game_lists)],
-  );
-  await database.execute(
-    `INSERT INTO status_events (game_id, status, at)
+      [json(backup.games)],
+    ],
+    [
+      "INSERT INTO game_lists (game_id, list_id) SELECT value->>'game_id', value->>'list_id' FROM json_each($1)",
+      [json(backup.game_lists)],
+    ],
+    [
+      `INSERT INTO status_events (game_id, status, at)
      SELECT value->>'game_id', value->>'status', value->>'at' FROM json_each($1)`,
-    [JSON.stringify(backup.status_events)],
-  );
-  await database.execute(
-    `INSERT INTO play_sessions (game_id, started_at, seconds)
+      [json(backup.status_events)],
+    ],
+    [
+      `INSERT INTO play_sessions (game_id, started_at, seconds)
      SELECT value->>'game_id', value->>'started_at', value->>'seconds' FROM json_each($1)`,
-    [JSON.stringify(backup.play_sessions)],
-  );
-  await database.execute(
-    `INSERT INTO game_notes (game_id, title, body, image)
+      [json(backup.play_sessions)],
+    ],
+    [
+      `INSERT INTO game_notes (game_id, title, body, image)
      SELECT value->>'game_id', value->>'title', value->>'body', value->>'image' FROM json_each($1)`,
-    [JSON.stringify(backup.notes)],
-  );
-  await database.execute(
-    "INSERT INTO game_links (game_id, url) SELECT value->>'game_id', value->>'url' FROM json_each($1)",
-    [JSON.stringify(backup.links)],
-  );
+      [json(backup.notes)],
+    ],
+    ["INSERT INTO game_links (game_id, url) SELECT value->>'game_id', value->>'url' FROM json_each($1)", [json(backup.links)]],
+  ];
+  for (const [i, [sql, params]] of steps.entries()) {
+    onProgress?.("Gravando dados", i, steps.length);
+    await database.execute(sql, params);
+  }
+  onProgress?.("Gravando dados", steps.length, steps.length);
 };
