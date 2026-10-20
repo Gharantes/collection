@@ -43,7 +43,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Checkboxes "Early Access" e "Pre-release" (um ou outro) na página do jogo; marcar um libera a "Release Date"
 - Páginas "Early Access" e "Pre-release" na sidebar (removidas: agora são filtros salvos); a tabela fica compacta (imagem, nome, preço, release date) quando todos os jogos mostrados são Early Access/Pre-release
 - Release date em texto livre, como na Steam (data, "Q1 2027" ou só o ano)
-- Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), release (Lançado, Early Access, Pre-release) também com incluir/exigir/excluir, no lugar dos antigos checkboxes "Mostrar Early Access/Pre-release"; o select de status foi para lá. Nota mínima e máxima (sem nota fica de fora)
+- Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), release (Lançado, Early Access, Pre-release, Possui demo) também com incluir/exigir/excluir, no lugar dos antigos checkboxes "Mostrar Early Access/Pre-release"; o select de status foi para lá. Nota mínima e máxima (sem nota fica de fora)
 - Filtros salvos: "Salvar filtro atual" com nome em "Mais filtros" (texto da busca + mais filtros; mesmo nome troca), chips sempre visíveis entre os filtros e a grid/tabela (clique carrega, clique no marcado limpa, × apaga); vão no banco e no backup
 - Grade mais leve ao tirar filtros: capas com `loading="lazy"` e `decoding="async"`, cards com `content-visibility: auto`; grade e tabela mostram 48 jogos por vez e trazem mais ao rolar perto do fim
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"

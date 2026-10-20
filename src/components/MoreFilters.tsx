@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { List } from "../db";
-import { NO_EXTRA, extraCount, type Extra, type Stage } from "../filters";
+import { NO_EXTRA, extraCount, type Extra, type ReleaseKey } from "../filters";
 import type { Mode } from "../games";
 import { useStatuses } from "./common";
 
@@ -76,10 +76,11 @@ function RatingSelect({ value, onChange }: { value: number | null; onChange: (v:
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
-const STAGES: { key: Stage; label: string }[] = [
+const STAGES: { key: ReleaseKey; label: string }[] = [
   { key: "released", label: "Lançado" },
   { key: "early_access", label: "Early Access" },
   { key: "pre_release", label: "Pre-release" },
+  { key: "demo", label: "Possui demo" },
 ];
 
 // Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados

@@ -32,7 +32,7 @@ import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
 import { GameTable } from "./components/GameTable";
 import { MoreFilters } from "./components/MoreFilters";
-import { NO_EXTRA, extraCount, fromSaved, inRating, stageOf, toSaved, type Extra } from "./filters";
+import { NO_EXTRA, extraCount, fromSaved, hasRelease, inRating, toSaved, type Extra } from "./filters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -251,7 +251,7 @@ function App() {
         inFilter(g) &&
         matchModes((s) => g.status === s, extra.statuses) &&
         matchModes((id) => inList(g.id, id), extra.lists) &&
-        matchModes((s) => stageOf(g) === s, extra.stages) &&
+        matchModes((k) => hasRelease(g, k), extra.stages) &&
         (!extra.onlyLinked || isLinked(g)) &&
         inRating(g.rating, extra) &&
         g.name.toLowerCase().includes(name),

@@ -5,11 +5,16 @@ import type { Mode } from "./games";
 export type Stage = ReleaseStage | "released";
 export const stageOf = (g: { release_stage: ReleaseStage | null }): Stage => g.release_stage ?? "released";
 
+// Itens do filtro "Release": os estágios e "Possui demo".
+export type ReleaseKey = Stage | "demo";
+export const hasRelease = (g: { release_stage: ReleaseStage | null; demo_steam_id: number | null }, key: ReleaseKey) =>
+  key === "demo" ? g.demo_steam_id != null : stageOf(g) === key;
+
 // Filtros da seção "Mais filtros".
 export type Extra = {
   lists: Map<number, Mode>;
   statuses: Map<Status, Mode>;
-  stages: Map<Stage, Mode>;
+  stages: Map<ReleaseKey, Mode>;
   onlyLinked: boolean;
   minRating: number | null;
   maxRating: number | null;
@@ -46,7 +51,7 @@ export const toSaved = (extra: Extra, text: string) =>
 // "Mostrar Pre-release" desmarcados viram excluir o estágio.
 export const fromSaved = (json: string): { extra: Extra; text: string } => {
   const { text = "", lists = [], statuses = [], stages = [], showEarly, showPre, ...rest } = JSON.parse(json);
-  const stageModes = new Map<Stage, Mode>(stages);
+  const stageModes = new Map<ReleaseKey, Mode>(stages);
   if (showEarly === false) stageModes.set("early_access", "exclude");
   if (showPre === false) stageModes.set("pre_release", "exclude");
   return { text, extra: { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes } };

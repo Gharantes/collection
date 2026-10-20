@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { NO_EXTRA, fromSaved, toSaved } from "./filters.ts";
+import { NO_EXTRA, fromSaved, hasRelease, toSaved } from "./filters.ts";
 
 test("filtro salvo volta igual", () => {
   const extra = { ...NO_EXTRA, onlyLinked: true, minRating: 7, lists: new Map([[2, "exclude" as const]]) };
@@ -12,4 +12,11 @@ test("filtro salvo antigo usa o padrão no que falta", () => {
   const old = fromSaved(JSON.stringify({ showEarly: false, showPre: true }));
   assert.deepEqual([...old.extra.stages], [["early_access", "exclude"]]);
   assert.equal("showEarly" in old.extra, false);
+});
+
+test("release com demo", () => {
+  const g = { release_stage: "early_access" as const, demo_steam_id: 10 };
+  assert.equal(hasRelease(g, "demo"), true);
+  assert.equal(hasRelease(g, "early_access"), true);
+  assert.equal(hasRelease({ ...g, demo_steam_id: null }, "demo"), false);
 });
