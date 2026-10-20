@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
@@ -98,6 +99,20 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       }
     })();
 
+  // "Jogar demo" só aparece com a demo instalada na Steam.
+  const [demoInstalled, setDemoInstalled] = useState(false);
+  useEffect(() => {
+    setDemoInstalled(false);
+    if (game.demo_steam_id == null || game.owned) return;
+    let stale = false;
+    invoke<boolean>("steam_installed", { appId: game.demo_steam_id })
+      .then((ok) => !stale && setDemoInstalled(ok))
+      .catch(() => {});
+    return () => {
+      stale = true;
+    };
+  }, [game.demo_steam_id, game.owned]);
+
   // A demo abre pela Steam, mas o tempo de jogo conta para este jogo.
   const playDemo = () =>
     run(async () => {
@@ -162,7 +177,13 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                 </div>
               </details>
             )}
-            {game.demo_steam_id != null && !game.owned && <button onClick={playDemo}>▶ Jogar demo</button>}
+            {demoInstalled && !game.owned && (
+              <button className="play-demo" onClick={playDemo}>
+                ▶ Jogar demo
+              </button>
+            )}
+          </div>
+          <div className="launch-links">
             <button
               onClick={openStore}
               disabled={game.steam_id == null}

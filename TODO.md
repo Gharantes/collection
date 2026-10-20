@@ -31,7 +31,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
 - Arrastar card ou linha para uma lista da sidebar
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"
-- Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo
+- Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo; ficam numa linha abaixo, como texto sublinhado
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
 - Tempo de jogo dos jogos abertos pelo executável ou pela Steam (no Windows, pelo registro `Apps<id>Running`)
 - Executável que exige administrador (erro 740) abre pedindo o UAC, mantendo o tempo de jogo
@@ -53,7 +53,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Seção "Notícias" na página do jogo: últimas 5 da API de notícias da Steam, buscadas ao abrir e nunca salvas; sem internet não aparece. Padrão só anúncios oficiais, com toggle para todas as fontes. Aviso quando o Early Access/Pre-release/release date da Steam difere do marcado, com botão para atualizar
 - Ao adicionar jogo da Steam, Early Access/Pre-release e release date vêm preenchidos pela Steam
 - Checkbox "Tenho o jogo" na página do jogo; jogos que não tem aparecem escurecidos nos cards e na tabela (clareiam um pouco no hover); vai no backup
-- Demo dentro da página do jogo (`demo_steam_id`, vai no backup): ao adicionar da Steam marca a demo sozinho; escolher uma demo adiciona o jogo completo (ou marca a demo nele). Botão "▶ Jogar demo" (só se não tem o jogo) abre pela Steam e o tempo soma no jogo. Etapa "Demos" no "Atualizar Dados" (só jogos que não tem): "Ganhou demo", "Demo removida". "Juntar demos" em Configurações, com barra de progresso: junta páginas de demo com a do jogo completo (ou transforma a demo nele). Usa a `IStoreBrowseService/GetItems` da Steam, em lotes de 100
+- Demo dentro da página do jogo (`demo_steam_id`, vai no backup): ao adicionar da Steam marca a demo sozinho; escolher uma demo adiciona o jogo completo (ou marca a demo nele). Botão verde "▶ Jogar demo" (como o da Steam; só se não tem o jogo e a demo está instalada na Steam) abre pela Steam e o tempo soma no jogo. Etapa "Demos" no "Atualizar Dados" (só jogos que não tem): "Ganhou demo", "Demo removida". "Juntar demos" em Configurações, com barra de progresso: junta páginas de demo com a do jogo completo (ou transforma a demo nele). Usa a `IStoreBrowseService/GetItems` da Steam, em lotes de 100
 
 ## Recusado
 
