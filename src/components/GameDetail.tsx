@@ -191,6 +191,9 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
             >
               Loja Steam
             </button>
+            {game.demo_steam_id != null && (
+              <button onClick={() => run(() => invoke("open_store", { appId: game.demo_steam_id }))()}>Demo na Steam</button>
+            )}
             <button
               onClick={openFolder}
               disabled={!game.launch}
