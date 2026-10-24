@@ -191,3 +191,41 @@ export const fetchImage = async (url: string): Promise<string> => {
   if (!res.ok) throw new Error(`Steam retornou ${res.status}`);
   return URL.createObjectURL(await res.blob());
 };
+
+export type RequirementRow = { label: string; value: string };
+export type SteamRequirements = { minimum: RequirementRow[]; recommended: RequirementRow[] };
+
+// Requisitos de sistema (PC) da loja. A Steam não aceita filters para eles, então vem o appdetails inteiro.
+export const fetchRequirements = async (appId: number): Promise<SteamRequirements | null> => {
+  if (!online()) return null;
+  const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&l=brazilian`, {
+    signal: AbortSignal.timeout(TIMEOUT),
+  });
+  if (!res.ok) throw new Error(`Steam retornou ${res.status}`);
+  const entry = ((await res.json()) as Record<string, RequirementsDetails>)[appId];
+  if (!entry?.success || !entry.data || Array.isArray(entry.data)) return null;
+  const pc = entry.data.pc_requirements;
+  if (!pc || Array.isArray(pc)) return null;
+  const minimum = requirementRows(pc.minimum);
+  const recommended = requirementRows(pc.recommended);
+  return minimum.length || recommended.length ? { minimum, recommended } : null;
+};
+
+type RequirementsDetails = {
+  success: boolean;
+  data?: { pc_requirements?: { minimum?: string; recommended?: string } | [] } | [];
+};
+
+// Lê o HTML da Steam ("<li><strong>Processador:</strong> ...</li>") como texto, sem injetá-lo na página.
+const requirementRows = (html?: string): RequirementRow[] => {
+  if (!html) return [];
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return [...doc.querySelectorAll("li")]
+    .map((li) => {
+      const strong = li.querySelector("strong");
+      const label = strong?.textContent?.replace(/[\s*:]+$/, "").trim() ?? "";
+      strong?.remove();
+      return { label, value: li.textContent?.replace(/\s+/g, " ").trim() ?? "" };
+    })
+    .filter((r) => r.value);
+};

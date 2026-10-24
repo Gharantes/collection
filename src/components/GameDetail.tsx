@@ -21,6 +21,7 @@ import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toC
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
 import { LinksPanel } from "./LinksPanel";
 import { NewsPanel } from "./NewsPanel";
+import { RequirementsPanel } from "./RequirementsPanel";
 import { ScreenshotsPanel } from "./ScreenshotsPanel";
 import { NotesPanel } from "./NotesPanel";
 import { SavesPanel } from "./SavesPanel";
@@ -368,6 +369,8 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       <LinksPanel gameId={game.id} run={run} />
 
       <NotesPanel gameId={game.id} run={run} />
+
+      {game.steam_id != null && <RequirementsPanel appId={game.steam_id} />}
 
       {game.steam_id != null && <ScreenshotsPanel appId={game.steam_id} />}
 
