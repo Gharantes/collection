@@ -45,6 +45,15 @@ O build de release assina a atualização; ele precisa da chave privada no ambie
 
 Para publicar uma versão com instaladores, veja [RELEASE.md](RELEASE.md).
 
+## Notas de processadores e placas de vídeo
+
+O "Comparar com meu PC" dos requisitos usa `src/hardware.json`, gerado por `scripts/build-hardware.ts` a partir de:
+
+- PassMark CPU Mark e G3D Mark, pelos datasets do Kaggle [alanjo/cpu-benchmarks](https://www.kaggle.com/datasets/alanjo/cpu-benchmarks) e [alanjo/gpu-benchmarks](https://www.kaggle.com/datasets/alanjo/gpu-benchmarks) (até 2022);
+- [Blender Open Data](https://opendata.blender.org/) (CC0), para estimar os modelos mais novos.
+
+O comando para gerar de novo está no topo do script.
+
 ## Onde ficam os dados
 
 Banco SQLite `collection.db` em:

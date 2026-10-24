@@ -2183,3 +2183,45 @@ button.update-game:hover {
   font-size: 12px;
   line-height: 1.4;
 }
+
+.requirements-check {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.check-line {
+  display: flex;
+  gap: 6px;
+}
+
+.check-icon {
+  width: 14px;
+  flex-shrink: 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.check-line.ok .check-icon {
+  color: var(--good);
+}
+
+.check-line.close .check-icon {
+  color: var(--ok);
+}
+
+.check-line.below .check-icon {
+  color: var(--bad);
+}
+
+.check-line.unknown .check-icon {
+  color: var(--muted);
+}
+
+.requirements-note {
+  margin: 10px 0 0 !important;
+  font-size: 11px !important;
+}

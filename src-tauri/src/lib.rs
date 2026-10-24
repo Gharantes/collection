@@ -1,5 +1,6 @@
 mod launch;
 mod saves;
+mod specs;
 
 const DB_URL: &str = "sqlite:collection.db";
 
@@ -169,7 +170,8 @@ pub fn run() {
             saves::list_save_backups,
             saves::backup_saves,
             saves::restore_saves,
-            saves::delete_save_backup
+            saves::delete_save_backup,
+            specs::system_specs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
