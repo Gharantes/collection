@@ -46,6 +46,7 @@ const validGame = (statuses: Set<string>) => (g: Game) =>
   (g.achievements == null || g.achievements === "hunting" || g.achievements === "platinum") &&
   (g.owned == null || g.owned === 0 || g.owned === 1) &&
   isIntOrNull(g.demo_steam_id) &&
+  (g.news == null || g.news === 0 || g.news === 1) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.

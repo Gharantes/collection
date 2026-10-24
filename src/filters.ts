@@ -16,6 +16,8 @@ export type Extra = {
   statuses: Map<Status, Mode>;
   stages: Map<ReleaseKey, Mode>;
   onlyLinked: boolean;
+  // true: só jogos com "Buscar notícias" ligado; false: só os com ele desligado.
+  news: boolean | null;
   minRating: number | null;
   maxRating: number | null;
 };
@@ -25,6 +27,7 @@ export const NO_EXTRA: Extra = {
   statuses: new Map(),
   stages: new Map(),
   onlyLinked: false,
+  news: null,
   minRating: null,
   maxRating: null,
 };
@@ -34,6 +37,8 @@ export const inRating = (rating: number | null, x: Extra) =>
   (x.minRating == null && x.maxRating == null) ||
   (rating != null && rating >= (x.minRating ?? 0) && rating <= (x.maxRating ?? 10));
 
+export const inNews = (g: { news: 0 | 1 }, x: Extra) => x.news == null || !!g.news === x.news;
+
 // Quantos filtros avançados estão ativos.
 export const extraCount = (x: Extra) =>
   x.lists.size +
@@ -41,7 +46,8 @@ export const extraCount = (x: Extra) =>
   x.stages.size +
   Number(x.minRating != null) +
   Number(x.maxRating != null) +
-  Number(x.onlyLinked);
+  Number(x.onlyLinked) +
+  Number(x.news != null);
 
 // Colunas da tabela que dá para esconder (imagem e nome ficam sempre).
 export const COLUMNS = {

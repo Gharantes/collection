@@ -30,6 +30,8 @@ export type Game = {
   owned: 0 | 1;
   // Demo na Steam; o tempo jogado nela conta para este jogo.
   demo_steam_id: number | null;
+  // Buscar notícias da Steam na página do jogo.
+  news: 0 | 1;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -334,6 +336,9 @@ export const setAchievements = async (id: number, goal: Achievements | null) =>
 export const setOwned = async (id: number, owned: boolean) =>
   (await getDb()).execute("UPDATE games SET owned = $1 WHERE id = $2", [owned ? 1 : 0, id]);
 
+export const setNews = async (id: number, news: boolean) =>
+  (await getDb()).execute("UPDATE games SET news = $1 WHERE id = $2", [news ? 1 : 0, id]);
+
 export const listLists = async () =>
   (await getDb()).select<List[]>("SELECT * FROM lists ORDER BY name");
 
@@ -355,7 +360,7 @@ export const setMembership = async (gameId: number, listId: number, member: bool
     [gameId, listId],
   );
 
-// Colunas de games restauradas do backup; ausentes no arquivo viram NULL (owned vira 0).
+// Colunas de games restauradas do backup; ausentes no arquivo viram NULL (owned e news viram 0).
 const GAME_COLUMNS = [
   "id",
   "name",
@@ -376,6 +381,7 @@ const GAME_COLUMNS = [
   "achievements",
   "owned",
   "demo_steam_id",
+  "news",
 ];
 
 // Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.
@@ -431,7 +437,7 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
     ["INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)", [json(backup.lists)]],
     [
       `INSERT INTO games (${GAME_COLUMNS.join(", ")})
-     SELECT ${GAME_COLUMNS.map((c) => (c === "owned" ? "COALESCE(value->>'owned', 0)" : `value->>'${c}'`)).join(", ")}
+     SELECT ${GAME_COLUMNS.map((c) => (c === "owned" || c === "news" ? `COALESCE(value->>'${c}', 0)` : `value->>'${c}'`)).join(", ")}
      FROM json_each($1)`,
       [json(backup.games)],
     ],

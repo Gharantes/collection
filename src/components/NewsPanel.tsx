@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { setReleaseDate, setReleaseStage, type Game } from "../db";
+import { setNews as saveNews, setReleaseDate, setReleaseStage, type Game } from "../db";
 import { releaseNotice } from "../games";
 import { readPref, savePref } from "../prefs";
 import { fetchNews, fetchRelease, type SteamNews, type SteamRelease } from "../steam";
@@ -8,9 +8,11 @@ import type { Run } from "./common";
 
 const FEED_PREF = "news-feed";
 
-// Notícias da Steam, buscadas ao abrir a página e nunca salvas. Sem internet ou se falhar, não aparece.
+// Notícias da Steam, buscadas ao abrir a página (só com "Buscar notícias" ligado) e nunca salvas.
+// Sem internet ou se falhar, não aparece.
 export function NewsPanel({ game, run }: { game: Game; run: Run }) {
   const appId = game.steam_id;
+  const enabled = !!game.news;
   const [official, setOfficial] = useState(() => readPref(FEED_PREF, ["official", "all"], "official") === "official");
   // null = buscando; false = sem internet ou falhou.
   const [news, setNews] = useState<SteamNews[] | null | false>(null);
@@ -18,7 +20,7 @@ export function NewsPanel({ game, run }: { game: Game; run: Run }) {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (appId == null) return;
+    if (appId == null || !enabled) return;
     let stale = false;
     setNews(null);
     fetchNews(appId, official)
@@ -27,7 +29,7 @@ export function NewsPanel({ game, run }: { game: Game; run: Run }) {
     return () => {
       stale = true;
     };
-  }, [appId, official]);
+  }, [appId, official, enabled]);
 
   useEffect(() => {
     if (appId == null) return;
@@ -42,7 +44,7 @@ export function NewsPanel({ game, run }: { game: Game; run: Run }) {
     };
   }, [appId]);
 
-  if (appId == null || news === false) return null;
+  if (appId == null || (enabled && news === false)) return null;
 
   const notice = release && !dismissed ? releaseNotice(game, release) : null;
   const apply = (r: SteamRelease) =>
@@ -61,9 +63,22 @@ export function NewsPanel({ game, run }: { game: Game; run: Run }) {
       <div className="news-head">
         <h3>Notícias</h3>
         <label className="check">
-          <input type="checkbox" checked={official} onChange={(e) => toggle(e.currentTarget.checked)} />
-          Só anúncios oficiais
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => {
+              const on = e.currentTarget.checked;
+              run(() => saveNews(game.id, on))();
+            }}
+          />
+          Buscar notícias
         </label>
+        {enabled && (
+          <label className="check">
+            <input type="checkbox" checked={official} onChange={(e) => toggle(e.currentTarget.checked)} />
+            Só anúncios oficiais
+          </label>
+        )}
       </div>
       {notice && release && (
         <div className="news-notice">
@@ -74,7 +89,7 @@ export function NewsPanel({ game, run }: { game: Game; run: Run }) {
           </button>
         </div>
       )}
-      {news === null ? (
+      {!enabled || news === false ? null : news === null ? (
         <p className="muted">Buscando notícias…</p>
       ) : news.length === 0 ? (
         <p className="muted">Nenhuma notícia.</p>

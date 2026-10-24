@@ -83,7 +83,7 @@ const STAGES: { key: ReleaseKey; label: string }[] = [
   { key: "demo", label: "Possui demo" },
 ];
 
-// Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados
+// Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados, notícias
 // e salvar o filtro atual com um nome (um nome que já existe troca o filtro dele).
 export function MoreFilters({
   lists,
@@ -164,6 +164,21 @@ export function MoreFilters({
           />
           Só vinculados
         </label>
+      </div>
+      <div className="more-row">
+        <span className="muted">Notícias</span>
+        <select
+          value={extra.news == null ? "" : String(extra.news)}
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            setExtra({ ...extra, news: v === "" ? null : v === "true" });
+          }}
+          aria-label="Buscar notícias"
+        >
+          <option value="">Todos</option>
+          <option value="true">Buscando notícias</option>
+          <option value="false">Sem buscar notícias</option>
+        </select>
       </div>
       <div className="more-row">
         <span className="muted">Release</span>

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { NO_EXTRA, fromSaved, hasRelease, toSaved } from "./filters.ts";
+import { NO_EXTRA, fromSaved, hasRelease, inNews, toSaved } from "./filters.ts";
 
 test("filtro salvo volta igual", () => {
   const extra = { ...NO_EXTRA, onlyLinked: true, minRating: 7, lists: new Map([[2, "exclude" as const]]) };
@@ -24,4 +24,12 @@ test("release com demo", () => {
   assert.equal(hasRelease(g, "demo"), true);
   assert.equal(hasRelease(g, "early_access"), true);
   assert.equal(hasRelease({ ...g, demo_steam_id: null }, "demo"), false);
+});
+
+test("filtro de notícias", () => {
+  assert.equal(inNews({ news: 0 }, NO_EXTRA), true);
+  assert.equal(inNews({ news: 1 }, { ...NO_EXTRA, news: true }), true);
+  assert.equal(inNews({ news: 0 }, { ...NO_EXTRA, news: true }), false);
+  assert.equal(inNews({ news: 1 }, { ...NO_EXTRA, news: false }), false);
+  assert.equal(fromSaved(toSaved({ ...NO_EXTRA, news: false }, "")).extra.news, false);
 });

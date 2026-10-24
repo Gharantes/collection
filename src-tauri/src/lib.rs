@@ -138,6 +138,12 @@ pub fn run() {
             sql: include_str!("../migrations/022_demo.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 23,
+            description: "add games.news",
+            sql: include_str!("../migrations/023_news.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
