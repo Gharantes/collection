@@ -83,7 +83,7 @@ const STAGES: { key: ReleaseKey; label: string }[] = [
   { key: "demo", label: "Possui demo" },
 ];
 
-// Etapas do slider de notícias, como o de conquistas na página do jogo.
+// Etapas do slider de notícias; só a escolhida aparece, ao lado dele.
 const NEWS_STEPS: { news: boolean | null; label: string }[] = [
   { news: null, label: "Todos" },
   { news: false, label: "Sem buscar notícias" },
@@ -178,7 +178,7 @@ export function MoreFilters({
       </div>
       <div className="more-row">
         <span className="muted">Notícias</span>
-        <div className="achievements">
+        <label className="news-slider">
           <input
             type="range"
             min={0}
@@ -188,18 +188,8 @@ export function MoreFilters({
             onChange={(e) => setExtra({ ...extra, news: NEWS_STEPS[Number(e.currentTarget.value)].news })}
             aria-label="Notícias"
           />
-          <div className="steps">
-            {NEWS_STEPS.map((s) => (
-              <button
-                key={s.label}
-                className={s.news === extra.news ? "active" : ""}
-                onClick={() => setExtra({ ...extra, news: s.news })}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
+          {NEWS_STEPS.find((s) => s.news === extra.news)?.label}
+        </label>
         {extraCount(extra) > 0 && (
           <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
             Limpar filtros
