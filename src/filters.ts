@@ -43,16 +43,30 @@ export const extraCount = (x: Extra) =>
   Number(x.maxRating != null) +
   Number(x.onlyLinked);
 
-// Filtro salvo: o texto da busca e os "Mais filtros", em JSON (os Maps viram listas de pares).
-export const toSaved = (extra: Extra, text: string) =>
-  JSON.stringify({ ...extra, text, lists: [...extra.lists], statuses: [...extra.statuses], stages: [...extra.stages] });
+// Colunas da tabela que dá para esconder (imagem e nome ficam sempre).
+export const COLUMNS = {
+  price: "Preço",
+  release: "Release Date",
+  status: "Status",
+  rating: "Nota",
+  lists: "Listas",
+  remove: "Remover",
+} as const;
+export type Column = keyof typeof COLUMNS;
+export const DEFAULT_COLUMNS: Column[] = ["price", "status", "rating", "lists", "remove"];
+export const isColumn = (c: unknown): c is Column => typeof c === "string" && c in COLUMNS;
 
-// Campos que faltam (filtros salvos antes de existirem) ficam no padrão. Os antigos "Mostrar Early Access" e
-// "Mostrar Pre-release" desmarcados viram excluir o estágio.
-export const fromSaved = (json: string): { extra: Extra; text: string } => {
-  const { text = "", lists = [], statuses = [], stages = [], showEarly, showPre, ...rest } = JSON.parse(json);
+// Filtro salvo: o texto da busca, os "Mais filtros" e as colunas da tabela, em JSON (os Maps viram listas de pares).
+export const toSaved = (extra: Extra, text: string, columns?: Column[]) =>
+  JSON.stringify({ ...extra, text, lists: [...extra.lists], statuses: [...extra.statuses], stages: [...extra.stages], columns });
+
+// Campos que faltam (filtros salvos antes de existirem) ficam no padrão; sem colunas, carregar não mexe nelas.
+// Os antigos "Mostrar Early Access" e "Mostrar Pre-release" desmarcados viram excluir o estágio.
+export const fromSaved = (json: string): { extra: Extra; text: string; columns?: Column[] } => {
+  const { text = "", lists = [], statuses = [], stages = [], columns, showEarly, showPre, ...rest } = JSON.parse(json);
   const stageModes = new Map<ReleaseKey, Mode>(stages);
   if (showEarly === false) stageModes.set("early_access", "exclude");
   if (showPre === false) stageModes.set("pre_release", "exclude");
-  return { text, extra: { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes } };
+  const extra = { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes };
+  return Array.isArray(columns) ? { text, extra, columns: columns.filter(isColumn) } : { text, extra };
 };

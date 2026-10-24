@@ -41,10 +41,10 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - `App.tsx` dividido em componentes
 - Botão para fechar a mensagem de erro
 - Checkboxes "Early Access" e "Pre-release" (um ou outro) na página do jogo; marcar um libera a "Release Date"
-- Páginas "Early Access" e "Pre-release" na sidebar (removidas: agora são filtros salvos); tabela compacta (imagem, nome, preço, release date) por um botão "Compacta" ao lado de Cards/Tabela, completa por padrão (antes ficava compacta sozinha quando todos os jogos mostrados eram Early Access/Pre-release)
+- Páginas "Early Access" e "Pre-release" na sidebar (removidas: agora são filtros salvos); colunas da tabela escolhidas num menu com ícone ao lado de Cards/Tabela (Preço, Release Date, Status, Nota, Listas, Remover; imagem e nome sempre), no lugar do botão "Compacta" (que antes era troca automática)
 - Release date em texto livre, como na Steam (data, "Q1 2027" ou só o ano)
 - Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), release (Lançado, Early Access, Pre-release, Possui demo) também com incluir/exigir/excluir, no lugar dos antigos checkboxes "Mostrar Early Access/Pre-release"; o select de status foi para lá. Nota mínima e máxima (sem nota fica de fora)
-- Filtros salvos: "Salvar filtro atual" com nome em "Mais filtros" (texto da busca + mais filtros; mesmo nome troca), chips sempre visíveis entre os filtros e a grid/tabela (clique carrega, clique no marcado limpa, × apaga); vão no banco e no backup
+- Filtros salvos: "Salvar filtro atual" com nome em "Mais filtros" (texto da busca + mais filtros + colunas da tabela; mesmo nome troca; carregar um filtro antigo, sem colunas, não mexe nelas), chips sempre visíveis entre os filtros e a grid/tabela (clique carrega, clique no marcado limpa, × apaga); vão no banco e no backup
 - Grade mais leve ao tirar filtros: capas com `loading="lazy"` e `decoding="async"`, cards com `content-visibility: auto`; grade e tabela mostram 48 jogos por vez e trazem mais ao rolar perto do fim
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"
 - Medalha em roseta (como a da Steam) no canto de cima à direita da capa nos cards (a nota foi para baixo à direita) e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina

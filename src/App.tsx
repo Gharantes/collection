@@ -30,9 +30,20 @@ import { AddGame } from "./components/AddGame";
 import { ErrorBanner, StatusesContext } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
 import { GameGrid } from "./components/GameGrid";
-import { GameTable } from "./components/GameTable";
+import { ColumnsMenu, GameTable } from "./components/GameTable";
 import { MoreFilters } from "./components/MoreFilters";
-import { NO_EXTRA, extraCount, fromSaved, hasRelease, inRating, toSaved, type Extra } from "./filters";
+import {
+  DEFAULT_COLUMNS,
+  NO_EXTRA,
+  extraCount,
+  fromSaved,
+  hasRelease,
+  inRating,
+  isColumn,
+  toSaved,
+  type Column,
+  type Extra,
+} from "./filters";
 import { PickDialog } from "./components/PickDialog";
 import { Sidebar, type Filter } from "./components/Sidebar";
 import { StatsPage } from "./components/StatsPage";
@@ -72,8 +83,11 @@ function App() {
   const [nameFilter, setNameFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>(() => readPref("collection.view", ["cards", "table"], "cards"));
-  // Tabela compacta (imagem, nome, preço, release date); completa por padrão.
-  const [compact, setCompact] = useState(() => readPref("collection.compact", ["on", "off"], "off") === "on");
+  // Colunas da tabela além da imagem e do nome; também vão nos filtros salvos.
+  const [columns, setColumns] = useState<Column[]>(() => {
+    const saved = readJson<unknown>("collection.columns", null);
+    return Array.isArray(saved) ? saved.filter(isColumn) : DEFAULT_COLUMNS;
+  });
   const [sort, setSort] = useState<Sort>(() => readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"));
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
@@ -169,12 +183,13 @@ function App() {
       setExtra({ ...extra, statuses: new Map([...extra.statuses].filter(([k]) => keys.has(k))) });
   }, [statuses]);
 
-  // Carrega um filtro salvo, sem as listas que foram apagadas.
+  // Carrega um filtro salvo, sem as listas que foram apagadas; se ele tem colunas, a tabela passa a usá-las.
   const loadFilter = (f: SavedFilter) => {
-    const { extra, text } = fromSaved(f.filter);
+    const { extra, text, columns } = fromSaved(f.filter);
     const ids = new Set(lists.map((l) => l.id));
     setExtra({ ...extra, lists: new Map([...extra.lists].filter(([id]) => ids.has(id))) });
     setNameFilter(text);
+    if (columns) setColumns(columns);
   };
 
   const onDeleteFilter = (f: SavedFilter) =>
@@ -183,7 +198,7 @@ function App() {
         await deleteSavedFilter(f.id);
     })();
 
-  // O filtro salvo igual ao atual, para o chip dele aparecer marcado.
+  // O filtro salvo igual ao atual, para o chip dele aparecer marcado (as colunas não contam).
   const current = toSaved(extra, nameFilter);
   const currentSaved = savedFilters.find((f) => {
     const saved = fromSaved(f.filter);
@@ -191,7 +206,7 @@ function App() {
   });
 
   useEffect(() => savePref("collection.view", view), [view]);
-  useEffect(() => savePref("collection.compact", compact ? "on" : "off"), [compact]);
+  useEffect(() => savePref("collection.columns", JSON.stringify(columns)), [columns]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
   // Atualiza preços, Early Access/Pre-release e demos, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
@@ -378,11 +393,7 @@ function App() {
                 Tabela
               </button>
             </div>
-            {view === "table" && (
-              <button className={`ghost more-toggle ${compact ? "on" : ""}`} onClick={() => setCompact(!compact)} aria-pressed={compact}>
-                Compacta
-              </button>
-            )}
+            {view === "table" && <ColumnsMenu columns={columns} setColumns={setColumns} />}
           </div>
 
           {moreOpen && (
@@ -390,7 +401,7 @@ function App() {
               lists={lists}
               extra={extra}
               setExtra={setExtra}
-              onSave={(name) => run(() => saveFilter(name, current))()}
+              onSave={(name) => run(() => saveFilter(name, toSaved(extra, nameFilter, columns)))()}
             />
           )}
 
@@ -425,7 +436,7 @@ function App() {
           ) : (
             <GameTable
               games={shown}
-              compact={compact}
+              columns={columns}
               lists={lists}
               inList={inList}
               run={run}

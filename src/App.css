@@ -1146,6 +1146,46 @@ select.pill[data-tier="bad"] {
   min-width: 100%;
 }
 
+/* Colunas da tabela */
+
+.columns-menu summary {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
+}
+
+.columns-menu[open] summary {
+  background: var(--accent-soft);
+}
+
+.columns-menu svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.columns-menu .menu-items {
+  left: auto;
+  right: 0;
+  min-width: 170px;
+}
+
+.columns-menu .menu-items label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.columns-menu .menu-items label:hover {
+  background: var(--accent-soft);
+}
+
 .menu-items button.menu-danger {
   color: var(--bad);
 }

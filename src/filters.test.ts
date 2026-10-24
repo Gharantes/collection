@@ -7,6 +7,11 @@ test("filtro salvo volta igual", () => {
   assert.deepEqual(fromSaved(toSaved(extra, "hades")), { extra, text: "hades" });
 });
 
+test("filtro salvo com colunas", () => {
+  const saved = fromSaved(toSaved(NO_EXTRA, "", ["price", "release", "velha" as never]));
+  assert.deepEqual(saved.columns, ["price", "release"]);
+});
+
 test("filtro salvo antigo usa o padrão no que falta", () => {
   assert.deepEqual(fromSaved("{}"), { extra: NO_EXTRA, text: "" });
   const old = fromSaved(JSON.stringify({ showEarly: false, showPre: true }));
