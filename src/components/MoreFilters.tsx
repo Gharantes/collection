@@ -83,6 +83,13 @@ const STAGES: { key: ReleaseKey; label: string }[] = [
   { key: "demo", label: "Possui demo" },
 ];
 
+// Etapas do slider de notícias, como o de conquistas na página do jogo.
+const NEWS_STEPS: { news: boolean | null; label: string }[] = [
+  { news: null, label: "Todos" },
+  { news: false, label: "Sem buscar notícias" },
+  { news: true, label: "Buscando notícias" },
+];
+
 // Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados, notícias
 // e salvar o filtro atual com um nome (um nome que já existe troca o filtro dele).
 export function MoreFilters({
@@ -166,23 +173,33 @@ export function MoreFilters({
         </label>
       </div>
       <div className="more-row">
-        <span className="muted">Notícias</span>
-        <select
-          value={extra.news == null ? "" : String(extra.news)}
-          onChange={(e) => {
-            const v = e.currentTarget.value;
-            setExtra({ ...extra, news: v === "" ? null : v === "true" });
-          }}
-          aria-label="Buscar notícias"
-        >
-          <option value="">Todos</option>
-          <option value="true">Buscando notícias</option>
-          <option value="false">Sem buscar notícias</option>
-        </select>
-      </div>
-      <div className="more-row">
         <span className="muted">Release</span>
         <ModeChips items={STAGES} modes={extra.stages} setModes={(stages) => setExtra({ ...extra, stages })} />
+      </div>
+      <div className="more-row">
+        <span className="muted">Notícias</span>
+        <div className="achievements">
+          <input
+            type="range"
+            min={0}
+            max={2}
+            step={1}
+            value={NEWS_STEPS.findIndex((s) => s.news === extra.news)}
+            onChange={(e) => setExtra({ ...extra, news: NEWS_STEPS[Number(e.currentTarget.value)].news })}
+            aria-label="Notícias"
+          />
+          <div className="steps">
+            {NEWS_STEPS.map((s) => (
+              <button
+                key={s.label}
+                className={s.news === extra.news ? "active" : ""}
+                onClick={() => setExtra({ ...extra, news: s.news })}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {extraCount(extra) > 0 && (
           <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
             Limpar filtros
