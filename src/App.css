@@ -1478,16 +1478,16 @@ button.play:hover {
   opacity: 0.4;
 }
 
-/* Slider de notícias em "Mais filtros" */
+/* Sliders de etapas em "Mais filtros" */
 
-.news-slider {
+.step-slider {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
 }
 
-.news-slider input[type="range"] {
+.step-slider input[type="range"] {
   width: 90px;
   accent-color: var(--accent);
   cursor: pointer;

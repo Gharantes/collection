@@ -1,4 +1,4 @@
-import type { ReleaseStage, Status } from "./db";
+import type { Achievements, ReleaseStage, Status } from "./db";
 import type { Mode } from "./games";
 
 // Estágio de release de um jogo; sem estágio, é lançado.
@@ -18,6 +18,8 @@ export type Extra = {
   onlyLinked: boolean;
   // true: só jogos com "Buscar notícias" ligado; false: só os com ele desligado.
   news: boolean | null;
+  // Meta de conquistas; "none" = não importam (sem meta).
+  achievements: Achievements | "none" | null;
   minRating: number | null;
   maxRating: number | null;
 };
@@ -28,6 +30,7 @@ export const NO_EXTRA: Extra = {
   stages: new Map(),
   onlyLinked: false,
   news: null,
+  achievements: null,
   minRating: null,
   maxRating: null,
 };
@@ -39,6 +42,9 @@ export const inRating = (rating: number | null, x: Extra) =>
 
 export const inNews = (g: { news: 0 | 1 }, x: Extra) => x.news == null || !!g.news === x.news;
 
+export const inAchievements = (g: { achievements: Achievements | null }, x: Extra) =>
+  x.achievements == null || (g.achievements ?? "none") === x.achievements;
+
 // Quantos filtros avançados estão ativos.
 export const extraCount = (x: Extra) =>
   x.lists.size +
@@ -47,7 +53,8 @@ export const extraCount = (x: Extra) =>
   Number(x.minRating != null) +
   Number(x.maxRating != null) +
   Number(x.onlyLinked) +
-  Number(x.news != null);
+  Number(x.news != null) +
+  Number(x.achievements != null);
 
 // Colunas da tabela que dá para esconder (imagem e nome ficam sempre).
 export const COLUMNS = {

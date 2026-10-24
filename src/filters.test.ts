@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { NO_EXTRA, fromSaved, hasRelease, inNews, toSaved } from "./filters.ts";
+import { NO_EXTRA, fromSaved, hasRelease, inAchievements, inNews, toSaved } from "./filters.ts";
 
 test("filtro salvo volta igual", () => {
   const extra = { ...NO_EXTRA, onlyLinked: true, minRating: 7, lists: new Map([[2, "exclude" as const]]) };
@@ -32,4 +32,11 @@ test("filtro de notícias", () => {
   assert.equal(inNews({ news: 0 }, { ...NO_EXTRA, news: true }), false);
   assert.equal(inNews({ news: 1 }, { ...NO_EXTRA, news: false }), false);
   assert.equal(fromSaved(toSaved({ ...NO_EXTRA, news: false }, "")).extra.news, false);
+});
+
+test("filtro de conquistas", () => {
+  assert.equal(inAchievements({ achievements: "hunting" }, NO_EXTRA), true);
+  assert.equal(inAchievements({ achievements: null }, { ...NO_EXTRA, achievements: "none" }), true);
+  assert.equal(inAchievements({ achievements: "hunting" }, { ...NO_EXTRA, achievements: "none" }), false);
+  assert.equal(inAchievements({ achievements: "platinum" }, { ...NO_EXTRA, achievements: "platinum" }), true);
 });

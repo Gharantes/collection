@@ -38,6 +38,7 @@ import {
   extraCount,
   fromSaved,
   hasRelease,
+  inAchievements,
   inNews,
   inRating,
   isColumn,
@@ -273,6 +274,7 @@ function App() {
         matchModes((k) => hasRelease(g, k), extra.stages) &&
         (!extra.onlyLinked || isLinked(g)) &&
         inNews(g, extra) &&
+        inAchievements(g, extra) &&
         inRating(g.rating, extra) &&
         g.name.toLowerCase().includes(name),
     ),

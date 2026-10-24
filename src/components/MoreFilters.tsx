@@ -83,14 +83,48 @@ const STAGES: { key: ReleaseKey; label: string }[] = [
   { key: "demo", label: "Possui demo" },
 ];
 
-// Etapas do slider de notícias; só a escolhida aparece, ao lado dele.
-const NEWS_STEPS: { news: boolean | null; label: string }[] = [
-  { news: null, label: "Todos" },
-  { news: false, label: "Sem buscar notícias" },
-  { news: true, label: "Buscando notícias" },
+// Slider de etapas; só a escolhida aparece, ao lado dele.
+function StepSlider<V>({
+  steps,
+  value,
+  onChange,
+  label,
+}: {
+  steps: { value: V; label: string }[];
+  value: V;
+  onChange: (v: V) => void;
+  label: string;
+}) {
+  return (
+    <label className="step-slider">
+      <input
+        type="range"
+        min={0}
+        max={steps.length - 1}
+        step={1}
+        value={steps.findIndex((s) => s.value === value)}
+        onChange={(e) => onChange(steps[Number(e.currentTarget.value)].value)}
+        aria-label={label}
+      />
+      {steps.find((s) => s.value === value)?.label}
+    </label>
+  );
+}
+
+const NEWS_STEPS: { value: Extra["news"]; label: string }[] = [
+  { value: null, label: "Todos" },
+  { value: false, label: "Sem buscar notícias" },
+  { value: true, label: "Buscando notícias" },
 ];
 
-// Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados, notícias
+const ACHIEVEMENT_STEPS: { value: Extra["achievements"]; label: string }[] = [
+  { value: null, label: "Todos" },
+  { value: "none", label: "Não importam" },
+  { value: "hunting", label: "Caçando platina" },
+  { value: "platinum", label: "Platinado" },
+];
+
+// Seção "Mais filtros": listas, status e release com incluir/exigir/excluir, só vinculados, notícias, conquistas
 // e salvar o filtro atual com um nome (um nome que já existe troca o filtro dele).
 export function MoreFilters({
   lists,
@@ -178,18 +212,21 @@ export function MoreFilters({
       </div>
       <div className="more-row">
         <span className="muted">Notícias</span>
-        <label className="news-slider">
-          <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={NEWS_STEPS.findIndex((s) => s.news === extra.news)}
-            onChange={(e) => setExtra({ ...extra, news: NEWS_STEPS[Number(e.currentTarget.value)].news })}
-            aria-label="Notícias"
-          />
-          {NEWS_STEPS.find((s) => s.news === extra.news)?.label}
-        </label>
+        <StepSlider
+          steps={NEWS_STEPS}
+          value={extra.news}
+          onChange={(news) => setExtra({ ...extra, news })}
+          label="Notícias"
+        />
+      </div>
+      <div className="more-row">
+        <span className="muted">Conquistas</span>
+        <StepSlider
+          steps={ACHIEVEMENT_STEPS}
+          value={extra.achievements}
+          onChange={(achievements) => setExtra({ ...extra, achievements })}
+          label="Conquistas"
+        />
         {extraCount(extra) > 0 && (
           <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
             Limpar filtros
