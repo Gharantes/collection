@@ -23,7 +23,8 @@
       "allow": [
         { "url": "https://store.steampowered.com/api/*" },
         { "url": "https://api.steampowered.com/ISteamNews/*" },
-        { "url": "https://api.steampowered.com/IStoreBrowseService/*" }
+        { "url": "https://api.steampowered.com/IStoreBrowseService/*" },
+        { "url": "https://*.steamstatic.com/*" }
       ]
     }
   ]

@@ -2068,3 +2068,93 @@ button.update-game {
 button.update-game:hover {
   color: var(--accent);
 }
+
+/* Screenshots */
+.screenshots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  max-width: 960px;
+}
+
+.screenshot {
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.screenshot:hover {
+  border-color: var(--accent);
+}
+
+.screenshot-dialog {
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  overflow: hidden;
+  color: var(--text);
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.screenshot-dialog::backdrop {
+  background: #000c;
+}
+
+.screenshot-dialog img {
+  display: block;
+  max-width: calc(100vw - 34px);
+  max-height: calc(100vh - 34px);
+}
+
+.screenshot-dialog > p {
+  padding: 40px 80px;
+}
+
+.screenshot-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #0008;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.screenshot-nav:hover {
+  background: #000c;
+}
+
+.screenshot-nav.prev {
+  left: 8px;
+}
+
+.screenshot-nav.next {
+  right: 8px;
+}
+
+.screenshot-count {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #0008;
+  color: #fff;
+  font-size: 12px;
+}

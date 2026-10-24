@@ -168,3 +168,26 @@ export const plainText = (text: string) =>
     .replace(/https?:\/\/\S+/g, "")
     .replace(/\s+/g, " ")
     .trim();
+
+export type SteamScreenshot = { id: number; path_thumbnail: string; path_full: string };
+
+// Screenshots da página do jogo na loja.
+export const fetchScreenshots = async (appId: number): Promise<SteamScreenshot[]> => {
+  const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=screenshots`, {
+    signal: AbortSignal.timeout(TIMEOUT),
+  });
+  if (!res.ok) throw new Error(`Steam retornou ${res.status}`);
+  const entry = ((await res.json()) as Record<string, ScreenshotDetails>)[appId];
+  if (!entry?.success || !entry.data || Array.isArray(entry.data)) return [];
+  return entry.data.screenshots ?? [];
+};
+
+type ScreenshotDetails = { success: boolean; data?: { screenshots?: SteamScreenshot[] } | [] };
+
+// Baixa a imagem só para a memória (blob URL), sem passar pelo cache do navegador.
+// Quem chama deve liberar com URL.revokeObjectURL.
+export const fetchImage = async (url: string): Promise<string> => {
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT * 2) });
+  if (!res.ok) throw new Error(`Steam retornou ${res.status}`);
+  return URL.createObjectURL(await res.blob());
+};
