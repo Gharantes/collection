@@ -93,8 +93,6 @@ function App() {
   const [sort, setSort] = useState<Sort>(() => readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"));
   const [openId, setOpenId] = useState<number | null>(routeId);
   const listScroll = useRef(0);
-  // Colunas de antes de carregar um filtro salvo; voltam ao limpar o filtro. Null quando nenhum está carregado.
-  const freeColumns = useRef<Column[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState<UpdateProgress | null>(null);
   const [updates, setUpdates] = useState<UpdateRun[]>(() => readJson(UPDATES, []));
@@ -189,21 +187,18 @@ function App() {
 
   // Carrega um filtro salvo, sem as listas que foram apagadas; a tabela passa a usar as colunas dele.
   const loadFilter = (f: SavedFilter) => {
-    const columnsNow = columns;
     const { extra, text, columns: saved } = fromSaved(f.filter);
     const ids = new Set(lists.map((l) => l.id));
     setExtra({ ...extra, lists: new Map([...extra.lists].filter(([id]) => ids.has(id))) });
     setNameFilter(text);
-    freeColumns.current ??= columnsNow;
     setColumns(saved);
   };
 
-  // Limpa o filtro salvo e volta às colunas de antes dele.
+  // Limpa o filtro salvo e volta às colunas padrão.
   const clearSaved = () => {
     setExtra(NO_EXTRA);
     setNameFilter("");
-    if (freeColumns.current) setColumns(freeColumns.current);
-    freeColumns.current = null;
+    setColumns(DEFAULT_COLUMNS);
   };
 
   const onDeleteFilter = (f: SavedFilter) =>
@@ -227,12 +222,7 @@ function App() {
   };
 
   useEffect(() => savePref("collection.view", view), [view]);
-  // Só guarda as colunas livres, para reabrir o app sem as de um filtro salvo. Mexer nos filtros até não
-  // baterem mais com o salvo faz das colunas atuais as livres.
-  useEffect(() => {
-    if (!currentSaved) freeColumns.current = null;
-    if (!freeColumns.current) savePref("collection.columns", JSON.stringify(columns));
-  }, [columns, currentSaved?.id]);
+  useEffect(() => savePref("collection.columns", JSON.stringify(columns)), [columns]);
   useEffect(() => savePref("collection.sort", sort), [sort]);
 
   // Atualiza preços, Early Access/Pre-release e demos, guarda as mudanças encontradas e avisa dos jogos que entraram no preço-alvo agora.
