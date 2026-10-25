@@ -185,13 +185,13 @@ function App() {
       setExtra({ ...extra, statuses: new Map([...extra.statuses].filter(([k]) => keys.has(k))) });
   }, [statuses]);
 
-  // Carrega um filtro salvo, sem as listas que foram apagadas; se ele tem colunas, a tabela passa a usá-las.
+  // Carrega um filtro salvo, sem as listas que foram apagadas; a tabela passa a usar as colunas dele.
   const loadFilter = (f: SavedFilter) => {
     const { extra, text, columns } = fromSaved(f.filter);
     const ids = new Set(lists.map((l) => l.id));
     setExtra({ ...extra, lists: new Map([...extra.lists].filter(([id]) => ids.has(id))) });
     setNameFilter(text);
-    if (columns) setColumns(columns);
+    setColumns(columns);
   };
 
   const onDeleteFilter = (f: SavedFilter) =>

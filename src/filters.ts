@@ -73,13 +73,13 @@ export const isColumn = (c: unknown): c is Column => typeof c === "string" && c 
 export const toSaved = (extra: Extra, text: string, columns?: Column[]) =>
   JSON.stringify({ ...extra, text, lists: [...extra.lists], statuses: [...extra.statuses], stages: [...extra.stages], columns });
 
-// Campos que faltam (filtros salvos antes de existirem) ficam no padrão; sem colunas, carregar não mexe nelas.
+// Campos que faltam (filtros salvos antes de existirem) ficam no padrão, inclusive as colunas.
 // Os antigos "Mostrar Early Access" e "Mostrar Pre-release" desmarcados viram excluir o estágio.
-export const fromSaved = (json: string): { extra: Extra; text: string; columns?: Column[] } => {
+export const fromSaved = (json: string): { extra: Extra; text: string; columns: Column[] } => {
   const { text = "", lists = [], statuses = [], stages = [], columns, showEarly, showPre, ...rest } = JSON.parse(json);
   const stageModes = new Map<ReleaseKey, Mode>(stages);
   if (showEarly === false) stageModes.set("early_access", "exclude");
   if (showPre === false) stageModes.set("pre_release", "exclude");
   const extra = { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes };
-  return Array.isArray(columns) ? { text, extra, columns: columns.filter(isColumn) } : { text, extra };
+  return { text, extra, columns: Array.isArray(columns) ? columns.filter(isColumn) : DEFAULT_COLUMNS };
 };
