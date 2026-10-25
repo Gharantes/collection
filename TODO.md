@@ -16,6 +16,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Botão "O que jogar?": sorteia um jogo vinculado (Steam ou executável) entre os mostrados (respeita a lista); mostra num dialog (capa, nome, listas) com "Ir à página" e "Reroll"
 - Filtro "Só vinculados" (jogos com Steam ou executável) em "Mais filtros"; a página "Vinculados" da sidebar saiu
 - Busca na Steam ao digitar (storesearch), salvando `steam_id`, imagem e preço
+- Adicionar jogo mais rápido: a busca limpa na hora e o jogo aparece sem esperar a release da Steam (buscada em paralelo)
 - Filtros por nome, status e lista; ordenação (nome, nota, preço, recentes)
 - Tema escuro fixo e visual novo
 - Coluna de listas compacta (chips + "+ Lista"); na tabela mostra 2 listas e "+N" para expandir

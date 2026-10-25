@@ -30,8 +30,12 @@ export function AddGame({ run, onError }: { run: Run; onError: (message: string)
 
   // Vindo da Steam, já marca a demo, Early Access/Pre-release e a release date; sem internet, fica sem.
   // Escolher uma demo adiciona o jogo completo com ela (ou só marca a demo nele, se já está na biblioteca).
-  const pick = (name: string, app: SteamApp | null) =>
-    run(async () => {
+  // A release é buscada junto com o item, e o jogo já aparece na lista sem esperar por ela.
+  const pick = async (name: string, app: SteamApp | null) => {
+    setTerm("");
+    let release = app && fetchRelease(app.id).catch(() => null);
+    let id = null as number | null;
+    await run(async () => {
       const item = app && (await fetchItem(app.id));
       let demo = item?.demo ?? null;
       if (app && item?.fullgame != null) {
@@ -40,23 +44,28 @@ export function AddGame({ run, onError }: { run: Run; onError: (message: string)
         const owner = await gameBySteamId(fullId);
         if (owner) {
           await setDemo(owner.id, demo);
-          setTerm("");
           await message(`${owner.name} já está na biblioteca; a demo foi marcada nele.`, { title: "Demo" });
           return;
         }
-        const full = await fetchItem(fullId);
-        const prices = await fetchPrices([fullId]).catch((): Record<number, SteamPrice | null> => ({}));
+        release = fetchRelease(fullId).catch(() => null);
+        const [full, prices] = await Promise.all([
+          fetchItem(fullId),
+          fetchPrices([fullId]).catch((): Record<number, SteamPrice | null> => ({})),
+        ]);
         name = full?.name ?? name.replace(/\s+demo$/i, "");
         app = { id: fullId, name, tiny_image: capsule(fullId), price: prices[fullId] ?? undefined };
       }
-      const { lastInsertId: id } = await addGame(name, app, demo);
-      setTerm("");
-      if (!app || id == null) return;
-      const release = await fetchRelease(app.id).catch(() => null);
-      if (!release?.stage) return;
-      await setReleaseStage(id, release.stage);
-      if (release.date) await setReleaseDate(id, release.date);
+      id = (await addGame(name, app, demo)).lastInsertId ?? null;
     })();
+    if (id == null || !release) return;
+    const gameId = id;
+    await run(async () => {
+      const r = await release;
+      if (!r?.stage) return;
+      await setReleaseStage(gameId, r.stage);
+      if (r.date) await setReleaseDate(gameId, r.date);
+    })();
+  };
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
