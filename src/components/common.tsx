@@ -14,17 +14,6 @@ export const useStatusLabels = () => Object.fromEntries(useStatuses().map((s) =>
 
 const RATINGS = Array.from({ length: 11 }, (_, i) => i);
 
-export const DRAG_TYPE = "application/x-collection-game";
-
-// Torna o elemento arrastável levando o id do jogo.
-export const dragGame = (gameId: number) => ({
-  draggable: true,
-  onDragStart: (e: React.DragEvent) => {
-    e.dataTransfer.setData(DRAG_TYPE, String(gameId));
-    e.dataTransfer.effectAllowed = "copy";
-  },
-});
-
 const BATCH = 48;
 // Último lote mostrado: ao voltar da página do jogo, a grade remonta com o mesmo tanto e a rolagem volta ao lugar.
 const lastBatch = { ids: "", count: BATCH };

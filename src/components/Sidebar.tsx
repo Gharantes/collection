@@ -3,18 +3,24 @@ import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { addList, deleteList, exportBackup, type BackupProgress, mergeDemos, resetLibrary, restoreBackup, setMembership, type List } from "../db";
+import { exportBackup, type BackupProgress, mergeDemos, resetLibrary, restoreBackup, type List, type SavedFilter } from "../db";
 import { parseBackup } from "../backup";
-import { DRAG_TYPE, type Run } from "./common";
+import type { Run } from "./common";
 import { BackupDialog, type BackupJob } from "./BackupDialog";
+import { ListDialog } from "./ListDialog";
 import { ResetDialog } from "./ResetDialog";
 import { StatusDialog } from "./StatusDialog";
 
-// Lista selecionada, "target" (jogos no preço-alvo), "stats" (estatísticas), "updates" (atualizações) ou null (todos).
-export type Filter = number | "target" | "stats" | "updates" | null;
+// "target" (jogos no preço-alvo), "stats" (estatísticas), "updates" (atualizações) ou null (todos).
+export type Filter = "target" | "stats" | "updates" | null;
 
 type Props = {
   lists: List[];
+  savedFilters: SavedFilter[];
+  // Filtro salvo igual ao atual, marcado na sidebar.
+  activeSaved: number | null;
+  onLoadSaved: (f: SavedFilter) => void;
+  onDeleteSaved: (f: SavedFilter) => void;
   filter: Filter;
   setFilter: (f: Filter) => void;
   total: number;
@@ -25,8 +31,8 @@ type Props = {
 
 const BACKUP_FILTER = [{ name: "Backup do Collection", extensions: ["json"] }];
 
-export function Sidebar({ lists, filter, setFilter, total, targetCount, listCount, run }: Props) {
-  const [dropList, setDropList] = useState<number | null>(null);
+export function Sidebar({ lists, savedFilters, activeSaved, onLoadSaved, onDeleteSaved, filter, setFilter, total, targetCount, listCount, run }: Props) {
+  const [editingLists, setEditingLists] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [editingStatuses, setEditingStatuses] = useState(false);
   const [backupJob, setBackupJob] = useState<BackupJob | null>(null);
@@ -46,28 +52,13 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
     action();
   };
 
+  // "Todos os jogos" não fica marcado quando um filtro salvo está.
   const nav = (f: Filter, label: string, count?: number) => (
-    <button className={filter === f ? "nav active" : "nav"} onClick={() => setFilter(f)}>
+    <button className={filter === f && (f !== null || activeSaved == null) ? "nav active" : "nav"} onClick={() => setFilter(f)}>
       <span>{label}</span>
       {count != null && <span className="count">{count}</span>}
     </button>
   );
-
-  const onAddList = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const name = String(new FormData(form).get("name") ?? "").trim();
-    if (!name) return;
-    run(async () => {
-      await addList(name);
-      form.reset();
-    })();
-  };
-
-  const onDeleteList = (list: List) => {
-    if (filter === list.id) setFilter(null);
-    run(() => deleteList(list.id))();
-  };
 
   // Roda exportar/importar mostrando a barra de progresso; no fim o dialog diz se deu certo.
   const withProgress = async (title: string, work: (progress: BackupProgress) => Promise<string>) => {
@@ -148,41 +139,33 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
         {nav("stats", "Estatísticas")}
         {nav("updates", "Atualizações")}
 
-        <h3>Listas</h3>
-        {lists.map((list) => (
-          <div
-            key={list.id}
-            className={dropList === list.id ? "nav-row drop" : "nav-row"}
-            onDragOver={(e) => {
-              if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
-              e.preventDefault();
-              setDropList(list.id);
-            }}
-            onDragLeave={() => setDropList(null)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDropList(null);
-              const gameId = Number(e.dataTransfer.getData(DRAG_TYPE));
-              if (gameId) run(() => setMembership(gameId, list.id, true))();
-            }}
-          >
-            {nav(list.id, list.name, listCount(list.id))}
-            <button className="nav-remove" onClick={() => onDeleteList(list)} aria-label={`Apagar lista ${list.name}`}>
-              ×
-            </button>
-          </div>
-        ))}
+        <h3>Filtros salvos</h3>
+        {savedFilters.length === 0 && <p className="sidebar-hint">Salve um em "Mais filtros".</p>}
+        {savedFilters.map((f) => {
+          const on = filter === null && f.id === activeSaved;
+          return (
+            <div key={f.id} className="nav-row">
+              <button
+                className={on ? "nav active" : "nav"}
+                onClick={() => onLoadSaved(f)}
+                title={on ? "Limpar o filtro" : "Carregar este filtro"}
+              >
+                <span>{f.name}</span>
+              </button>
+              <button className="nav-remove" onClick={() => onDeleteSaved(f)} aria-label={`Apagar filtro ${f.name}`}>
+                ×
+              </button>
+            </div>
+          );
+        })}
       </nav>
-
-      <form className="new-list" onSubmit={onAddList}>
-        <input name="name" placeholder="+ Nova lista" aria-label="Nova lista" required />
-      </form>
 
       <details className="menu settings" ref={settings}>
         <summary>Configurações</summary>
         <div className="menu-items">
           <button onClick={fromMenu(onExport)}>Exportar backup</button>
           <button onClick={fromMenu(onImport)}>Importar backup</button>
+          <button onClick={fromMenu(() => setEditingLists(true))}>Registrar Listas</button>
           <button onClick={fromMenu(() => setEditingStatuses(true))}>Registrar Status</button>
           <button onClick={fromMenu(onMergeDemos)}>Juntar demos</button>
           <button onClick={fromMenu(onCheckUpdate)}>Procurar atualizações</button>
@@ -192,6 +175,7 @@ export function Sidebar({ lists, filter, setFilter, total, targetCount, listCoun
         </div>
       </details>
       {resetting && <ResetDialog onConfirm={onReset} onClose={() => setResetting(false)} />}
+      {editingLists && <ListDialog lists={lists} listCount={listCount} run={run} onClose={() => setEditingLists(false)} />}
       {editingStatuses && <StatusDialog run={run} onClose={() => setEditingStatuses(false)} />}
       {backupJob && <BackupDialog job={backupJob} onClose={() => setBackupJob(null)} />}
     </aside>

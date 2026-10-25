@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Game, List } from "../db";
 import { COLUMNS, type Column } from "../filters";
 import { formatRelease } from "../games";
-import { ListChips, Medal, Price, RatingSelect, StageBand, StatusSelect, dragGame, useBatches, type Run } from "./common";
+import { ListChips, Medal, Price, RatingSelect, StageBand, StatusSelect, useBatches, type Run } from "./common";
 
 type Props = {
   games: Game[];
@@ -38,7 +38,6 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
             <tr
               key={game.id}
               className={game.owned ? undefined : "not-owned"}
-              {...dragGame(game.id)}
               onClick={(e) => {
                 // Cliques nos controles da linha (selects, chips, botões) não abrem o detalhe.
                 if (!(e.target as HTMLElement).closest("button, select, input, a, label")) onOpen(game.id);

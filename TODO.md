@@ -30,7 +30,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Menu "Configurações" na sidebar: exportar e importar backup em JSON, "Resetar biblioteca" (confirma digitando RESET_ALL)
 - Exportar/importar backup mostram um dialog com barra de progresso por etapa; só fecha no fim, mostrando onde salvou (ou o erro)
 - Histórico de status com datas editáveis: começou, voltou ao backlog, retomou, terminou
-- Arrastar card ou linha para uma lista da sidebar
+- Arrastar card ou linha para uma lista da sidebar (removido junto com as listas da sidebar)
 - "Vincular" (Steam ou executável) e "Abrir"; se o jogo sumir, volta a "Vincular"
 - Botões "Loja Steam" (abre no Firefox, ou no navegador padrão) e "Abrir pasta" (só se vinculado) na página do jogo; ficam numa linha abaixo, como texto sublinhado
 - Backup de saves por jogo, só manual (fazer, restaurar, apagar)
@@ -46,6 +46,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Release date em texto livre, como na Steam (data, "Q1 2027" ou só o ano)
 - Seção "Mais filtros" na busca: listas e status com incluir/exigir/excluir (clique alterna, botão direito limpa), release (Lançado, Early Access, Pre-release, Possui demo) também com incluir/exigir/excluir, no lugar dos antigos checkboxes "Mostrar Early Access/Pre-release"; o select de status foi para lá. Nota mínima e máxima (sem nota fica de fora)
 - Filtros salvos: "Salvar filtro atual" com nome em "Mais filtros" (texto da busca + mais filtros + colunas da tabela; mesmo nome troca; carregar um filtro antigo, sem colunas, não mexe nelas), chips sempre visíveis entre os filtros e a grid/tabela (clique carrega, clique no marcado limpa, × apaga); vão no banco e no backup
+- Sidebar mostra os filtros salvos no lugar das listas (clique carrega em "Todos os jogos" e o título vira o nome do filtro, clique no marcado limpa, × apaga); os chips abaixo dos filtros saíram. Listas são criadas e apagadas em "Registrar Listas", em Configurações
 - Grade mais leve ao tirar filtros: capas com `loading="lazy"` e `decoding="async"`, cards com `content-visibility: auto`; grade e tabela mostram 48 jogos por vez e trazem mais ao rolar perto do fim
 - Slider de conquistas na página do jogo: "Não importam", "Caçando platina" e "Platinado"
 - Medalha em roseta (como a da Steam) no canto de cima à direita da capa nos cards (a nota foi para baixo à direita) e na miniatura da tabela: dourada com brilho se platinado, cinza se caçando platina

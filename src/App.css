@@ -239,10 +239,10 @@ button.danger:hover {
   color: var(--bad);
 }
 
-.new-list input {
-  width: 100%;
-  background: transparent;
-  border-style: dashed;
+.sidebar-hint {
+  margin: 0 10px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .main {
@@ -421,35 +421,6 @@ button.more-toggle.on {
 select.rating-bound {
   padding: 4px 8px;
   font-size: 13px;
-}
-
-.saved-filters {
-  margin: -8px 0 20px;
-}
-
-.chip.saved-filter {
-  padding: 1px 2px;
-  background: transparent;
-  border-color: var(--border);
-  color: var(--muted);
-}
-
-.chip.saved-filter:hover,
-.chip.saved-filter.on {
-  color: var(--accent);
-  border-color: #6aa8ff55;
-}
-
-.chip.saved-filter.on {
-  background: var(--accent-soft);
-}
-
-.chip-load {
-  background: transparent;
-  border: none;
-  color: inherit;
-  padding: 0 4px 0 8px;
-  font-size: 12px;
 }
 
 .save-filter {
@@ -1437,16 +1408,7 @@ button.play:hover {
   font-weight: 600;
 }
 
-/* Soltar jogo numa lista da sidebar */
-
-.nav-row.drop .nav {
-  background: var(--accent-soft);
-  color: var(--accent);
-  outline: 2px dashed var(--accent);
-  outline-offset: -2px;
-}
-
-.games tr[draggable="true"] {
+.games tbody tr {
   cursor: pointer;
 }
 

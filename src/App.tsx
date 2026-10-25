@@ -200,12 +200,21 @@ function App() {
         await deleteSavedFilter(f.id);
     })();
 
-  // O filtro salvo igual ao atual, para o chip dele aparecer marcado (as colunas não contam).
+  // O filtro salvo igual ao atual, para ele aparecer marcado na sidebar (as colunas não contam).
   const current = toSaved(extra, nameFilter);
   const currentSaved = savedFilters.find((f) => {
     const saved = fromSaved(f.filter);
     return toSaved(saved.extra, saved.text) === current;
   });
+
+  // Clique na sidebar: abre "Todos os jogos" com o filtro; clicar no marcado limpa.
+  const onLoadSaved = (f: SavedFilter) => {
+    if (filter === null && f.id === currentSaved?.id) {
+      setExtra(NO_EXTRA);
+      setNameFilter("");
+    } else loadFilter(f);
+    selectFilter(null);
+  };
 
   useEffect(() => savePref("collection.view", view), [view]);
   useEffect(() => savePref("collection.columns", JSON.stringify(columns)), [columns]);
@@ -257,12 +266,7 @@ function App() {
   const listCount = (listId: number) => games.filter((g) => inList(g.id, listId)).length;
 
   const isLinked = (g: Game) => g.launch != null;
-  const inFilter = (g: Game) =>
-    filter == null || filter === "stats" || filter === "updates"
-      ? true
-      : filter === "target"
-        ? hitsTarget(g)
-        : inList(g.id, filter);
+  const inFilter = (g: Game) => filter !== "target" || hitsTarget(g);
 
   const name = nameFilter.trim().toLowerCase();
   const shown = sortGames(
@@ -291,20 +295,22 @@ function App() {
 
   const title =
     filter == null
-      ? "Todos os jogos"
+      ? (currentSaved?.name ?? "Todos os jogos")
       : filter === "target"
         ? "No preço-alvo"
         : filter === "stats"
           ? "Estatísticas"
-          : filter === "updates"
-            ? "Atualizações"
-            : (lists.find((l) => l.id === filter)?.name ?? "");
+          : "Atualizações";
 
   return (
     <StatusesContext.Provider value={statuses}>
     <div className="layout">
       <Sidebar
         lists={lists}
+        savedFilters={savedFilters}
+        activeSaved={currentSaved?.id ?? null}
+        onLoadSaved={onLoadSaved}
+        onDeleteSaved={onDeleteFilter}
         filter={filter}
         setFilter={selectFilter}
         total={games.length}
@@ -407,28 +413,6 @@ function App() {
               setExtra={setExtra}
               onSave={(name) => run(() => saveFilter(name, toSaved(extra, nameFilter, columns)))()}
             />
-          )}
-
-          {savedFilters.length > 0 && (
-            <div className="chips saved-filters">
-              {savedFilters.map((f) => {
-                const on = f.id === currentSaved?.id;
-                return (
-                  <span key={f.id} className={`chip saved-filter ${on ? "on" : ""}`}>
-                    <button
-                      className="chip-load"
-                      onClick={() => (on ? (setExtra(NO_EXTRA), setNameFilter("")) : loadFilter(f))}
-                      title={on ? "Limpar o filtro" : "Carregar este filtro"}
-                    >
-                      {f.name}
-                    </button>
-                    <button className="chip-remove" onClick={() => onDeleteFilter(f)} aria-label={`Apagar filtro ${f.name}`}>
-                      ×
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
           )}
 
           <ErrorBanner error={error} onClose={() => setError(null)} />
