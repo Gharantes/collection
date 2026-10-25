@@ -312,7 +312,14 @@ function App() {
         onLoadSaved={onLoadSaved}
         onDeleteSaved={onDeleteFilter}
         filter={filter}
-        setFilter={selectFilter}
+        setFilter={(f) => {
+          // "Todos os jogos" na página de um filtro salvo limpa os filtros.
+          if (f === null && filter === null && currentSaved) {
+            setExtra(NO_EXTRA);
+            setNameFilter("");
+          }
+          selectFilter(f);
+        }}
         total={games.length}
         targetCount={games.filter(hitsTarget).length}
         listCount={listCount}
