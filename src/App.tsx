@@ -421,6 +421,11 @@ function App() {
               extra={extra}
               setExtra={setExtra}
               onSave={(name) => run(() => saveFilter(name, toSaved(extra, nameFilter, columns)))()}
+              onClear={() => {
+                // Saindo de um filtro salvo, as colunas voltam ao padrão, como em "Todos os jogos".
+                if (currentSaved) setColumns(DEFAULT_COLUMNS);
+                setExtra(NO_EXTRA);
+              }}
             />
           )}
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { List } from "../db";
-import { NO_EXTRA, extraCount, type Extra, type ReleaseKey } from "../filters";
+import { extraCount, type Extra, type ReleaseKey } from "../filters";
 import type { Mode } from "../games";
 import { useStatuses } from "./common";
 
@@ -131,11 +131,13 @@ export function MoreFilters({
   extra,
   setExtra,
   onSave,
+  onClear,
 }: {
   lists: List[];
   extra: Extra;
   setExtra: (x: Extra) => void;
   onSave: (name: string) => void;
+  onClear: () => void;
 }) {
   const statuses = useStatuses();
   const [saveName, setSaveName] = useState("");
@@ -228,7 +230,7 @@ export function MoreFilters({
           label="Conquistas"
         />
         {extraCount(extra) > 0 && (
-          <button className="ghost clear-filters" onClick={() => setExtra(NO_EXTRA)}>
+          <button className="ghost clear-filters" onClick={onClear}>
             Limpar filtros
           </button>
         )}
