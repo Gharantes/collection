@@ -74,10 +74,13 @@ export const setDemo = async (id: number, demo: number | null) =>
 // Progresso de uma atualização: quantos jogos já foram pesquisados de quantos.
 export type Progress = (done: number, total: number) => void;
 
+// Jogos da Steam que entram nas atualizações; os abandonados não são mais acompanhados.
+const tracked = async () => (await listGames()).filter((g) => g.steam_id != null && g.status !== "abandoned");
+
 // Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
 export const refreshPrices = async (onProgress?: Progress) => {
   const database = await getDb();
-  const games = (await listGames()).filter((g) => g.steam_id != null);
+  const games = await tracked();
   onProgress?.(0, games.length);
   const prices = await fetchPrices(
     games.map((g) => g.steam_id!),
@@ -106,7 +109,7 @@ export const refreshPrices = async (onProgress?: Progress) => {
 // Jogos que falharam (sem internet, erro da Steam) ficam como estão.
 export const refreshReleases = async (onProgress?: Progress) => {
   const database = await getDb();
-  const games = (await listGames()).filter((g) => g.steam_id != null && g.release_stage != null);
+  const games = (await tracked()).filter((g) => g.release_stage != null);
   onProgress?.(0, games.length);
   for (const [i, game] of games.entries()) {
     const r = await fetchRelease(game.steam_id!).catch(() => null);
@@ -120,7 +123,7 @@ export const refreshReleases = async (onProgress?: Progress) => {
 
 // Confere na Steam se os jogos que o usuário não tem ganharam ou perderam a demo.
 export const refreshDemos = async (onProgress?: Progress) => {
-  const games = (await listGames()).filter((g) => g.steam_id != null && !g.owned);
+  const games = (await tracked()).filter((g) => !g.owned);
   onProgress?.(0, games.length);
   const items = await fetchItems(
     games.map((g) => g.steam_id!),
