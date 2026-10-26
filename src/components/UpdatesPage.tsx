@@ -13,12 +13,13 @@ type Props = {
   progress: UpdateProgress | null;
   exists: (gameId: number) => boolean;
   onRefresh: () => void;
+  onClear: () => void;
   onOpen: (gameId: number) => void;
 };
 
 const when = (ms: number) => new Date(ms).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-export function UpdatesPage({ runs, lastAt, refreshing, progress, exists, onRefresh, onOpen }: Props) {
+export function UpdatesPage({ runs, lastAt, refreshing, progress, exists, onRefresh, onClear, onOpen }: Props) {
   return (
     <div className="updates">
       <div className="updates-head">
@@ -26,6 +27,11 @@ export function UpdatesPage({ runs, lastAt, refreshing, progress, exists, onRefr
           {refreshing ? "Atualizando…" : "Atualizar Dados"}
         </button>
         <span className="muted">{lastAt ? `Última atualização: ${when(lastAt)}` : "Nunca atualizado"}</span>
+        {runs.length > 0 && (
+          <button className="updates-clear" onClick={onClear} disabled={refreshing}>
+            Limpar histórico
+          </button>
+        )}
       </div>
 
       {progress && (

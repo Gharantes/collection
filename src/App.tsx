@@ -257,6 +257,12 @@ function App() {
     setProgress(null);
   };
 
+  const onClearUpdates = async () => {
+    if (!(await ask("Apagar o histórico de mudanças das atualizações?", { title: "Atualizações", kind: "warning" }))) return;
+    savePref(UPDATES, "[]");
+    setUpdates([]);
+  };
+
   // Atualiza os preços sozinho uma vez por dia, ao abrir o app.
   useEffect(() => {
     if (Date.now() - readTime(PRICES_AT) > DAY) onRefresh();
@@ -366,6 +372,7 @@ function App() {
               progress={progress}
               exists={(id) => games.some((g) => g.id === id)}
               onRefresh={onRefresh}
+              onClear={onClearUpdates}
               onOpen={openGame}
             />
           </>

@@ -1934,6 +1934,10 @@ button.update-button {
   border-color: var(--accent);
 }
 
+button.updates-clear {
+  margin-left: auto;
+}
+
 button.update-button:disabled {
   opacity: 0.6;
   cursor: default;
