@@ -61,6 +61,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Demo dentro da página do jogo (`demo_steam_id`, vai no backup): ao adicionar da Steam marca a demo sozinho; escolher uma demo adiciona o jogo completo (ou marca a demo nele). Botão verde "▶ Jogar demo" (como o da Steam; só se não tem o jogo e a demo está instalada na Steam) abre pela Steam e o tempo soma no jogo. Link "Demo na Steam" (loja da demo) sempre que o jogo tem demo. Etapa "Demos" no "Atualizar Dados" (só jogos que não tem): "Ganhou demo", "Demo removida". "Juntar demos" em Configurações, com barra de progresso: junta páginas de demo com a do jogo completo (ou transforma a demo nele). Usa a `IStoreBrowseService/GetItems` da Steam, em lotes de 100
 - "Atualizar Dados" ignora jogos com status Abandonado (preços, Early Access/Pre-release e demos)
 - Botão "Limpar histórico" na aba Atualizações (confirma antes) apaga as mudanças guardadas
+- Etapa Early Access/Pre-release do "Atualizar Dados" usa o estado da `GetItems` em lote (o appdetails demorava a tirar o Early Access); a data do Pre-release segue do appdetails
 
 ## Recusado
 

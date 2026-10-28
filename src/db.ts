@@ -106,18 +106,22 @@ export const refreshPrices = async (onProgress?: Progress) => {
 };
 
 // Confere na Steam os jogos marcados como Early Access/Pre-release e atualiza o estado e a release date.
-// Jogos que falharam (sem internet, erro da Steam) ficam como estão.
+// O estado vem em lote do GetItems (o appdetails às vezes demora a tirar o Early Access); a data do
+// Pre-release vem do appdetails, um por vez. Jogos que falharam (sem internet, erro da Steam) ficam como estão.
 export const refreshReleases = async (onProgress?: Progress) => {
   const database = await getDb();
   const games = (await tracked()).filter((g) => g.release_stage != null);
   onProgress?.(0, games.length);
+  const items = await fetchItems(games.map((g) => g.steam_id!));
   for (const [i, game] of games.entries()) {
-    const r = await fetchRelease(game.steam_id!).catch(() => null);
+    const item = items[game.steam_id!];
+    if (item) {
+      await database.execute("UPDATE games SET release_stage = $1 WHERE id = $2", [item.stage, game.id]);
+      const r = item.stage === "pre_release" ? await fetchRelease(game.steam_id!).catch(() => null) : null;
+      if (r?.stage === "pre_release" && r.date)
+        await database.execute("UPDATE games SET release_date = $1 WHERE id = $2", [r.date, game.id]);
+    }
     onProgress?.(i + 1, games.length);
-    if (!r) continue;
-    await database.execute("UPDATE games SET release_stage = $1 WHERE id = $2", [r.stage, game.id]);
-    if (r.stage === "pre_release" && r.date)
-      await database.execute("UPDATE games SET release_date = $1 WHERE id = $2", [r.date, game.id]);
   }
 };
 

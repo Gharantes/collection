@@ -51,7 +51,14 @@ export const capsule = (appId: number) =>
   `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/capsule_231x87.jpg`;
 
 // Demo aponta para o jogo completo (fullgame); jogo aponta para a sua demo, se tiver.
-export type SteamItem = { id: number; name: string; fullgame: number | null; demo: number | null };
+// stage: "em breve" é Pre-release, senão Early Access ou lançado (sem a data; essa vem do fetchRelease).
+export type SteamItem = {
+  id: number;
+  name: string;
+  fullgame: number | null;
+  demo: number | null;
+  stage: SteamRelease["stage"];
+};
 
 type StoreItem = {
   id: number;
@@ -60,6 +67,7 @@ type StoreItem = {
   // 1 = demo.
   type?: number;
   related_items?: { parent_appid?: number; demo_appid?: number[] };
+  release?: { is_coming_soon?: boolean; is_early_access?: boolean };
 };
 
 // Nome, demo e jogo completo por appid, em lotes de 100 (essa API aceita vários appids de uma vez).
@@ -70,7 +78,7 @@ export const fetchItems = async (appIds: number[], onProgress?: (done: number) =
     const input = {
       ids: appIds.slice(i, i + 100).map((appid) => ({ appid })),
       context: { language: "english", country_code: "BR" },
-      data_request: { include_related_items: true },
+      data_request: { include_related_items: true, include_release: true },
     };
     const res = await fetch(
       `https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=${encodeURIComponent(JSON.stringify(input))}`,
@@ -85,6 +93,7 @@ export const fetchItems = async (appIds: number[], onProgress?: (done: number) =
         name: it.name,
         fullgame: it.type === 1 ? (related.parent_appid ?? null) : null,
         demo: related.demo_appid?.[0] ?? null,
+        stage: it.release?.is_coming_soon ? "pre_release" : it.release?.is_early_access ? "early_access" : null,
       };
     }
     onProgress?.(Math.min(i + 100, appIds.length));
