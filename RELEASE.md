@@ -1,6 +1,8 @@
 # Como fazer release
 
-O workflow [release.yml](.github/workflows/release.yml) roda quando uma tag `v*` é enviada ao GitHub. Ele gera os instaladores de Windows, Linux e macOS, assina a atualização e publica tudo numa release com o `latest.json` que o botão **Procurar atualizações** usa.
+O workflow [release.yml](.github/workflows/release.yml) roda quando uma tag `v*` é enviada ao GitHub. Ele gera os instaladores de Windows (Linux e macOS estão desligados por enquanto), assina a atualização e publica tudo numa release com o `latest.json` que o botão **Procurar atualizações** usa.
+
+Ele reaproveita o cache de build do Rust que o [warm-cache.yml](.github/workflows/warm-cache.yml) salva na `main` sempre que `src-tauri/` ou `package-lock.json` mudam, então só recompila o próprio app (poucos minutos em vez de ~11). Execuções em tags não compartilham cache entre si, só com a `main`. Se uma release ficar lenta, confira se a última execução de **Aquecer cache do build** passou, ou rode uma pela aba Actions.
 
 ## Jeito automático
 
@@ -56,10 +58,10 @@ Se a versão dos arquivos ainda não foi publicada, passe ela mesma (ex.: `npm r
 
    A tag precisa bater com a versão dos arquivos.
 
-5. **Acompanhe o build** na aba Actions do GitHub (workflow *Release*). Leva alguns minutos por plataforma.
+5. **Acompanhe o build** na aba Actions do GitHub (workflow *Release*). Leva uns 3 a 4 minutos com o cache.
 
 6. **Confira a release** em https://github.com/Gharantes/collection/releases:
-   - tem os instaladores (`.msi`/`.exe`, `.deb`/`.AppImage`/`.rpm`, `.dmg`);
+   - tem os instaladores (`.msi` e `.exe`);
    - tem os arquivos `.sig` e o `latest.json`;
    - opcional: edite a descrição com o que mudou.
 

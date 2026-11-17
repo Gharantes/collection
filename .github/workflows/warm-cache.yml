@@ -1,0 +1,40 @@
+name: Aquecer cache do build
+
+# Compila o app de Windows na main e salva o cache do Rust lá, onde o release.yml (que roda nas tags)
+# consegue restaurar: a release então só recompila o app, não todas as dependências.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - "package-lock.json"
+      - ".github/workflows/warm-cache.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: warm-cache
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Mesmas configurações do release.yml, para o cache bater com o build dele.
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          shared-key: windows
+
+      - run: npm ci
+
+      # O mesmo build de release do `tauri build`, sem os instaladores (que precisam da chave de assinatura).
+      - run: npx tauri build --no-bundle

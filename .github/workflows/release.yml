@@ -5,26 +5,14 @@ on:
     tags: ["v*"]
 
 jobs:
+  # Só Windows por enquanto. Linux e macOS podem voltar como matrix (eram ubuntu-22.04, que precisa
+  # instalar os pacotes do webkit2gtk, e macos-latest com --target universal-apple-darwin).
   build:
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: ubuntu-22.04
-          - platform: windows-latest
-          - platform: macos-latest
-            args: --target universal-apple-darwin
-    runs-on: ${{ matrix.platform }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Dependências do Linux
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - uses: actions/setup-node@v4
         with:
@@ -32,12 +20,14 @@ jobs:
           cache: npm
 
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      # Restaura o cache que o warm-cache.yml salva na main: uma execução não usa caches salvos em
+      # outras tags, então esta não salva o seu.
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          shared-key: windows
+          save-if: false
 
       - run: npm ci
 
@@ -50,4 +40,3 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: Collection ${{ github.ref_name }}
           releaseDraft: false
-          args: ${{ matrix.args }}
