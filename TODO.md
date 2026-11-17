@@ -39,6 +39,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Página de estatísticas
 - Atualização do app pelas releases do GitHub: só manual, pelo botão "Procurar atualizações" em Configurações (antes procurava ao abrir)
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`
+- Release só para Windows (Linux e macOS desligados por enquanto), reaproveitando o cache de build do Rust aquecido na `main` (warm-cache.yml)
 - `App.tsx` dividido em componentes
 - Botão para fechar a mensagem de erro
 - Checkboxes "Early Access" e "Pre-release" (um ou outro) na página do jogo; marcar um libera a "Release Date"
