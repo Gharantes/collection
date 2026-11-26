@@ -59,6 +59,7 @@ export const extraCount = (x: Extra) =>
 // Colunas da tabela que dá para esconder (imagem e nome ficam sempre).
 export const COLUMNS = {
   price: "Preço",
+  gg: "gg.deals",
   release: "Release Date",
   status: "Status",
   rating: "Nota",

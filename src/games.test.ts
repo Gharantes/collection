@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Game } from "./db";
-import { demoChanges, discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
+import { demoChanges, discount, ggChanges, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
   ({ id, name, rating, price, track_price: 1 }) as Game;
@@ -120,5 +120,16 @@ test("mudanças de demo", () => {
   assert.deepEqual(
     demoChanges(before, after).map((c) => `${c.name}: ${c.text}`),
     ["j1: Ganhou demo", "j2: Demo removida", "j3: Demo mudou"],
+  );
+});
+
+test("gg.deals: mudanças e preço-alvo pelo mais barato", () => {
+  const g = (gg_retail: number | null, gg_keyshop: number | null) =>
+    ({ id: 1, name: "j1", price: 10000, price_initial: 10000, currency: "BRL", target_price: 8000, target_discount: null, track_price: 1, gg_retail, gg_keyshop }) as Game;
+  assert.equal(hitsTarget(g(9000, null)), false);
+  assert.equal(hitsTarget(g(9000, 7678)), true);
+  assert.deepEqual(
+    ggChanges([g(9000, null)], [g(7929, 7678)]).map((c) => `${c.kind} ${c.text}`),
+    ["down gg.deals, lojas oficiais: R$ 79,29 (era R$ 90,00)", "down gg.deals, keyshops: R$ 76,78 (novo)"],
   );
 });

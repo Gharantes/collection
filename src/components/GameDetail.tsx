@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   deleteEvent,
+  refreshGgDeals,
   refreshPrices,
   setAchievements,
   setOwned,
@@ -19,7 +20,9 @@ import {
   type ReleaseStage,
   type StatusEvent,
 } from "../db";
-import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, toCents } from "../games";
+import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, money, toCents } from "../games";
+import { GG_KEY } from "../ggdeals";
+import { readText } from "../prefs";
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
 import { LinksPanel } from "./LinksPanel";
 import { NewsPanel } from "./NewsPanel";
@@ -157,6 +160,18 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
             </p>
           )}
+          {!!game.track_price && (game.gg_retail != null || game.gg_keyshop != null) && (
+            <p className="gg-prices">
+              <span>
+                <span className="muted">Lojas oficiais</span> {money(game.gg_retail, "BRL")}
+                {game.gg_retail_low != null && <span className="muted"> · menor {money(game.gg_retail_low, "BRL")}</span>}
+              </span>
+              <span>
+                <span className="muted">Keyshops</span> {money(game.gg_keyshop, "BRL")}
+                {game.gg_keyshop_low != null && <span className="muted"> · menor {money(game.gg_keyshop_low, "BRL")}</span>}
+              </span>
+            </p>
+          )}
 
           <div className="launch">
             {game.launch ? (
@@ -197,6 +212,9 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
             >
               Loja Steam
             </button>
+            {!!game.track_price && game.gg_url && (
+              <button onClick={() => run(() => invoke("open_link", { url: game.gg_url }))()}>gg.deals</button>
+            )}
             {game.demo_steam_id != null && (
               <button onClick={() => run(() => invoke("open_store", { appId: game.demo_steam_id }))()}>Demo na Steam</button>
             )}
@@ -278,7 +296,11 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                       run(async () => {
                         await setTrackPrice(game.id, on);
                         // O preço guardado pode estar velho: busca o atual na hora.
-                        if (on) await refreshPrices(undefined, [{ ...game, track_price: 1 }]);
+                        if (!on) return;
+                        const marked = [{ ...game, track_price: 1 as const }];
+                        await refreshPrices(undefined, marked);
+                        const key = readText(GG_KEY);
+                        if (key) await refreshGgDeals(key, undefined, marked);
                       })();
                     }}
                   />

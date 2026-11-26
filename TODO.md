@@ -66,6 +66,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Linha "Sem status" no "Registrar Status", com os mesmos toggles para os jogos sem status (começa tudo ligado; vai no backup)
 - Botão "Limpar histórico" na aba Atualizações (confirma antes) apaga as mudanças guardadas
 - Preço por jogo, no lugar do toggle "Preços" por status: checkbox "Quero comprar" (linha "Compra", acima do Alerta, só em jogos da Steam). Só os marcados têm o preço conferido no "Atualizar Dados" e mostrado (página, tabela, selo de desconto nos cards, ordenação, preço-alvo); o Alerta só aparece marcado. Marcar busca o preço na hora. Todos os jogos começam desmarcados (inclusive os que já existiam e os de backups antigos); vai no backup
+- gg.deals: chave da API em Configurações > "gg.deals" (fica no localStorage, fora do backup). Com ela, o "Atualizar Dados" ganha a etapa "gg.deals" (depois de Preços, só jogos com "Quero comprar"): menor preço atual e histórico da versão Steam nas lojas oficiais e nas keyshops (`/v1/prices/by-steam-app-id`, região br, lotes de 100). Página do jogo mostra os dois (e o menor histórico) e o link "gg.deals"; coluna "gg.deals" opcional na tabela; mudanças entram nas Atualizações; o preço-alvo vale para o mais barato entre Steam, lojas oficiais e keyshops (o % off continua só da Steam)
 - Etapa Early Access/Pre-release do "Atualizar Dados" usa o estado da `GetItems` em lote (o appdetails demorava a tirar o Early Access); a data do Pre-release segue do appdetails
 
 ## Recusado

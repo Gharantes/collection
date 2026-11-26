@@ -10,6 +10,7 @@ import { BackupDialog, type BackupJob } from "./BackupDialog";
 import { ListDialog } from "./ListDialog";
 import { ResetDialog } from "./ResetDialog";
 import { StatusDialog } from "./StatusDialog";
+import { GgDealsDialog } from "./GgDealsDialog";
 
 // "target" (jogos no preço-alvo), "stats" (estatísticas), "updates" (atualizações) ou null (todos).
 export type Filter = "target" | "stats" | "updates" | null;
@@ -35,6 +36,7 @@ export function Sidebar({ lists, savedFilters, activeSaved, onLoadSaved, onDelet
   const [editingLists, setEditingLists] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [editingStatuses, setEditingStatuses] = useState(false);
+  const [editingGg, setEditingGg] = useState(false);
   const [backupJob, setBackupJob] = useState<BackupJob | null>(null);
   const settings = useRef<HTMLDetailsElement>(null);
 
@@ -167,6 +169,7 @@ export function Sidebar({ lists, savedFilters, activeSaved, onLoadSaved, onDelet
           <button onClick={fromMenu(onImport)}>Importar backup</button>
           <button onClick={fromMenu(() => setEditingLists(true))}>Registrar Listas</button>
           <button onClick={fromMenu(() => setEditingStatuses(true))}>Registrar Status</button>
+          <button onClick={fromMenu(() => setEditingGg(true))}>gg.deals</button>
           <button onClick={fromMenu(onMergeDemos)}>Juntar demos</button>
           <button onClick={fromMenu(onCheckUpdate)}>Procurar atualizações</button>
           <button className="menu-danger" onClick={fromMenu(() => setResetting(true))}>
@@ -177,6 +180,7 @@ export function Sidebar({ lists, savedFilters, activeSaved, onLoadSaved, onDelet
       {resetting && <ResetDialog onConfirm={onReset} onClose={() => setResetting(false)} />}
       {editingLists && <ListDialog lists={lists} listCount={listCount} run={run} onClose={() => setEditingLists(false)} />}
       {editingStatuses && <StatusDialog run={run} onClose={() => setEditingStatuses(false)} />}
+      {editingGg && <GgDealsDialog run={run} onClose={() => setEditingGg(false)} />}
       {backupJob && <BackupDialog job={backupJob} onClose={() => setBackupJob(null)} />}
     </aside>
   );

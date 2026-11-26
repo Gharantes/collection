@@ -1,6 +1,7 @@
 import Database from "@tauri-apps/plugin-sql";
 import { capsule, fetchItems, fetchPrices, fetchRelease, type SteamApp } from "./steam";
 import type { Backup } from "./backup";
+import { fetchGgDeals } from "./ggdeals";
 
 // Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
 export type Status = string;
@@ -38,6 +39,12 @@ export type Game = {
   news: 0 | 1;
   // "Quero comprar": o "Atualizar Dados" confere o preço e ele aparece no app.
   track_price: 0 | 1;
+  // gg.deals (versão Steam), em centavos: atual e menor histórico nas lojas oficiais e nas keyshops.
+  gg_retail: number | null;
+  gg_keyshop: number | null;
+  gg_retail_low: number | null;
+  gg_keyshop_low: number | null;
+  gg_url: string | null;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -111,6 +118,28 @@ export const refreshPrices = async (onProgress?: Progress, only?: Game[]) => {
         capsule(id),
         game.id,
       ],
+    );
+  }
+};
+
+// Busca na gg.deals os preços (lojas oficiais e keyshops) dos jogos com "Quero comprar" (ou só dos dados).
+// Jogo que a gg.deals não conhece fica sem esses preços.
+export const refreshGgDeals = async (key: string, onProgress?: Progress, only?: Game[]) => {
+  const database = await getDb();
+  const games = (only ?? (await listGames())).filter((g) => g.steam_id != null && g.track_price);
+  onProgress?.(0, games.length);
+  const prices = await fetchGgDeals(
+    key,
+    games.map((g) => g.steam_id!),
+    (done) => onProgress?.(done, games.length),
+  );
+  for (const game of games) {
+    if (!(game.steam_id! in prices)) continue;
+    const p = prices[game.steam_id!];
+    await database.execute(
+      `UPDATE games SET gg_retail = $1, gg_keyshop = $2, gg_retail_low = $3, gg_keyshop_low = $4, gg_url = $5
+       WHERE id = $6`,
+      [p?.retail ?? null, p?.keyshop ?? null, p?.retailLow ?? null, p?.keyshopLow ?? null, p?.url ?? null, game.id],
     );
   }
 };
@@ -415,6 +444,11 @@ const GAME_COLUMNS = [
   "demo_steam_id",
   "news",
   "track_price",
+  "gg_retail",
+  "gg_keyshop",
+  "gg_retail_low",
+  "gg_keyshop_low",
+  "gg_url",
 ];
 
 // Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.

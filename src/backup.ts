@@ -53,6 +53,11 @@ const validGame = (statuses: Set<string>) => (g: Game) =>
   isIntOrNull(g.demo_steam_id) &&
   (g.news == null || g.news === 0 || g.news === 1) &&
   (g.track_price == null || g.track_price === 0 || g.track_price === 1) &&
+  isIntOrNull(g.gg_retail) &&
+  isIntOrNull(g.gg_keyshop) &&
+  isIntOrNull(g.gg_retail_low) &&
+  isIntOrNull(g.gg_keyshop_low) &&
+  isStrOrNull(g.gg_url) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.

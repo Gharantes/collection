@@ -1258,6 +1258,30 @@ button.confirm-reset:disabled {
   grid-template-columns: 1fr repeat(2, 92px) 24px;
 }
 
+.inline-link {
+  padding: 0;
+  font: inherit;
+  color: var(--accent, inherit);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.gg-prices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: -4px;
+  font-size: 13px;
+}
+
+.gg-cell {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
 .reset-dialog p.status-hint {
   font-size: 13px;
 }

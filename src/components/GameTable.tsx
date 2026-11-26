@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Game, List } from "../db";
 import { COLUMNS, type Column } from "../filters";
-import { formatRelease } from "../games";
+import { formatRelease, money } from "../games";
 import { ListChips, Medal, Price, RatingSelect, StageBand, StatusSelect, useBatches, type Run } from "./common";
 
 type Props = {
@@ -26,6 +26,7 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
             <th />
             <th>Jogo</th>
             {show.has("price") && <th>Preço</th>}
+            {show.has("gg") && <th title="gg.deals: lojas oficiais / keyshops">gg.deals</th>}
             {show.has("release") && <th>Release Date</th>}
             {show.has("status") && <th>Status</th>}
             {show.has("rating") && <th>Nota</th>}
@@ -59,6 +60,18 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
                     <Price final={game.price} initial={game.price_initial} currency={game.currency} />
                   ) : (
                     <span className="muted" title='Marque "Quero comprar" no jogo para acompanhar o preço'>—</span>
+                  )}
+                </td>
+              )}
+              {show.has("gg") && (
+                <td className="nowrap gg-cell">
+                  {game.track_price && (game.gg_retail != null || game.gg_keyshop != null) ? (
+                    <>
+                      <span title="Lojas oficiais">{money(game.gg_retail, "BRL")}</span>
+                      <span className="muted" title="Keyshops">{money(game.gg_keyshop, "BRL")}</span>
+                    </>
+                  ) : (
+                    <span className="muted">—</span>
                   )}
                 </td>
               )}

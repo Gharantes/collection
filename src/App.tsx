@@ -13,6 +13,7 @@ import {
   listSavedFilters,
   listStatusEvents,
   listStatuses,
+  refreshGgDeals,
   refreshPrices,
   refreshDemos,
   refreshReleases,
@@ -24,8 +25,9 @@ import {
   type StatusDef,
   type StatusEvent,
 } from "./db";
-import { SORTS, demoChanges, discount, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, type Sort } from "./games";
-import { readJson, readPref, readTime, savePref } from "./prefs";
+import { SORTS, cheapest, demoChanges, ggChanges, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, type Sort } from "./games";
+import { readJson, readPref, readText, readTime, savePref } from "./prefs";
+import { GG_KEY } from "./ggdeals";
 import { AddGame } from "./components/AddGame";
 import { ErrorBanner, StatusesContext } from "./components/common";
 import { GameDetail } from "./components/GameDetail";
@@ -230,13 +232,15 @@ function App() {
     await run(async () => {
       const before = await listGames();
       await refreshPrices((done, total) => setProgress({ label: "Preços", done, total }));
+      const key = readText(GG_KEY);
+      if (key) await refreshGgDeals(key, (done, total) => setProgress({ label: "gg.deals", done, total }));
       await refreshReleases((done, total) => setProgress({ label: "Early Access/Pre-release", done, total }));
       await refreshDemos((done, total) => setProgress({ label: "Demos", done, total }));
       const after = await listGames();
       const now = Date.now();
       savePref(PRICES_AT, String(now));
       setPricesAt(now);
-      const changes = [...priceChanges(before, after), ...releaseChanges(before, after), ...demoChanges(before, after)];
+      const changes = [...priceChanges(before, after), ...ggChanges(before, after), ...releaseChanges(before, after), ...demoChanges(before, after)];
       if (changes.length > 0)
         setUpdates((u) => {
           const next = [{ at: now, changes }, ...u].slice(0, MAX_UPDATES);
@@ -247,7 +251,7 @@ function App() {
       const hits = after.filter((g) => hitIds.has(g.id));
       if (hits.length === 1) {
         const g = hits[0];
-        await notify(`${g.name} no preço-alvo`, `${money(g.price, g.currency)} (-${discount(g.price_initial, g.price)}%)`);
+        await notify(`${g.name} no preço-alvo`, money(cheapest(g), g.currency ?? "BRL"));
       } else if (hits.length > 1) {
         await notify(`${hits.length} jogos no preço-alvo`, hits.map((g) => g.name).join(", "));
       }

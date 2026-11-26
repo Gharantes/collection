@@ -24,7 +24,8 @@
         { "url": "https://store.steampowered.com/api/*" },
         { "url": "https://api.steampowered.com/ISteamNews/*" },
         { "url": "https://api.steampowered.com/IStoreBrowseService/*" },
-        { "url": "https://*.steamstatic.com/*" }
+        { "url": "https://*.steamstatic.com/*" },
+        { "url": "https://api.gg.deals/v1/prices/*" }
       ]
     }
   ]

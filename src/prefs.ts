@@ -16,6 +16,15 @@ export const savePref = (key: string, value: string) => {
   }
 };
 
+// Texto salvo, ou "" se não houver.
+export const readText = (key: string) => {
+  try {
+    return localStorage.getItem(key) ?? "";
+  } catch {
+    return "";
+  }
+};
+
 // Momento salvo (ms), ou 0 se não houver.
 export const readTime = (key: string) => {
   try {

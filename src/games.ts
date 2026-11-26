@@ -103,11 +103,18 @@ export const releaseNotice = (g: Pick<Game, "release_stage" | "release_date">, s
 };
 
 // Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
+// O preço-alvo vale para o mais barato entre Steam e gg.deals (lojas oficiais e keyshops); o desconto, só na Steam.
+export const cheapest = (g: Game) => {
+  const all = [g.price, g.gg_retail, g.gg_keyshop].filter((p): p is number => p != null);
+  return all.length ? Math.min(...all) : null;
+};
+
 export const hitsTarget = (g: Game) => {
-  if (!g.track_price || g.price == null) return false;
-  const off = discount(g.price_initial, g.price);
+  if (!g.track_price) return false;
+  const low = cheapest(g);
+  const off = g.price == null ? 0 : discount(g.price_initial, g.price);
   return (
-    (g.target_price != null && g.price <= g.target_price) ||
+    (g.target_price != null && low != null && low <= g.target_price) ||
     (g.target_discount != null && off > 0 && off >= g.target_discount)
   );
 };
@@ -177,6 +184,31 @@ export const priceChanges = (before: Game[], after: Game[]): GameChange[] => {
     else if (b.price !== g.price)
       add(g.price < b.price ? "down" : "up", `Preço mudou de ${money(b.price, b.currency)} para ${price}`);
     if (hitsTarget(g) && !hitsTarget(b)) add("target", "Entrou no preço-alvo");
+  }
+  return changes;
+};
+
+// Compara os preços da gg.deals antes e depois de atualizar (só quando os dois lados têm preço, ou ganhou um).
+export const ggChanges = (before: Game[], after: Game[]): GameChange[] => {
+  const old = new Map(before.map((g) => [g.id, g]));
+  const changes: GameChange[] = [];
+  for (const g of after) {
+    const b = old.get(g.id);
+    if (!b) continue;
+    for (const [col, label] of [["gg_retail", "lojas oficiais"], ["gg_keyshop", "keyshops"]] as const) {
+      const was = b[col];
+      const now = g[col];
+      if (now == null || was === now) continue;
+      const text = `gg.deals, ${label}: ${money(now, "BRL")}`;
+      if (was == null) changes.push({ gameId: g.id, name: g.name, kind: "down", text: `${text} (novo)` });
+      else
+        changes.push({
+          gameId: g.id,
+          name: g.name,
+          kind: now < was ? "down" : "up",
+          text: `${text} (era ${money(was, "BRL")})`,
+        });
+    }
   }
   return changes;
 };
