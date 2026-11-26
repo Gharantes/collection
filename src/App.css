@@ -1271,15 +1271,22 @@ button.confirm-reset:disabled {
 .gg-prices {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-top: -4px;
+  align-items: center;
+  gap: 6px 20px;
+}
+
+.gg-prices > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gg-prices > span > .muted {
   font-size: 13px;
 }
 
-.gg-cell {
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
+.target-low {
+  font-size: 12px;
 }
 
 .reset-dialog p.status-hint {

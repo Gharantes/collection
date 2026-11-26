@@ -20,7 +20,7 @@ import {
   type ReleaseStage,
   type StatusEvent,
 } from "../db";
-import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, money, toCents } from "../games";
+import { eventLabels, formatDate, formatDuration, formatRelease, hitsTarget, money, officialPrice, toCents } from "../games";
 import { GG_KEY } from "../ggdeals";
 import { readText } from "../prefs";
 import { Cover, ErrorBanner, ListChips, Price, RatingSelect, StatusSelect, useStatusLabels, type Run } from "./common";
@@ -162,26 +162,28 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
         <Cover key={game.id} game={game} />
         <div className="detail-info">
           <h2>{game.name}</h2>
-          {!!game.track_price && (
-            <p>
-              <Price final={game.price} initial={game.price_initial} currency={game.currency} />
-            </p>
-          )}
+          {!!game.track_price &&
+            (game.gg_retail != null || game.gg_keyshop != null ? (
+              <p className="gg-prices">
+                <span>
+                  <span className="muted">Lojas oficiais</span>
+                  <Price final={officialPrice(game)} initial={game.price_initial} currency="BRL" />
+                </span>
+                {game.gg_keyshop != null && (
+                  <span>
+                    <span className="muted">Keyshops</span>
+                    <Price final={game.gg_keyshop} initial={game.price_initial} currency="BRL" />
+                  </span>
+                )}
+              </p>
+            ) : (
+              <p>
+                <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+              </p>
+            ))}
           {!!game.track_price && game.steam_id != null && !ggKey && (
             <p className="gg-prices muted">
               Para ver lojas oficiais e keyshops, coloque a chave em Configurações › gg.deals.
-            </p>
-          )}
-          {!!game.track_price && (game.gg_retail != null || game.gg_keyshop != null) && (
-            <p className="gg-prices">
-              <span>
-                <span className="muted">Lojas oficiais</span> {money(game.gg_retail, "BRL")}
-                {game.gg_retail_low != null && <span className="muted"> · menor {money(game.gg_retail_low, "BRL")}</span>}
-              </span>
-              <span>
-                <span className="muted">Keyshops</span> {money(game.gg_keyshop, "BRL")}
-                {game.gg_keyshop_low != null && <span className="muted"> · menor {money(game.gg_keyshop_low, "BRL")}</span>}
-              </span>
             </p>
           )}
 
@@ -347,6 +349,11 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
                   aria-label="Desconto mínimo em %"
                 />
                 {hitsTarget(game) && <span className="sale">No alvo</span>}
+                {(game.gg_retail_low != null || game.gg_keyshop_low != null) && (
+                  <span className="muted target-low" title="Menor preço já visto na gg.deals">
+                    Menor já visto: {money(game.gg_retail_low, "BRL")} oficial · {money(game.gg_keyshop_low, "BRL")} keyshop
+                  </span>
+                )}
               </div>
             </div>
           )}

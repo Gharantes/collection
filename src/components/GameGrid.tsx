@@ -1,5 +1,5 @@
 import type { Game } from "../db";
-import { discount, hitsTarget, ratingTier } from "../games";
+import { hitsTarget, officialDiscount, ratingTier } from "../games";
 import { Cover, Medal, StageBand, useBatches, useStatusLabels } from "./common";
 
 export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number) => void }) {
@@ -9,7 +9,7 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
     <>
       <div className="grid">
         {visible.map((game) => {
-          const off = game.track_price ? discount(game.price_initial, game.price) : 0;
+          const off = game.track_price ? officialDiscount(game) : 0;
           return (
             <button
               key={game.id}

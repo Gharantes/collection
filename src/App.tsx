@@ -43,7 +43,7 @@ import {
   inAchievements,
   inNews,
   inRating,
-  isColumn,
+  toColumns,
   toSaved,
   type Column,
   type Extra,
@@ -89,7 +89,7 @@ function App() {
   // Colunas da tabela além da imagem e do nome; também vão nos filtros salvos.
   const [columns, setColumns] = useState<Column[]>(() => {
     const saved = readJson<unknown>("collection.columns", null);
-    return Array.isArray(saved) ? saved.filter(isColumn) : DEFAULT_COLUMNS;
+    return Array.isArray(saved) ? toColumns(saved) : DEFAULT_COLUMNS;
   });
   const [sort, setSort] = useState<Sort>(() => readPref("collection.sort", Object.keys(SORTS) as Sort[], "name"));
   const [openId, setOpenId] = useState<number | null>(routeId);

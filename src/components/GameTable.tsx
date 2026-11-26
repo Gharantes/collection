@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Game, List } from "../db";
 import { COLUMNS, type Column } from "../filters";
-import { formatRelease, money } from "../games";
+import { formatRelease, officialPrice } from "../games";
 import { ListChips, Medal, Price, RatingSelect, StageBand, StatusSelect, useBatches, type Run } from "./common";
 
 type Props = {
@@ -25,8 +25,8 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
           <tr>
             <th />
             <th>Jogo</th>
-            {show.has("price") && <th>Preço</th>}
-            {show.has("gg") && <th title="gg.deals: lojas oficiais / keyshops">gg.deals</th>}
+            {show.has("price") && <th title="Menor preço nas lojas oficiais (gg.deals, ou a Steam sem ela)">Lojas oficiais</th>}
+            {show.has("keyshop") && <th title="Menor preço nas keyshops (gg.deals)">Keyshops</th>}
             {show.has("release") && <th>Release Date</th>}
             {show.has("status") && <th>Status</th>}
             {show.has("rating") && <th>Nota</th>}
@@ -57,19 +57,16 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
               {show.has("price") && (
                 <td className="nowrap">
                   {game.track_price ? (
-                    <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+                    <Price final={officialPrice(game)} initial={game.price_initial} currency={game.currency ?? "BRL"} />
                   ) : (
                     <span className="muted" title='Marque "Quero comprar" no jogo para acompanhar o preço'>—</span>
                   )}
                 </td>
               )}
-              {show.has("gg") && (
-                <td className="nowrap gg-cell">
-                  {game.track_price && (game.gg_retail != null || game.gg_keyshop != null) ? (
-                    <>
-                      <span title="Lojas oficiais">{money(game.gg_retail, "BRL")}</span>
-                      <span className="muted" title="Keyshops">{money(game.gg_keyshop, "BRL")}</span>
-                    </>
+              {show.has("keyshop") && (
+                <td className="nowrap">
+                  {game.track_price && game.gg_keyshop != null ? (
+                    <Price final={game.gg_keyshop} initial={game.price_initial} currency="BRL" />
                   ) : (
                     <span className="muted">—</span>
                   )}

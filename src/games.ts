@@ -24,8 +24,17 @@ export const ratingTier = (r: number | null) =>
 const nullsLast = (a: number | null, b: number | null, dir = 1) =>
   a == null ? (b == null ? 0 : 1) : b == null ? -1 : (a - b) * dir;
 
+// Menor preço nas lojas oficiais: o da gg.deals (que já inclui a Steam) ou, sem ele, o da Steam.
+export const officialPrice = (g: Game) => g.gg_retail ?? g.price;
+
+// Desconto do menor preço oficial sobre o preço cheio da Steam.
+export const officialDiscount = (g: Game) => {
+  const p = officialPrice(g);
+  return p == null ? 0 : discount(g.price_initial, p);
+};
+
 // Preço só conta nos jogos com "Quero comprar"; nos outros pode estar velho.
-const shownPrice = (g: Game) => (g.track_price ? g.price : null);
+const shownPrice = (g: Game) => (g.track_price ? officialPrice(g) : null);
 
 const byName = (a: Game, b: Game) => a.name.localeCompare(b.name, "pt-BR");
 
@@ -103,7 +112,8 @@ export const releaseNotice = (g: Pick<Game, "release_stage" | "release_date">, s
 };
 
 // Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
-// O preço-alvo vale para o mais barato entre Steam e gg.deals (lojas oficiais e keyshops); o desconto, só na Steam.
+// O preço-alvo vale para o mais barato entre Steam e gg.deals (lojas oficiais e keyshops); o desconto, para o
+// menor preço oficial.
 export const cheapest = (g: Game) => {
   const all = [g.price, g.gg_retail, g.gg_keyshop].filter((p): p is number => p != null);
   return all.length ? Math.min(...all) : null;
@@ -112,7 +122,7 @@ export const cheapest = (g: Game) => {
 export const hitsTarget = (g: Game) => {
   if (!g.track_price) return false;
   const low = cheapest(g);
-  const off = g.price == null ? 0 : discount(g.price_initial, g.price);
+  const off = officialDiscount(g);
   return (
     (g.target_price != null && low != null && low <= g.target_price) ||
     (g.target_discount != null && off > 0 && off >= g.target_discount)

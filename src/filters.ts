@@ -58,8 +58,8 @@ export const extraCount = (x: Extra) =>
 
 // Colunas da tabela que dá para esconder (imagem e nome ficam sempre).
 export const COLUMNS = {
-  price: "Preço",
-  gg: "gg.deals",
+  price: "Lojas oficiais",
+  keyshop: "Keyshops",
   release: "Release Date",
   status: "Status",
   rating: "Nota",
@@ -67,8 +67,13 @@ export const COLUMNS = {
   remove: "Remover",
 } as const;
 export type Column = keyof typeof COLUMNS;
-export const DEFAULT_COLUMNS: Column[] = ["price", "status", "rating", "lists", "remove"];
+export const DEFAULT_COLUMNS: Column[] = ["price", "keyshop", "status", "rating", "lists", "remove"];
 export const isColumn = (c: unknown): c is Column => typeof c === "string" && c in COLUMNS;
+
+// Colunas salvas: a antiga "gg.deals" virou "Keyshops"; desconhecidas saem.
+export const toColumns = (list: unknown[]): Column[] => [
+  ...new Set(list.map((c) => (c === "gg" ? "keyshop" : c)).filter(isColumn)),
+];
 
 // Filtro salvo: o texto da busca, os "Mais filtros" e as colunas da tabela, em JSON (os Maps viram listas de pares).
 export const toSaved = (extra: Extra, text: string, columns?: Column[]) =>
@@ -82,5 +87,5 @@ export const fromSaved = (json: string): { extra: Extra; text: string; columns: 
   if (showEarly === false) stageModes.set("early_access", "exclude");
   if (showPre === false) stageModes.set("pre_release", "exclude");
   const extra = { ...NO_EXTRA, ...rest, lists: new Map(lists), statuses: new Map(statuses), stages: stageModes };
-  return { text, extra, columns: Array.isArray(columns) ? columns.filter(isColumn) : DEFAULT_COLUMNS };
+  return { text, extra, columns: Array.isArray(columns) ? toColumns(columns) : DEFAULT_COLUMNS };
 };
