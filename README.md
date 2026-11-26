@@ -11,7 +11,7 @@ App desktop para organizar sua coleção de jogos em listas, no estilo das cole�
 - Status (Backlog, Jogando, Terminado, Abandonado) e nota de 0 a 10
 - Botão "O que jogar?" sorteia um jogo vinculado (Steam ou executável) e mostra num dialog, com "Ir à página" e "Reroll"
 - Visualização em cards ou tabela, com filtros (que podem ser salvos com nome) e ordenação
-- Atualiza preços da Steam uma vez por dia; em promoção mostra o preço original junto
+- Atualiza preços da Steam pelo botão "Atualizar Dados"; em promoção mostra o preço original junto
 - Alerta de promoção (preço-alvo ou desconto mínimo) com notificação
 - Histórico de status com datas: começou, voltou ao backlog, retomou, terminou
 - Vincula o jogo à Steam ou a um executável e abre direto do app

@@ -57,7 +57,6 @@ type View = "cards" | "table";
 const PRICES_AT = "collection.pricesAt";
 const UPDATES = "collection.updates";
 const MAX_UPDATES = 30;
-const DAY = 24 * 60 * 60 * 1000;
 const key = (gameId: number, listId: number) => `${gameId}:${listId}`;
 
 // Rota do jogo aberto: #/jogo/<id>. Sem id, mostra a coleção.
@@ -262,11 +261,6 @@ function App() {
     savePref(UPDATES, "[]");
     setUpdates([]);
   };
-
-  // Atualiza os preços sozinho uma vez por dia, ao abrir o app.
-  useEffect(() => {
-    if (Date.now() - readTime(PRICES_AT) > DAY) onRefresh();
-  }, []);
 
   const onDeleteGame = (game: Game) => {
     if (openId === game.id) closeGame();
