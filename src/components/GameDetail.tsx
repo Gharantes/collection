@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   deleteEvent,
+  refreshPrices,
   setAchievements,
   setOwned,
   setEventDate,
@@ -10,6 +11,7 @@ import {
   setReleaseDate,
   setReleaseStage,
   setTarget,
+  setTrackPrice,
   type Achievements,
   type Game,
   type List,
@@ -150,9 +152,11 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
         <Cover key={game.id} game={game} />
         <div className="detail-info">
           <h2>{game.name}</h2>
-          <p>
-            <Price final={game.price} initial={game.price_initial} currency={game.currency} />
-          </p>
+          {!!game.track_price && (
+            <p>
+              <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+            </p>
+          )}
 
           <div className="launch">
             {game.launch ? (
@@ -261,33 +265,57 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
               />
             </div>
           </div>
-          <div className="field">
-            <span>Alerta</span>
-            <div className="target" key={game.id}>
-              <input
-                inputMode="decimal"
-                placeholder="Preço-alvo"
-                defaultValue={game.target_price == null ? "" : (game.target_price / 100).toFixed(2).replace(".", ",")}
-                onBlur={(e) => run(() => setTarget(game.id, toCents(e.currentTarget.value), game.target_discount))()}
-                aria-label="Preço-alvo"
-              />
-              <span className="muted">ou</span>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                placeholder="% off"
-                defaultValue={game.target_discount ?? ""}
-                onBlur={(e) => {
-                  const v = e.currentTarget.valueAsNumber;
-                  const pct = Number.isInteger(v) && v >= 1 && v <= 100 ? v : null;
-                  run(() => setTarget(game.id, game.target_price, pct))();
-                }}
-                aria-label="Desconto mínimo em %"
-              />
-              {hitsTarget(game) && <span className="sale">No alvo</span>}
+          {game.steam_id != null && (
+            <div className="field">
+              <span>Compra</span>
+              <div className="release">
+                <label className="check" title='O "Atualizar Dados" confere o preço e os descontos deste jogo'>
+                  <input
+                    type="checkbox"
+                    checked={!!game.track_price}
+                    onChange={(e) => {
+                      const on = e.currentTarget.checked;
+                      run(async () => {
+                        await setTrackPrice(game.id, on);
+                        // O preço guardado pode estar velho: busca o atual na hora.
+                        if (on) await refreshPrices(undefined, [{ ...game, track_price: 1 }]);
+                      })();
+                    }}
+                  />
+                  Quero comprar
+                </label>
+              </div>
             </div>
-          </div>
+          )}
+          {!!game.track_price && (
+            <div className="field">
+              <span>Alerta</span>
+              <div className="target" key={game.id}>
+                <input
+                  inputMode="decimal"
+                  placeholder="Preço-alvo"
+                  defaultValue={game.target_price == null ? "" : (game.target_price / 100).toFixed(2).replace(".", ",")}
+                  onBlur={(e) => run(() => setTarget(game.id, toCents(e.currentTarget.value), game.target_discount))()}
+                  aria-label="Preço-alvo"
+                />
+                <span className="muted">ou</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  placeholder="% off"
+                  defaultValue={game.target_discount ?? ""}
+                  onBlur={(e) => {
+                    const v = e.currentTarget.valueAsNumber;
+                    const pct = Number.isInteger(v) && v >= 1 && v <= 100 ? v : null;
+                    run(() => setTarget(game.id, game.target_price, pct))();
+                  }}
+                  aria-label="Desconto mínimo em %"
+                />
+                {hitsTarget(game) && <span className="sale">No alvo</span>}
+              </div>
+            </div>
+          )}
           {(startedAt || finishedAt) && (
             <p className="dates muted">
               {startedAt && <>Começou em {formatDate(startedAt)}</>}

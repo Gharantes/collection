@@ -4,7 +4,7 @@ import type { Game } from "./db";
 import { demoChanges, discount, eventLabels, formatDuration, formatRelease, hitsTarget, matchModes, money, priceChanges, releaseChanges, sortGames, toCents, type Mode } from "./games.ts";
 
 const game = (id: number, name: string, rating: number | null, price: number | null) =>
-  ({ id, name, rating, price }) as Game;
+  ({ id, name, rating, price, track_price: 1 }) as Game;
 
 test("ordena com vazios no fim", () => {
   const games = [game(1, "b", null, 500), game(2, "a", 7, null), game(3, "c", 9, 100)];
@@ -38,11 +38,13 @@ test("rótulos do histórico de status", () => {
 
 test("preço-alvo e desconto mínimo", () => {
   const g = (price: number, price_initial: number, target_price: number | null, target_discount: number | null) =>
-    ({ price, price_initial, target_price, target_discount }) as Game;
+    ({ price, price_initial, target_price, target_discount, track_price: 1 }) as Game;
   assert.equal(hitsTarget(g(3000, 6000, 3500, null)), true);
   assert.equal(hitsTarget(g(4000, 6000, 3500, null)), false);
   assert.equal(hitsTarget(g(3000, 6000, null, 50)), true);
   assert.equal(hitsTarget(g(6000, 6000, null, 50)), false);
+  // Sem "Quero comprar" nunca está no alvo.
+  assert.equal(hitsTarget({ ...g(3000, 6000, 3500, null), track_price: 0 }), false);
   assert.equal(toCents("R$ 49,90"), 4990);
   assert.equal(toCents("abc"), null);
   assert.equal(toCents(""), null);
@@ -77,7 +79,7 @@ test("filtro incluir, exigir e excluir", () => {
 
 test("mudanças de preço", () => {
   const g = (id: number, price: number | null, price_initial: number | null, target_discount: number | null = null) =>
-    ({ id, name: `j${id}`, price, price_initial, currency: "BRL", target_price: null, target_discount }) as Game;
+    ({ id, name: `j${id}`, price, price_initial, currency: "BRL", target_price: null, target_discount, track_price: 1 }) as Game;
   const before = [g(1, 5000, 5000), g(2, 2500, 5000), g(3, 2500, 5000), g(4, 5000, 5000), g(5, null, null), g(6, 5000, 5000, 50)];
   const after = [g(1, 2500, 5000), g(2, 5000, 5000), g(3, 1000, 5000), g(4, 6000, 6000), g(5, 3000, 3000), g(6, 5000, 5000, 50), g(7, 1, 1)];
   assert.deepEqual(

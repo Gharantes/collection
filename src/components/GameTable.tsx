@@ -55,7 +55,11 @@ export function GameTable({ games, columns, lists, inList, run, onDelete, onOpen
               <td className="name">{game.name}</td>
               {show.has("price") && (
                 <td className="nowrap">
-                  <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+                  {game.track_price ? (
+                    <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+                  ) : (
+                    <span className="muted" title='Marque "Quero comprar" no jogo para acompanhar o preço'>—</span>
+                  )}
                 </td>
               )}
               {show.has("release") && <td className="nowrap">{formatRelease(game.release_date) || "—"}</td>}

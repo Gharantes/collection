@@ -4,8 +4,8 @@ import type { Backup } from "./backup";
 
 // Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
 export type Status = string;
-// O que o "Atualizar Dados" confere nos jogos de cada status (1 = confere).
-export const STATUS_CHECKS = ["check_prices", "check_releases", "check_demos"] as const;
+// O que o "Atualizar Dados" confere nos jogos de cada status (1 = confere). Preço é por jogo (track_price).
+export const STATUS_CHECKS = ["check_releases", "check_demos"] as const;
 export type StatusCheck = (typeof STATUS_CHECKS)[number];
 export type StatusChecks = Record<StatusCheck, number>;
 export type StatusDef = { key: Status; label: string } & StatusChecks;
@@ -36,6 +36,8 @@ export type Game = {
   demo_steam_id: number | null;
   // Buscar notícias da Steam na página do jogo.
   news: 0 | 1;
+  // "Quero comprar": o "Atualizar Dados" confere o preço e ele aparece no app.
+  track_price: 0 | 1;
 };
 export type List = { id: number; name: string };
 export type StatusEvent = { id: number; game_id: number; status: Status; at: string };
@@ -85,10 +87,10 @@ const tracked = async (check: StatusCheck) => {
   return games.filter((g) => g.steam_id != null && (g.status ? !off.has(g.status) : !!none[check]));
 };
 
-// Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
-export const refreshPrices = async (onProgress?: Progress) => {
+// Busca o preço atual dos jogos da Steam marcados com "Quero comprar" (ou só dos dados) e preenche imagens que faltam.
+export const refreshPrices = async (onProgress?: Progress, only?: Game[]) => {
   const database = await getDb();
-  const games = await tracked("check_prices");
+  const games = (only ?? (await listGames())).filter((g) => g.steam_id != null && g.track_price);
   onProgress?.(0, games.length);
   const prices = await fetchPrices(
     games.map((g) => g.steam_id!),
@@ -263,8 +265,8 @@ export const setStatusCheck = async (key: Status, check: StatusCheck, on: boolea
 // O que o "Atualizar Dados" confere nos jogos sem status.
 export const getNoStatusChecks = async (): Promise<StatusChecks> =>
   (await (await getDb()).select<StatusChecks[]>(
-    "SELECT check_prices, check_releases, check_demos FROM no_status_checks WHERE id = 1",
-  ))[0] ?? { check_prices: 1, check_releases: 1, check_demos: 1 };
+    "SELECT check_releases, check_demos FROM no_status_checks WHERE id = 1",
+  ))[0] ?? { check_releases: 1, check_demos: 1 };
 
 export const setNoStatusCheck = async (check: StatusCheck, on: boolean) =>
   (await getDb()).execute(`UPDATE no_status_checks SET ${check} = $1 WHERE id = 1`, [on ? 1 : 0]);
@@ -363,6 +365,9 @@ export const setAchievements = async (id: number, goal: Achievements | null) =>
 export const setOwned = async (id: number, owned: boolean) =>
   (await getDb()).execute("UPDATE games SET owned = $1 WHERE id = $2", [owned ? 1 : 0, id]);
 
+export const setTrackPrice = async (id: number, on: boolean) =>
+  (await getDb()).execute("UPDATE games SET track_price = $1 WHERE id = $2", [on ? 1 : 0, id]);
+
 export const setNews = async (id: number, news: boolean) =>
   (await getDb()).execute("UPDATE games SET news = $1 WHERE id = $2", [news ? 1 : 0, id]);
 
@@ -387,7 +392,7 @@ export const setMembership = async (gameId: number, listId: number, member: bool
     [gameId, listId],
   );
 
-// Colunas de games restauradas do backup; ausentes no arquivo viram NULL (owned e news viram 0).
+// Colunas de games restauradas do backup; ausentes no arquivo viram NULL (owned, news e track_price viram 0).
 const GAME_COLUMNS = [
   "id",
   "name",
@@ -409,6 +414,7 @@ const GAME_COLUMNS = [
   "owned",
   "demo_steam_id",
   "news",
+  "track_price",
 ];
 
 // Avisa o andamento de exportBackup/restoreBackup: etapa atual e quantas já terminaram.
@@ -457,14 +463,14 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
     ["DELETE FROM lists"],
     ["DELETE FROM statuses"],
     [
-      `INSERT INTO statuses (key, label, check_prices, check_releases, check_demos)
-     SELECT value->>'key', value->>'label', value->>'check_prices', value->>'check_releases', value->>'check_demos'
+      `INSERT INTO statuses (key, label, check_releases, check_demos)
+     SELECT value->>'key', value->>'label', value->>'check_releases', value->>'check_demos'
      FROM json_each($1)`,
       [json(backup.statuses)],
     ],
     [
-      "UPDATE no_status_checks SET check_prices = $1, check_releases = $2, check_demos = $3 WHERE id = 1",
-      [backup.no_status.check_prices, backup.no_status.check_releases, backup.no_status.check_demos],
+      "UPDATE no_status_checks SET check_releases = $1, check_demos = $2 WHERE id = 1",
+      [backup.no_status.check_releases, backup.no_status.check_demos],
     ],
     ["DELETE FROM saved_filters"],
     [
@@ -474,7 +480,7 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
     ["INSERT INTO lists (id, name) SELECT value->>'id', value->>'name' FROM json_each($1)", [json(backup.lists)]],
     [
       `INSERT INTO games (${GAME_COLUMNS.join(", ")})
-     SELECT ${GAME_COLUMNS.map((c) => (c === "owned" || c === "news" ? `COALESCE(value->>'${c}', 0)` : `value->>'${c}'`)).join(", ")}
+     SELECT ${GAME_COLUMNS.map((c) => (["owned", "news", "track_price"].includes(c) ? `COALESCE(value->>'${c}', 0)` : `value->>'${c}'`)).join(", ")}
      FROM json_each($1)`,
       [json(backup.games)],
     ],

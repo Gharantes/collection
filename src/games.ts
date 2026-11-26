@@ -24,12 +24,15 @@ export const ratingTier = (r: number | null) =>
 const nullsLast = (a: number | null, b: number | null, dir = 1) =>
   a == null ? (b == null ? 0 : 1) : b == null ? -1 : (a - b) * dir;
 
+// Preço só conta nos jogos com "Quero comprar"; nos outros pode estar velho.
+const shownPrice = (g: Game) => (g.track_price ? g.price : null);
+
 const byName = (a: Game, b: Game) => a.name.localeCompare(b.name, "pt-BR");
 
 const COMPARE: Record<Sort, (a: Game, b: Game) => number> = {
   name: byName,
   rating: (a, b) => nullsLast(a.rating, b.rating, -1) || byName(a, b),
-  price: (a, b) => nullsLast(a.price, b.price) || byName(a, b),
+  price: (a, b) => nullsLast(shownPrice(a), shownPrice(b)) || byName(a, b),
   recent: (a, b) => b.id - a.id,
 };
 
@@ -101,7 +104,7 @@ export const releaseNotice = (g: Pick<Game, "release_stage" | "release_date">, s
 
 // Jogo com preço no alvo: abaixo do preço-alvo ou com desconto mínimo atingido.
 export const hitsTarget = (g: Game) => {
-  if (g.price == null) return false;
+  if (!g.track_price || g.price == null) return false;
   const off = discount(g.price_initial, g.price);
   return (
     (g.target_price != null && g.price <= g.target_price) ||

@@ -9,7 +9,7 @@ export function GameGrid({ games, onOpen }: { games: Game[]; onOpen: (id: number
     <>
       <div className="grid">
         {visible.map((game) => {
-          const off = discount(game.price_initial, game.price);
+          const off = game.track_price ? discount(game.price_initial, game.price) : 0;
           return (
             <button
               key={game.id}

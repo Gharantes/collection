@@ -157,6 +157,12 @@ pub fn run() {
             sql: include_str!("../migrations/025_no_status_checks.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 26,
+            description: "add games.track_price",
+            sql: include_str!("../migrations/026_track_price.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

@@ -25,17 +25,32 @@ test("status registrados", () => {
 });
 
 test("o que o Atualizar Dados confere em cada status", () => {
-  const checks = (s: { check_prices: number; check_releases: number; check_demos: number }) => [s.check_prices, s.check_releases, s.check_demos];
+  const checks = (s: { check_releases: number; check_demos: number }) => [s.check_releases, s.check_demos];
   // Backup antigo: tudo ligado, menos no Abandonado.
   const old = parseBackup(json(backup)).statuses;
-  assert.deepEqual(checks(old.find((s) => s.key === "playing")!), [1, 1, 1]);
-  assert.deepEqual(checks(old.find((s) => s.key === "abandoned")!), [0, 0, 0]);
-  const statuses = [{ key: "playing", label: "Jogando", check_prices: 0, check_releases: 1, check_demos: 0 }];
-  assert.deepEqual(checks(parseBackup(json({ ...backup, statuses })).statuses[0]), [0, 1, 0]);
+  assert.deepEqual(checks(old.find((s) => s.key === "playing")!), [1, 1]);
+  assert.deepEqual(checks(old.find((s) => s.key === "abandoned")!), [0, 0]);
+  const statuses = [{ key: "playing", label: "Jogando", check_releases: 1, check_demos: 0 }];
+  assert.deepEqual(checks(parseBackup(json({ ...backup, statuses })).statuses[0]), [1, 0]);
   // Sem status: backup antigo tudo ligado; senão, o que veio.
-  assert.deepEqual(checks(parseBackup(json(backup)).no_status), [1, 1, 1]);
-  const no_status = { check_prices: 0, check_releases: 1, check_demos: 0 };
-  assert.deepEqual(checks(parseBackup(json({ ...backup, no_status })).no_status), [0, 1, 0]);
+  assert.deepEqual(checks(parseBackup(json(backup)).no_status), [1, 1]);
+  const no_status = { check_releases: 1, check_demos: 0 };
+  assert.deepEqual(checks(parseBackup(json({ ...backup, no_status })).no_status), [1, 0]);
+});
+
+test("Quero comprar em backups antigos vem do status", () => {
+  const track = (b: object) => parseBackup(json(b)).games[0].track_price;
+  // Mais antigo: confere tudo, menos Abandonado; jogo que tem fica de fora.
+  assert.equal(track(backup), 1);
+  assert.equal(track({ ...backup, games: [{ ...game, owned: 1 }] }), 0);
+  assert.equal(track({ ...backup, games: [{ ...game, status: "abandoned" }] }), 0);
+  // Com os toggles por status.
+  const statuses = [{ key: "playing", label: "Jogando", check_prices: 0, check_releases: 1, check_demos: 1 }];
+  assert.equal(track({ ...backup, statuses }), 0);
+  const no_status = { check_prices: 0, check_releases: 1, check_demos: 1 };
+  assert.equal(track({ ...backup, no_status, games: [{ ...game, status: null }] }), 0);
+  // Backup novo: o que veio.
+  assert.equal(track({ ...backup, statuses, games: [{ ...game, track_price: 1 }] }), 1);
 });
 
 test("filtros salvos", () => {

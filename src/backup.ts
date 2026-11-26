@@ -1,4 +1,4 @@
-import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusCheck, StatusChecks, StatusDef, StatusEvent } from "./db";
+import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusChecks, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
@@ -17,12 +17,14 @@ export type Backup = {
 };
 
 // Backups antigos não têm a lista de status: usam os de fábrica.
-const on = { check_prices: 1, check_releases: 1, check_demos: 1 };
+const on = { check_releases: 1, check_demos: 1 };
+// Igual a STATUS_CHECKS do db.ts (que não dá para importar aqui: carrega o Tauri).
+const CHECKS = ["check_releases", "check_demos"] as const;
 export const DEFAULT_STATUSES: StatusDef[] = [
   { key: "backlog", label: "Backlog", ...on },
   { key: "playing", label: "Jogando", ...on },
   { key: "finished", label: "Terminado", ...on },
-  { key: "abandoned", label: "Abandonado", check_prices: 0, check_releases: 0, check_demos: 0 },
+  { key: "abandoned", label: "Abandonado", check_releases: 0, check_demos: 0 },
 ];
 
 const isInt = (v: unknown) => Number.isInteger(v);
@@ -50,6 +52,7 @@ const validGame = (statuses: Set<string>) => (g: Game) =>
   (g.owned == null || g.owned === 0 || g.owned === 1) &&
   isIntOrNull(g.demo_steam_id) &&
   (g.news == null || g.news === 0 || g.news === 1) &&
+  (g.track_price === 0 || g.track_price === 1) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
@@ -67,13 +70,27 @@ export function parseBackup(text: string): Backup {
     !data.statuses.every((s) => typeof s.key === "string" && typeof s.label === "string")
   )
     throw new Error("Backup com status inválidos.");
+  // Backups antigos não têm o "Quero comprar": marca os jogos da Steam que não tem e cujo status (ou "Sem status")
+  // conferia preços, como a migration. Os mais antigos ainda conferiam tudo, menos no Abandonado.
+  type Old = { check_prices?: unknown } | null | undefined;
+  const pricesOn = (c: Old, abandoned = false) =>
+    c?.check_prices === 0 || c?.check_prices === 1 ? c.check_prices === 1 : !abandoned;
+  const old = new Map(data.statuses.map((s) => [s.key, s as Old]));
+  const noneOn = pricesOn(data.no_status as Old);
+  if (Array.isArray(data.games))
+    for (const g of data.games)
+      if (g && typeof g === "object" && g.track_price == null)
+        g.track_price =
+          g.steam_id != null && !g.owned && (g.status == null ? noneOn : pricesOn(old.get(g.status), g.status === "abandoned"))
+            ? 1
+            : 0;
   // Backups antigos não têm o que o "Atualizar Dados" confere: tudo ligado, menos no Abandonado.
   for (const s of data.statuses)
-    for (const check of ["check_prices", "check_releases", "check_demos"] as StatusCheck[])
+    for (const check of CHECKS)
       if (s[check] !== 0 && s[check] !== 1) s[check] = s.key === "abandoned" ? 0 : 1;
   // Backups antigos não têm "Sem status": tudo ligado, como era.
   data.no_status = typeof data.no_status === "object" && data.no_status ? data.no_status : { ...on };
-  for (const check of ["check_prices", "check_releases", "check_demos"] as StatusCheck[])
+  for (const check of CHECKS)
     if (data.no_status[check] !== 0 && data.no_status[check] !== 1) data.no_status[check] = 1;
   const statuses = new Set(data.statuses.map((s) => s.key));
   if (statuses.size !== data.statuses.length || new Set(data.statuses.map((s) => s.label)).size !== statuses.size)

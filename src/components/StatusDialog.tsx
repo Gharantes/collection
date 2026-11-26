@@ -12,9 +12,8 @@ import {
 } from "../db";
 import { useStatuses, type Run } from "./common";
 
-// Etapas do "Atualizar Dados" que cada status pode ligar ou desligar.
+// Etapas do "Atualizar Dados" que cada status pode ligar ou desligar. Preço é por jogo ("Quero comprar").
 const CHECKS: { key: StatusCheck; label: string; title: string }[] = [
-  { key: "check_prices", label: "Preços", title: "Preços e descontos" },
   {
     key: "check_releases",
     label: "EA / Pre-release",

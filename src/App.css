@@ -1251,11 +1251,11 @@ button.confirm-reset:disabled {
 }
 
 .status-dialog {
-  width: min(600px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
 }
 
 .status-dialog .status-list li {
-  grid-template-columns: 1fr repeat(3, 92px) 24px;
+  grid-template-columns: 1fr repeat(2, 92px) 24px;
 }
 
 .reset-dialog p.status-hint {
