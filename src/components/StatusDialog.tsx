@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { ask } from "@tauri-apps/plugin-dialog";
-import { addStatus, deleteStatus, type StatusDef } from "../db";
+import { addStatus, deleteStatus, setStatusCheck, type StatusCheck, type StatusDef } from "../db";
 import { useStatuses, type Run } from "./common";
+
+// Etapas do "Atualizar Dados" que cada status pode ligar ou desligar.
+const CHECKS: { key: StatusCheck; label: string; title: string }[] = [
+  { key: "check_prices", label: "Preços", title: "Preços e descontos" },
+  { key: "check_releases", label: "EA / Pre-release", title: "Saída de Early Access/Pre-release e release date" },
+  { key: "check_demos", label: "Demos", title: "Ganhou ou perdeu demo" },
+];
 
 type Props = {
   run: Run;
@@ -43,7 +50,7 @@ export function StatusDialog({ run, onClose }: Props) {
   return (
     <dialog
       ref={ref}
-      className="reset-dialog"
+      className="reset-dialog status-dialog"
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && ref.current?.close()}
     >
@@ -52,16 +59,39 @@ export function StatusDialog({ run, onClose }: Props) {
         {statuses.length === 0 ? (
           <p>Nenhum status.</p>
         ) : (
-          <ul className="status-list">
-            {statuses.map((s) => (
-              <li key={s.key}>
-                <span data-status={s.key}>{s.label}</span>
-                <button className="chip-remove" onClick={() => onDelete(s)} aria-label={`Apagar status ${s.label}`}>
-                  ×
-                </button>
+          <>
+            <p className="status-hint">O "Atualizar Dados" confere, nos jogos de cada status:</p>
+            <ul className="status-list">
+              <li className="status-head" aria-hidden>
+                <span />
+                {CHECKS.map((c) => (
+                  <span key={c.key} title={c.title}>
+                    {c.label}
+                  </span>
+                ))}
+                <span />
               </li>
-            ))}
-          </ul>
+              {statuses.map((s) => (
+                <li key={s.key}>
+                  <span data-status={s.key}>{s.label}</span>
+                  {CHECKS.map((c) => (
+                    <input
+                      key={c.key}
+                      type="checkbox"
+                      className="switch"
+                      checked={!!s[c.key]}
+                      onChange={(e) => run(() => setStatusCheck(s.key, c.key, e.target.checked))()}
+                      title={`${c.title}: ${s[c.key] ? "confere" : "ignora"}`}
+                      aria-label={`${c.title} nos jogos ${s.label}`}
+                    />
+                  ))}
+                  <button className="chip-remove" onClick={() => onDelete(s)} aria-label={`Apagar status ${s.label}`}>
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
         <form className="status-add" onSubmit={onAdd}>
           <input name="label" placeholder="+ Novo status" aria-label="Novo status" required autoFocus />

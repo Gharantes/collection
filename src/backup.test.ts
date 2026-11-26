@@ -24,6 +24,16 @@ test("status registrados", () => {
   assert.equal(parseBackup(json({ ...backup, statuses, games: [{ ...game, status: "x" }] })).games[0].status, "x");
 });
 
+test("o que o Atualizar Dados confere em cada status", () => {
+  const checks = (s: { check_prices: number; check_releases: number; check_demos: number }) => [s.check_prices, s.check_releases, s.check_demos];
+  // Backup antigo: tudo ligado, menos no Abandonado.
+  const old = parseBackup(json(backup)).statuses;
+  assert.deepEqual(checks(old.find((s) => s.key === "playing")!), [1, 1, 1]);
+  assert.deepEqual(checks(old.find((s) => s.key === "abandoned")!), [0, 0, 0]);
+  const statuses = [{ key: "playing", label: "Jogando", check_prices: 0, check_releases: 1, check_demos: 0 }];
+  assert.deepEqual(checks(parseBackup(json({ ...backup, statuses })).statuses[0]), [0, 1, 0]);
+});
+
 test("filtros salvos", () => {
   assert.deepEqual(parseBackup(json(backup)).filters, []);
   const filters = [{ id: 1, name: "Vinculados", filter: "{}" }];

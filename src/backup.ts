@@ -1,4 +1,4 @@
-import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusDef, StatusEvent } from "./db";
+import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusCheck, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
@@ -15,11 +15,12 @@ export type Backup = {
 };
 
 // Backups antigos não têm a lista de status: usam os de fábrica.
+const on = { check_prices: 1, check_releases: 1, check_demos: 1 };
 export const DEFAULT_STATUSES: StatusDef[] = [
-  { key: "backlog", label: "Backlog" },
-  { key: "playing", label: "Jogando" },
-  { key: "finished", label: "Terminado" },
-  { key: "abandoned", label: "Abandonado" },
+  { key: "backlog", label: "Backlog", ...on },
+  { key: "playing", label: "Jogando", ...on },
+  { key: "finished", label: "Terminado", ...on },
+  { key: "abandoned", label: "Abandonado", check_prices: 0, check_releases: 0, check_demos: 0 },
 ];
 
 const isInt = (v: unknown) => Number.isInteger(v);
@@ -64,6 +65,10 @@ export function parseBackup(text: string): Backup {
     !data.statuses.every((s) => typeof s.key === "string" && typeof s.label === "string")
   )
     throw new Error("Backup com status inválidos.");
+  // Backups antigos não têm o que o "Atualizar Dados" confere: tudo ligado, menos no Abandonado.
+  for (const s of data.statuses)
+    for (const check of ["check_prices", "check_releases", "check_demos"] as StatusCheck[])
+      if (s[check] !== 0 && s[check] !== 1) s[check] = s.key === "abandoned" ? 0 : 1;
   const statuses = new Set(data.statuses.map((s) => s.key));
   if (statuses.size !== data.statuses.length || new Set(data.statuses.map((s) => s.label)).size !== statuses.size)
     throw new Error("Backup com status repetidos.");

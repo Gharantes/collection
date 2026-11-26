@@ -4,7 +4,10 @@ import type { Backup } from "./backup";
 
 // Chave de um status registrado (os de fábrica: backlog, playing, finished, abandoned).
 export type Status = string;
-export type StatusDef = { key: Status; label: string };
+// O que o "Atualizar Dados" confere nos jogos de cada status (1 = confere).
+export const STATUS_CHECKS = ["check_prices", "check_releases", "check_demos"] as const;
+export type StatusCheck = (typeof STATUS_CHECKS)[number];
+export type StatusDef = { key: Status; label: string } & Record<StatusCheck, number>;
 export type Launch = "steam" | "exe";
 export type ReleaseStage = "early_access" | "pre_release";
 export type Achievements = "hunting" | "platinum";
@@ -74,13 +77,17 @@ export const setDemo = async (id: number, demo: number | null) =>
 // Progresso de uma atualização: quantos jogos já foram pesquisados de quantos.
 export type Progress = (done: number, total: number) => void;
 
-// Jogos da Steam que entram nas atualizações; os abandonados não são mais acompanhados.
-const tracked = async () => (await listGames()).filter((g) => g.steam_id != null && g.status !== "abandoned");
+// Jogos da Steam que entram numa etapa das atualizações: sem status, ou com status que tem a etapa ligada.
+const tracked = async (check: StatusCheck) => {
+  const [games, statuses] = await Promise.all([listGames(), listStatuses()]);
+  const off = new Set(statuses.filter((s) => !s[check]).map((s) => s.key));
+  return games.filter((g) => g.steam_id != null && !(g.status && off.has(g.status)));
+};
 
 // Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
 export const refreshPrices = async (onProgress?: Progress) => {
   const database = await getDb();
-  const games = await tracked();
+  const games = await tracked("check_prices");
   onProgress?.(0, games.length);
   const prices = await fetchPrices(
     games.map((g) => g.steam_id!),
@@ -110,7 +117,7 @@ export const refreshPrices = async (onProgress?: Progress) => {
 // Pre-release vem do appdetails, um por vez. Jogos que falharam (sem internet, erro da Steam) ficam como estão.
 export const refreshReleases = async (onProgress?: Progress) => {
   const database = await getDb();
-  const games = (await tracked()).filter((g) => g.release_stage != null);
+  const games = (await tracked("check_releases")).filter((g) => g.release_stage != null);
   onProgress?.(0, games.length);
   const items = await fetchItems(games.map((g) => g.steam_id!));
   for (const [i, game] of games.entries()) {
@@ -127,7 +134,7 @@ export const refreshReleases = async (onProgress?: Progress) => {
 
 // Confere na Steam se os jogos que o usuário não tem ganharam ou perderam a demo.
 export const refreshDemos = async (onProgress?: Progress) => {
-  const games = (await tracked()).filter((g) => !g.owned);
+  const games = (await tracked("check_demos")).filter((g) => !g.owned);
   onProgress?.(0, games.length);
   const items = await fetchItems(
     games.map((g) => g.steam_id!),
@@ -248,6 +255,9 @@ export const setStatus = async (id: number, status: Status | null) => {
 
 export const listStatuses = async () =>
   (await getDb()).select<StatusDef[]>("SELECT * FROM statuses ORDER BY rowid");
+
+export const setStatusCheck = async (key: Status, check: StatusCheck, on: boolean) =>
+  (await getDb()).execute(`UPDATE statuses SET ${check} = $1 WHERE key = $2`, [on ? 1 : 0, key]);
 
 export const addStatus = async (label: string) =>
   (await getDb()).execute("INSERT INTO statuses (key, label) VALUES ($1, $2)", [crypto.randomUUID(), label]);
@@ -435,7 +445,12 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
     ["DELETE FROM games"],
     ["DELETE FROM lists"],
     ["DELETE FROM statuses"],
-    ["INSERT INTO statuses (key, label) SELECT value->>'key', value->>'label' FROM json_each($1)", [json(backup.statuses)]],
+    [
+      `INSERT INTO statuses (key, label, check_prices, check_releases, check_demos)
+     SELECT value->>'key', value->>'label', value->>'check_prices', value->>'check_releases', value->>'check_demos'
+     FROM json_each($1)`,
+      [json(backup.statuses)],
+    ],
     ["DELETE FROM saved_filters"],
     [
       "INSERT INTO saved_filters (name, filter) SELECT value->>'name', value->>'filter' FROM json_each($1)",
