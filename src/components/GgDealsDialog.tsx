@@ -15,7 +15,8 @@ export function GgDealsDialog({ run, onClose }: { run: Run; onClose: () => void 
 
   const onSave = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    savePref(GG_KEY, key.trim());
+    // Pelo run, o app recarrega e a página do jogo já usa a chave nova.
+    run(async () => savePref(GG_KEY, key.trim()))();
     ref.current?.close();
   };
 

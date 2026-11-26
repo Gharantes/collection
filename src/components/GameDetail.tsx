@@ -106,6 +106,13 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
       }
     })();
 
+  // Jogo com "Quero comprar" ainda sem os preços da gg.deals: busca ao abrir (uma vez por jogo).
+  const ggKey = readText(GG_KEY);
+  useEffect(() => {
+    if (!game.track_price || game.steam_id == null || game.gg_url != null || !ggKey) return;
+    run(() => refreshGgDeals(ggKey, undefined, [game]))();
+  }, [game.id, game.track_price, ggKey]);
+
   // "Jogar demo" só aparece com a demo instalada na Steam.
   const [demoInstalled, setDemoInstalled] = useState(false);
   useEffect(() => {
@@ -158,6 +165,11 @@ function Body({ game, events, sessions, lists, inList, run, error, onCloseError,
           {!!game.track_price && (
             <p>
               <Price final={game.price} initial={game.price_initial} currency={game.currency} />
+            </p>
+          )}
+          {!!game.track_price && game.steam_id != null && !ggKey && (
+            <p className="gg-prices muted">
+              Para ver lojas oficiais e keyshops, coloque a chave em Configurações › gg.deals.
             </p>
           )}
           {!!game.track_price && (game.gg_retail != null || game.gg_keyshop != null) && (
