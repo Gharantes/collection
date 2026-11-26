@@ -1,6 +1,7 @@
 import type { Game, PlaySession, StatusEvent } from "../db";
 import { formatDuration, money } from "../games";
 import { computeStats } from "../stats";
+import { PlayCalendar } from "./PlayCalendar";
 
 type Props = { games: Game[]; events: StatusEvent[]; sessions: PlaySession[] };
 
@@ -36,6 +37,8 @@ export function StatsPage({ games, events, sessions }: Props) {
         />
         <Tile label="Valor da coleção (preço atual)" value={s.value ? money(s.value, "BRL") : "—"} />
       </div>
+
+      <PlayCalendar games={games} sessions={sessions} />
 
       <section className="chart-card">
         <h2>Terminados por ano</h2>

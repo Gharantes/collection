@@ -1877,6 +1877,145 @@ button.play:hover {
   white-space: nowrap;
 }
 
+/* Calendário de jogo */
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.calendar-head h2 {
+  margin: 0;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-nav button {
+  padding: 3px 10px;
+}
+
+.calendar-month {
+  min-width: 140px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.calendar-month::first-letter {
+  text-transform: uppercase;
+}
+
+.calendar-sub {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.month-bars {
+  margin-bottom: 24px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.day-rows {
+  display: grid;
+  gap: 3px;
+}
+
+.day-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 90px;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.day-label {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.day-row.weekend .day-label {
+  color: var(--text);
+}
+
+.day-row.today .day-label {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.day-track {
+  position: relative;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--bg);
+}
+
+.day-axis .day-track {
+  height: 16px;
+  background: none;
+}
+
+.hour-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.hour-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+.session {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--surface);
+  outline: none;
+}
+
+.session:hover,
+.session:focus-visible {
+  filter: brightness(1.25);
+  z-index: 2;
+}
+
+.session .tooltip {
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.session:hover .tooltip,
+.session:focus-visible .tooltip {
+  opacity: 1;
+}
+
+.day-total {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 /* O que jogar? */
 
 .pick-dialog {

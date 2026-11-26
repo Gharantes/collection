@@ -37,6 +37,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Tempo de jogo dos jogos abertos pelo executável ou pela Steam (no Windows, pelo registro `Apps<id>Running`)
 - Executável que exige administrador (erro 740) abre pedindo o UAC, mantendo o tempo de jogo
 - Página de estatísticas
+- "Calendário de jogo" nas estatísticas: navega por mês; barras do tempo jogado por jogo no mês (8 cores, resto em "Outros") e uma linha de 24 h por dia com cada sessão no seu horário (cortada na meia-noite; hover mostra jogo, início–fim e duração)
 - Atualização do app pelas releases do GitHub: só manual, pelo botão "Procurar atualizações" em Configurações (antes procurava ao abrir)
 - Ícone próprio, README, testes simples, CI simples (só front), release por tag `v*`
 - Release só para Windows (Linux e macOS desligados por enquanto), reaproveitando o cache de build do Rust aquecido na `main` (warm-cache.yml)

@@ -36,3 +36,30 @@ test("estatísticas da coleção", () => {
     ],
   );
 });
+
+test("tempo de jogo do mês, cortado na meia-noite", async () => {
+  const { monthPlay } = await import("./stats.ts");
+  const at = (d: number, h: number) => new Date(2026, 10, d, h).toISOString();
+  const sessions = [
+    { game_id: 1, started_at: at(3, 22), seconds: 4 * 3600 }, // 22h do dia 3 até 2h do dia 4
+    { game_id: 2, started_at: at(3, 10), seconds: 3600 },
+    { game_id: 2, started_at: new Date(2026, 9, 31, 23).toISOString(), seconds: 2 * 3600 }, // começa em outubro
+    { game_id: 3, started_at: at(30, 23), seconds: 3 * 3600 }, // termina em dezembro
+  ] as PlaySession[];
+
+  const m = monthPlay(sessions, 2026, 10);
+  assert.equal(m.days.length, 30);
+  assert.deepEqual(m.days[0].segments, [{ gameId: 2, start: 0, end: 60 }]);
+  assert.deepEqual(m.days[2].segments, [
+    { gameId: 1, start: 1320, end: 1440 },
+    { gameId: 2, start: 600, end: 660 },
+  ]);
+  assert.deepEqual(m.days[3].segments, [{ gameId: 1, start: 0, end: 120 }]);
+  assert.equal(m.days[29].seconds, 3600);
+  assert.deepEqual(m.perGame, [
+    { gameId: 1, seconds: 14400 },
+    { gameId: 2, seconds: 7200 },
+    { gameId: 3, seconds: 3600 },
+  ]);
+  assert.equal(m.seconds, 25200);
+});

@@ -67,3 +67,41 @@ export function computeStats(games: Game[], events: StatusEvent[], sessions: Pla
     topPlayed,
   };
 }
+
+export type DaySegment = { gameId: number; start: number; end: number }; // minutos desde 0h (0–1440)
+export type MonthPlay = {
+  days: { day: number; segments: DaySegment[]; seconds: number }[];
+  perGame: { gameId: number; seconds: number }[]; // mais jogado primeiro
+  seconds: number;
+};
+
+// Sessões de um mês (month: 0–11), cortadas na meia-noite local, dia a dia.
+export function monthPlay(sessions: PlaySession[], year: number, month: number): MonthPlay {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, segments: [] as DaySegment[], seconds: 0 }));
+  const perGame = new Map<number, number>();
+  const monthStart = new Date(year, month, 1).getTime();
+  const monthEnd = new Date(year, month + 1, 1).getTime();
+
+  for (const s of sessions) {
+    let from = Math.max(Date.parse(s.started_at), monthStart);
+    const to = Math.min(Date.parse(s.started_at) + s.seconds * 1000, monthEnd);
+    while (from < to) {
+      const d = new Date(from);
+      const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const next = Math.min(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime(), to);
+      const day = days[d.getDate() - 1];
+      const secs = (next - from) / 1000;
+      day.segments.push({ gameId: s.game_id, start: (from - midnight) / 60000, end: (next - midnight) / 60000 });
+      day.seconds += secs;
+      perGame.set(s.game_id, (perGame.get(s.game_id) ?? 0) + secs);
+      from = next;
+    }
+  }
+
+  return {
+    days,
+    perGame: [...perGame].map(([gameId, seconds]) => ({ gameId, seconds })).sort((a, b) => b.seconds - a.seconds),
+    seconds: days.reduce((a, d) => a + d.seconds, 0),
+  };
+}
