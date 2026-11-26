@@ -1245,6 +1245,11 @@ button.confirm-reset:disabled {
   color: var(--muted);
 }
 
+.status-list li.status-none > :first-child {
+  font-style: italic;
+  color: var(--muted);
+}
+
 .status-dialog {
   width: min(600px, calc(100vw - 32px));
 }

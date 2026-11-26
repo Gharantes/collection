@@ -7,7 +7,8 @@ export type Status = string;
 // O que o "Atualizar Dados" confere nos jogos de cada status (1 = confere).
 export const STATUS_CHECKS = ["check_prices", "check_releases", "check_demos"] as const;
 export type StatusCheck = (typeof STATUS_CHECKS)[number];
-export type StatusDef = { key: Status; label: string } & Record<StatusCheck, number>;
+export type StatusChecks = Record<StatusCheck, number>;
+export type StatusDef = { key: Status; label: string } & StatusChecks;
 export type Launch = "steam" | "exe";
 export type ReleaseStage = "early_access" | "pre_release";
 export type Achievements = "hunting" | "platinum";
@@ -77,11 +78,11 @@ export const setDemo = async (id: number, demo: number | null) =>
 // Progresso de uma atualização: quantos jogos já foram pesquisados de quantos.
 export type Progress = (done: number, total: number) => void;
 
-// Jogos da Steam que entram numa etapa das atualizações: sem status, ou com status que tem a etapa ligada.
+// Jogos da Steam que entram numa etapa das atualizações: o status do jogo (ou "Sem status") tem a etapa ligada.
 const tracked = async (check: StatusCheck) => {
-  const [games, statuses] = await Promise.all([listGames(), listStatuses()]);
+  const [games, statuses, none] = await Promise.all([listGames(), listStatuses(), getNoStatusChecks()]);
   const off = new Set(statuses.filter((s) => !s[check]).map((s) => s.key));
-  return games.filter((g) => g.steam_id != null && !(g.status && off.has(g.status)));
+  return games.filter((g) => g.steam_id != null && (g.status ? !off.has(g.status) : !!none[check]));
 };
 
 // Busca o preço atual de todos os jogos da Steam e preenche imagens que faltam.
@@ -259,6 +260,15 @@ export const listStatuses = async () =>
 export const setStatusCheck = async (key: Status, check: StatusCheck, on: boolean) =>
   (await getDb()).execute(`UPDATE statuses SET ${check} = $1 WHERE key = $2`, [on ? 1 : 0, key]);
 
+// O que o "Atualizar Dados" confere nos jogos sem status.
+export const getNoStatusChecks = async (): Promise<StatusChecks> =>
+  (await (await getDb()).select<StatusChecks[]>(
+    "SELECT check_prices, check_releases, check_demos FROM no_status_checks WHERE id = 1",
+  ))[0] ?? { check_prices: 1, check_releases: 1, check_demos: 1 };
+
+export const setNoStatusCheck = async (check: StatusCheck, on: boolean) =>
+  (await getDb()).execute(`UPDATE no_status_checks SET ${check} = $1 WHERE id = 1`, [on ? 1 : 0]);
+
 export const addStatus = async (label: string) =>
   (await getDb()).execute("INSERT INTO statuses (key, label) VALUES ($1, $2)", [crypto.randomUUID(), label]);
 
@@ -405,7 +415,7 @@ const GAME_COLUMNS = [
 export type BackupProgress = (label: string, done: number, total: number) => void;
 
 export const exportBackup = async (onProgress?: BackupProgress): Promise<string> => {
-  const total = 9;
+  const total = 10;
   let done = 0;
   const tick = <T,>(read: Promise<T>) =>
     read.then((rows) => {
@@ -413,8 +423,9 @@ export const exportBackup = async (onProgress?: BackupProgress): Promise<string>
       return rows;
     });
   onProgress?.("Lendo dados", done, total);
-  const [statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links] = await Promise.all([
+  const [statuses, no_status, filters, games, lists, game_lists, status_events, play_sessions, notes, links] = await Promise.all([
     tick(listStatuses()),
+    tick(getNoStatusChecks()),
     tick(listSavedFilters()),
     tick(listGames()),
     tick(listLists()),
@@ -424,7 +435,7 @@ export const exportBackup = async (onProgress?: BackupProgress): Promise<string>
     tick(listNotes()),
     tick(listLinks()),
   ]);
-  const backup: Backup = { app: "collection", version: 1, statuses, filters, games, lists, game_lists, status_events, play_sessions, notes, links };
+  const backup: Backup = { app: "collection", version: 1, statuses, no_status, filters, games, lists, game_lists, status_events, play_sessions, notes, links };
   return JSON.stringify(backup, null, 2);
 };
 
@@ -450,6 +461,10 @@ export const restoreBackup = async (backup: Backup, onProgress?: BackupProgress)
      SELECT value->>'key', value->>'label', value->>'check_prices', value->>'check_releases', value->>'check_demos'
      FROM json_each($1)`,
       [json(backup.statuses)],
+    ],
+    [
+      "UPDATE no_status_checks SET check_prices = $1, check_releases = $2, check_demos = $3 WHERE id = 1",
+      [backup.no_status.check_prices, backup.no_status.check_releases, backup.no_status.check_demos],
     ],
     ["DELETE FROM saved_filters"],
     [

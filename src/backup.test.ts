@@ -32,6 +32,10 @@ test("o que o Atualizar Dados confere em cada status", () => {
   assert.deepEqual(checks(old.find((s) => s.key === "abandoned")!), [0, 0, 0]);
   const statuses = [{ key: "playing", label: "Jogando", check_prices: 0, check_releases: 1, check_demos: 0 }];
   assert.deepEqual(checks(parseBackup(json({ ...backup, statuses })).statuses[0]), [0, 1, 0]);
+  // Sem status: backup antigo tudo ligado; senão, o que veio.
+  assert.deepEqual(checks(parseBackup(json(backup)).no_status), [1, 1, 1]);
+  const no_status = { check_prices: 0, check_releases: 1, check_demos: 0 };
+  assert.deepEqual(checks(parseBackup(json({ ...backup, no_status })).no_status), [0, 1, 0]);
 });
 
 test("filtros salvos", () => {

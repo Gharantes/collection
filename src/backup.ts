@@ -1,9 +1,11 @@
-import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusCheck, StatusDef, StatusEvent } from "./db";
+import type { Game, GameLink, List, Membership, Note, PlaySession, SavedFilter, StatusCheck, StatusChecks, StatusDef, StatusEvent } from "./db";
 
 export type Backup = {
   app: "collection";
   version: 1;
   statuses: StatusDef[];
+  // O que o "Atualizar Dados" confere nos jogos sem status.
+  no_status: StatusChecks;
   filters: SavedFilter[];
   games: Game[];
   lists: List[];
@@ -69,6 +71,10 @@ export function parseBackup(text: string): Backup {
   for (const s of data.statuses)
     for (const check of ["check_prices", "check_releases", "check_demos"] as StatusCheck[])
       if (s[check] !== 0 && s[check] !== 1) s[check] = s.key === "abandoned" ? 0 : 1;
+  // Backups antigos não têm "Sem status": tudo ligado, como era.
+  data.no_status = typeof data.no_status === "object" && data.no_status ? data.no_status : { ...on };
+  for (const check of ["check_prices", "check_releases", "check_demos"] as StatusCheck[])
+    if (data.no_status[check] !== 0 && data.no_status[check] !== 1) data.no_status[check] = 1;
   const statuses = new Set(data.statuses.map((s) => s.key));
   if (statuses.size !== data.statuses.length || new Set(data.statuses.map((s) => s.label)).size !== statuses.size)
     throw new Error("Backup com status repetidos.");

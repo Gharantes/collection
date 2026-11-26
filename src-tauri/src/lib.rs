@@ -151,6 +151,12 @@ pub fn run() {
             sql: include_str!("../migrations/024_status_checks.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 25,
+            description: "add no_status_checks",
+            sql: include_str!("../migrations/025_no_status_checks.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
