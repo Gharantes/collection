@@ -163,6 +163,12 @@ pub fn run() {
             sql: include_str!("../migrations/026_track_price.sql"),
             kind: tauri_plugin_sql::MigrationKind::Up,
         },
+        tauri_plugin_sql::Migration {
+            version: 27,
+            description: "games.track_price off",
+            sql: include_str!("../migrations/027_track_price_off.sql"),
+            kind: tauri_plugin_sql::MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

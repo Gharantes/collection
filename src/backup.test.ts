@@ -38,19 +38,11 @@ test("o que o Atualizar Dados confere em cada status", () => {
   assert.deepEqual(checks(parseBackup(json({ ...backup, no_status })).no_status), [1, 0]);
 });
 
-test("Quero comprar em backups antigos vem do status", () => {
-  const track = (b: object) => parseBackup(json(b)).games[0].track_price;
-  // Mais antigo: confere tudo, menos Abandonado; jogo que tem fica de fora.
-  assert.equal(track(backup), 1);
-  assert.equal(track({ ...backup, games: [{ ...game, owned: 1 }] }), 0);
-  assert.equal(track({ ...backup, games: [{ ...game, status: "abandoned" }] }), 0);
-  // Com os toggles por status.
-  const statuses = [{ key: "playing", label: "Jogando", check_prices: 0, check_releases: 1, check_demos: 1 }];
-  assert.equal(track({ ...backup, statuses }), 0);
-  const no_status = { check_prices: 0, check_releases: 1, check_demos: 1 };
-  assert.equal(track({ ...backup, no_status, games: [{ ...game, status: null }] }), 0);
-  // Backup novo: o que veio.
-  assert.equal(track({ ...backup, statuses, games: [{ ...game, track_price: 1 }] }), 1);
+test("Quero comprar no backup", () => {
+  // Backup antigo não tem: fica desmarcado ao restaurar (COALESCE no banco). Backup novo: o que veio.
+  assert.equal(parseBackup(json(backup)).games[0].track_price, undefined);
+  assert.equal(parseBackup(json({ ...backup, games: [{ ...game, track_price: 1 }] })).games[0].track_price, 1);
+  assert.throws(() => parseBackup(json({ ...backup, games: [{ ...game, track_price: 2 }] })));
 });
 
 test("filtros salvos", () => {

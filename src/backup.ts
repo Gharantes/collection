@@ -52,7 +52,7 @@ const validGame = (statuses: Set<string>) => (g: Game) =>
   (g.owned == null || g.owned === 0 || g.owned === 1) &&
   isIntOrNull(g.demo_steam_id) &&
   (g.news == null || g.news === 0 || g.news === 1) &&
-  (g.track_price === 0 || g.track_price === 1) &&
+  (g.track_price == null || g.track_price === 0 || g.track_price === 1) &&
   (g.target_discount == null || (isInt(g.target_discount) && g.target_discount >= 1 && g.target_discount <= 100));
 
 // Lê e valida o arquivo inteiro antes de qualquer escrita no banco.
@@ -70,20 +70,6 @@ export function parseBackup(text: string): Backup {
     !data.statuses.every((s) => typeof s.key === "string" && typeof s.label === "string")
   )
     throw new Error("Backup com status inválidos.");
-  // Backups antigos não têm o "Quero comprar": marca os jogos da Steam que não tem e cujo status (ou "Sem status")
-  // conferia preços, como a migration. Os mais antigos ainda conferiam tudo, menos no Abandonado.
-  type Old = { check_prices?: unknown } | null | undefined;
-  const pricesOn = (c: Old, abandoned = false) =>
-    c?.check_prices === 0 || c?.check_prices === 1 ? c.check_prices === 1 : !abandoned;
-  const old = new Map(data.statuses.map((s) => [s.key, s as Old]));
-  const noneOn = pricesOn(data.no_status as Old);
-  if (Array.isArray(data.games))
-    for (const g of data.games)
-      if (g && typeof g === "object" && g.track_price == null)
-        g.track_price =
-          g.steam_id != null && !g.owned && (g.status == null ? noneOn : pricesOn(old.get(g.status), g.status === "abandoned"))
-            ? 1
-            : 0;
   // Backups antigos não têm o que o "Atualizar Dados" confere: tudo ligado, menos no Abandonado.
   for (const s of data.statuses)
     for (const check of CHECKS)

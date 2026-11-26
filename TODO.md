@@ -65,7 +65,7 @@ Ideias já discutidas. Antes de sugerir algo novo, conferir aqui para não repet
 - Em "Registrar Status", um toggle por etapa do "Atualizar Dados" em cada status (Preços, EA / Pre-release, Demos): desligado, os jogos daquele status ficam de fora da etapa. Abandonado começa com tudo desligado; jogos sem status sempre entram; vai no backup (backups antigos: tudo ligado, menos Abandonado)
 - Linha "Sem status" no "Registrar Status", com os mesmos toggles para os jogos sem status (começa tudo ligado; vai no backup)
 - Botão "Limpar histórico" na aba Atualizações (confirma antes) apaga as mudanças guardadas
-- Preço por jogo, no lugar do toggle "Preços" por status: checkbox "Quero comprar" (linha "Compra", acima do Alerta, só em jogos da Steam). Só os marcados têm o preço conferido no "Atualizar Dados" e mostrado (página, tabela, selo de desconto nos cards, ordenação, preço-alvo); o Alerta só aparece marcado. Marcar busca o preço na hora. Migration e backups antigos marcam os que tinham o preço conferido pelo status e que não tem; vai no backup
+- Preço por jogo, no lugar do toggle "Preços" por status: checkbox "Quero comprar" (linha "Compra", acima do Alerta, só em jogos da Steam). Só os marcados têm o preço conferido no "Atualizar Dados" e mostrado (página, tabela, selo de desconto nos cards, ordenação, preço-alvo); o Alerta só aparece marcado. Marcar busca o preço na hora. Todos os jogos começam desmarcados (inclusive os que já existiam e os de backups antigos); vai no backup
 - Etapa Early Access/Pre-release do "Atualizar Dados" usa o estado da `GetItems` em lote (o appdetails demorava a tirar o Early Access); a data do Pre-release segue do appdetails
 
 ## Recusado
